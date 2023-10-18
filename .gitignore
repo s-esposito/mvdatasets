@@ -1,3 +1,5 @@
 .vscode
 *.pyo
 *.pyc
+debug
+plots

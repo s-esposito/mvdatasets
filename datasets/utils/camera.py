@@ -3,58 +3,115 @@ import numpy as np
 import cv2 as cv
 
 
-# This function is borrowed from IDR: https://github.com/lioryariv/idr
-def decompose_projection_matrix(c2w):
+def decompose_projection_matrix(P):
     """
-    Decompose a projection matrix (c2w) into K, R, t such that P = K[R|t].
+    Decompose a projection matrix into K, R, t such that P = K[R|t].
     Args:
-        c2w (np.ndarray): 3x4 projection matrix.
+        P (np.ndarray): 3x4 projection matrix.
     Returns:
-        intrinsics (np.ndarray): 3x3 intrinsic matrix.
-        pose (np.ndarray): 4x4 extrinsic matrix.
+        K (np.ndarray): 3x3 intrinsic matrix.
+        R (np.ndarray): 3x3 rotation matrix.
+        t (np.ndarray): 3x1 translation vector.
     """
-
-    res = cv.decomposeProjectionMatrix(c2w)
-    camera_matrix = res[0]
-    rot = res[1]
-    trasl = res[2]
-
-    intrinsics = camera_matrix / camera_matrix[2, 2]  # normalize K
-    pose = np.eye(4, dtype=np.float32)
-    pose[:3, :3] = rot.transpose()
-    pose[:3, 3] = (trasl[:3] / trasl[3])[:, 0]
-
-    return intrinsics, pose
+    M = P[0:3, 0:3]
+    Q = np.eye(3)[::-1]
+    P_b = Q @ M @ M.T @ Q
+    K_h = Q @ np.linalg.cholesky(P_b) @ Q
+    K = K_h / K_h[2, 2]
+    A = np.linalg.inv(K) @ M
+    l = (1 / np.linalg.det(A)) ** (1 / 3)
+    R = l * A
+    t = l * np.linalg.inv(K) @ P[0:3, 3]
+    return K, R, t
 
 
 class Camera:
     """Camera class."""
 
-    def __init__(self, c2w, img, mask=None, transform=None):
-        """Create a camera object
+    def __init__(self, imgs, intrinsics=None, pose=None, projection=None, masks=None, transform=None, device="cuda:0"):
+        """Create a camera object, all parameters are torch tensors.
 
         Args:
-            c2w (torch.tensor): projection matrix (3, 4)
-            img (torch.tensor): (H, W, 3)
-            mask (torch.tensor): (H, W, 1)
+            imgs (np.array): (T, H, W, 3)
+            intrinsics (np.array): (3, 3)
+            pose (np.array): (4, 4)
+            projection (np.array): projection matrix (3, 4)
+            masks (np.array): (T, H, W, 1)
         """
 
-        self.c2w = c2w
-        # K: (3, 3), [R|t]: (4, 4)
-        self.intrinsics, self.pose = decompose_projection_matrix(self.c2w.cpu().numpy())
-        self.intrinsics = torch.from_numpy(self.intrinsics)
-        self.pose = torch.from_numpy(self.pose)
-        self.img = img  # torch.tensor of shape (H, W, 3)
-        self.mask = mask  # torch.tensor of shape (H, W, 1)
-        self.height = img.shape[0]
-        self.width = img.shape[1]
-        self.transform = transform if transform is not None else torch.eye(4)
+        if intrinsics is None and pose is None and projection is not None:
+            K, R, t = decompose_projection_matrix(projection.numpy())
+            Rt = np.eye(4)
+            Rt[:3, :3] = R
+            Rt[:3, 3] = t
+            self.intrinsics = torch.from_numpy(K).float().to(device)
+            self.pose = torch.from_numpy(Rt).float().to(device)
+        elif intrinsics is not None and pose is not None:
+            self.intrinsics = torch.from_numpy(intrinsics).float().to(device)
+            self.pose = torch.from_numpy(pose).float().to(device)
+        else:
+            raise ValueError("Either projection or intrinsics and pose must be provided")
+
+        self.intrinsics_inv = torch.inverse(self.intrinsics)
+        self.imgs = torch.from_numpy(imgs.astype(np.float32) / 255).float().to(device)
+        if masks is not None:
+            self.masks = torch.from_numpy(masks.astype(np.float32) / 255).float().to(device)
+        else:
+            self.masks = None
+        self.height = imgs.shape[1]
+        self.width = imgs.shape[2]
+        self.nr_pixels = self.height * self.width
+
+        if transform is not None:
+            self.transform = torch.from_numpy(transform).float().to(device)
+        else:
+            self.transform = torch.from_numpy(np.eye(4)).float().to(device)
+
+        # print each tensor device
+        print("transform", self.transform.device)
+        print("pose", self.pose.device)
+        print("intrinsics", self.intrinsics.device)
+        print("intrinsics_inv", self.intrinsics_inv.device)
+        print("imgs", self.imgs.device)
+        if self.masks is not None:
+            print("masks", self.masks.device)
+
+    def get_frame(self, timestamp=0):
+        """returns image and, if exists, a mask at timestamp"""
+        mask = None
+        if len(self.masks) > timestamp:
+            mask = self.masks[timestamp]
+        return self.imgs[timestamp], mask
 
     def get_pose(self):
-        return self.transform @ self.pose
+        """returns camera pose in world space"""
+        pose = self.transform @ self.pose
+        return pose
+
+    def get_projection(self):
+        """return camera projection matrix
+        out: projection (3, 4)
+        """
+        # Perform the matrix multiplication
+        projection = self.intrinsics @ self.get_pose()[:3, :4]
+        return projection
+
+    # def get_pose_inv(self):
+    #     pose_inv = torch.inverse(self.get_pose())
+    #     return pose_inv
+
+    # def get_projection(self):
+    #     pose = self.get_pose()
+    #     projection = self.intrinsics @ pose
+    #     return projection
 
     def concat_transform(self, transform):
+        # apply transform
         self.transform = transform @ self.transform
+        # # normalize
+        # self.transform = self.transform / self.transform[3, 3]
+        # # make sure rotation is still orthogonal
+        # assert torch.linalg.det(self.transform[:3, :3]) - 1 < 1e-6
 
     # def get_rays(self):
     #     """
@@ -65,31 +122,47 @@ class Camera:
     #     rays_d (torch.tensor): direction of each ray (a unit vector). (H*W, 3)
     #     """
 
-    #     # (H, W), (H, W)
-    #     ii, jj = torch.meshgrid(
-    #         torch.arange(0, self.width, self.width),
-    #         torch.arange(0, self.height, self.height),
-    #         indexing="xy",
-    #     )
+    #     pose = self.get_pose()
+    #     intrinsics_inv = torch.inverse(self.intrinsics)
+    #     tx = torch.linspace(0, self.width - 1, 1)
+    #     ty = torch.linspace(0, self.height - 1, 1)
+    #     pixels_x, pixels_y = torch.meshgrid(tx, ty, indexing="ij")
+    #     # W, H, 3
+    #     p = torch.stack([pixels_x, pixels_y, torch.ones_like(pixels_y)], dim=-1)
+    #     print(p.shape)
+    #     # W, H, 3
+    #     # p = torch.matmul(intrinsics_inv[None, :3, :3], p[:, :, :, None]).squeeze()
+    #     # print(p.shape)
+    #     # # W, H, 3
+    #     # rays_d = p / torch.linalg.norm(p, ord=2, dim=-1, keepdim=True)
+    #     # print(rays_d.shape)
+    #     # # W, H, 3
+    #     # rays_d = torch.matmul(pose[None, :3, :3], rays_d[:, :, :, None]).squeeze()
+    #     # # W, H, 3
+    #     # rays_o = pose[None, :3, 3].expand(rays_d.shape)
 
-    #     # (H, W, 3)
-    #     local_rays_d = torch.stack(
-    #         [
-    #             (ii - self.width * 0.5) / self.K[0, 0],
-    #             -(jj - self.height * 0.5) / self.K[1, 1],
-    #             -torch.ones_like(ii),
-    #         ],
-    #         dim=-1,
-    #     )
+    #     # # (H, W), (H, W)
+    #     # ii, jj = torch.meshgrid(
+    #     #     torch.arange(0, self.width, 1),
+    #     #     torch.arange(0, self.height, 1),
+    #     #     indexing="xy",
+    #     # )
 
-    #     rays_d = torch.sum(local_rays_d[..., None, :] * self.c2w[:3, :3], dim=-1)
-    #     rays_d = rays_d / torch.norm(rays_d, dim=-1, keepdim=True)
+    #     # # (H, W, 3)
+    #     # local_rays_d = torch.stack(
+    #     #     [
+    #     #         (ii - self.width * 0.5) / self.intrinsics[0, 0],
+    #     #         -(jj - self.height * 0.5) / self.intrinsics[1, 1],
+    #     #         -torch.ones_like(ii),
+    #     #     ],
+    #     #     dim=-1,
+    #     # )
 
-    #     rays_o = self.c2w[:3, -1].expand(rays_d.shape)
-
-    #     # (N_rays, 3)
-    #     rays_o = rays_o.view(-1, 3)
-    #     rays_d = rays_d.view(-1, 3)
+    #     # rays_d = torch.sum(local_rays_d[..., None, :] * self.get_pose()[:3, :3], dim=-1)
+    #     # rays_d = rays_d / torch.norm(rays_d, dim=-1, keepdim=True)
+    #     # rays_o = self.get_pose()[:3, -1].expand(rays_d.shape)
+    #     # rays_o = rays_o.view(-1, 3)
+    #     # rays_d = rays_d.view(-1, 3)
 
     #     return rays_o, rays_d
 
@@ -101,8 +174,22 @@ class Camera:
     #     rays_o (torch.tensor): centers of each ray. (N, 3)
     #     rays_d (torch.tensor): direction of each ray (a unit vector). (N, 3)
     #     """
-    #     rays_o, rays_d = self.get_rays()
-    #     idxs = np.random.choice(rays_o.shape[0], nr_rays, replace=False)
-    #     rays_o = rays_o[idxs]
-    #     rays_d = rays_d[idxs]
-    #     return rays_o, rays_d
+
+    #     pixels_x = torch.randint(low=0, high=self.width, size=[nr_rays])
+    #     pixels_y = torch.randint(low=0, high=self.height, size=[nr_rays])
+    #     color = self.img[(pixels_y, pixels_x)]  # batch_size, 3
+    #     p = torch.stack(
+    #         [pixels_x, pixels_y, torch.ones_like(pixels_y)], dim=-1
+    #     ).float()  # batch_size, 3
+    #     # p = torch.matmul(
+    #     #     self.intrinsics_all_inv[img_idx, None, :3, :3], p[:, :, None]
+    #     # ).squeeze()  # batch_size, 3
+    #     # rays_v = p / torch.linalg.norm(p, ord=2, dim=-1, keepdim=True)  # batch_size, 3
+    #     # rays_v = torch.matmul(
+    #     #     self.pose_all[img_idx, None, :3, :3], rays_v[:, :, None]
+    #     # ).squeeze()  # batch_size, 3
+    #     # rays_o = self.pose_all[img_idx, None, :3, 3].expand(
+    #     #     rays_v.shape
+    #     # )  # batch_size, 3
+
+    #     return rays_o, rays_d, color
