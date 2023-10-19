@@ -40,23 +40,22 @@ print("Scene data path: {}".format(scene_data_path))
 #     particles_path = os.path.join(original_data_path, "frames", "particles-000000000.dat")
 #     points_3d = load_particles_fluidsym(particles_path)
 
-# elif dataset_name == "pac_nerf":
 # load gt particles
-particles_path = os.path.join("debug", "particles", dataset_name, scene_name, "0.ply")
-# # make sure folder exists
-# if not os.path.exists(scene_data_path):
-#     print(f"scene point cloud not found in {scene_data_path}")
-#     points_3d = np.zeros((0, 3))
-# else:
-#     points_3d = load_particles_pacnerf(particles_path)
+particles_dir = os.path.join("debug", "particles", dataset_name, scene_name)
+particles_files = os.listdir(particles_dir)
+# sort by increasing int
+particles_files = sorted(particles_files, key=lambda x: int(x.split(".")[0]))
+particles_paths = []
+for file in particles_files:
+    particles_paths.append(os.path.join(particles_dir, file))
 
 # dataset loading
 training_data = MVDataset(
     dataset_name,
     scene_name,
     scene_data_path,
-    point_cloud_path=particles_path,
-    split="train",
+    point_clouds_paths=particles_paths,
+    split="all",
     load_with_mask=True,
     auto_center_method="none",  # "poses", "focus", "none"
     auto_orient_method="none",  # "up", "none"
@@ -68,10 +67,10 @@ training_data = MVDataset(
 
 fig = plot_cameras(
     training_data.cameras,
-    points=training_data.point_cloud,
+    points=training_data.point_clouds[0],
     azimuth_deg=20,
     elevation_deg=30,
-    up="z",
+    up="y",
     figsize=(15, 15),
 )
 
@@ -88,18 +87,29 @@ print("img_torch", img_torch.shape)
 img_pil = tensor2image(img_torch)
 img_pil.save("test_dynamic_scenes_mask.png")
 
-camera_idx = 0
-w2c = np.linalg.inv(training_data.cameras[camera_idx].get_pose().cpu().numpy())
+camera_idx = 1
+timestamp_idx = 7
+img_np = training_data.cameras[camera_idx].get_frame(timestamp_idx).cpu().numpy()
 intrinsics = training_data.cameras[camera_idx].intrinsics.cpu().numpy()
 points_2d = project_points_3d_to_2d(
-    points=training_data.point_cloud, intrinsics=intrinsics, w2c=w2c
+    points_3d=training_data.point_clouds[timestamp_idx],
+    intrinsics=intrinsics,
+    c2w=training_data.cameras[camera_idx].get_pose().cpu().numpy(),
 )
-img_np = training_data.cameras[camera_idx].get_frame().cpu().numpy()
+# filter out points outside image range
+points_2d = points_2d[points_2d[:, 0] > 0]
+points_2d = points_2d[points_2d[:, 1] > 0]
+points_2d = points_2d[points_2d[:, 0] < img_np.shape[1]]
+points_2d = points_2d[points_2d[:, 1] < img_np.shape[0]]
 print("points_2d", points_2d.shape)
 
 fig = plt.figure()
-plt.imshow(img_np)
-plt.scatter(points_2d[:, 0], points_2d[:, 1], s=1, c="r")
+plt.imshow(img_np, alpha=1.0)
+colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+colors /= np.max(colors)
+colors += 0.5
+colors /= np.max(colors)
+plt.scatter(points_2d[:, 0], points_2d[:, 1], s=5, c=colors, marker=".")
 plt.gca().set_aspect("equal", adjustable="box")
 plt.xlabel("x")
 plt.ylabel("y")

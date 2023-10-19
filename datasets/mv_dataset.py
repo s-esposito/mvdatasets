@@ -20,37 +20,41 @@ def get_poses_all(cameras):
     return poses
 
 
-def load_point_cloud(point_cloud_path, max_nr_points=1000):
-    """Loads a point cloud from a file.
+def load_point_clouds(point_clouds_paths, max_nr_points=1000):
+    """Loads point cloud from files.
     If the file is a mesh, points are its vertices.
 
     Args:
-        point_cloud_path: path to the point cloud file
+        point_clouds_paths: ordered list of point cloud file paths
         max_nr_points: maximum number of points to load
 
     Returns:
-        points_3d: (N, 3) numpy array
+        point_clouds []: ordered list of (N, 3) numpy arrays
     """
-    # if exists, load it
-    if os.path.exists(point_cloud_path):
-        # if format is .ply or .obj
-        if point_cloud_path.endswith(".ply") or point_cloud_path.endswith(".obj"):
-            print("Loading point cloud from {}".format(point_cloud_path))
-            point_cloud = o3d.io.read_point_cloud(point_cloud_path)
-            points_3d = np.asarray(point_cloud.points)
-            if points_3d.shape[0] > max_nr_points:
-                # downsample
-                random_idx = np.random.choice(
-                    points_3d.shape[0], max_nr_points, replace=False
-                )
-                points_3d = points_3d[random_idx]
-            print("Loaded {} points from mesh".format(points_3d.shape[0]))
-        else:
-            raise ValueError("Unsupported point cloud format")
-    else:
-        raise ValueError("Point cloud path {} does not exist".format(point_cloud_path))
 
-    return points_3d
+    point_clouds = []
+    for pc_path in point_clouds_paths:
+        # if exists, load it
+        if os.path.exists(pc_path):
+            # if format is .ply or .obj
+            if pc_path.endswith(".ply") or pc_path.endswith(".obj"):
+                print("Loading point cloud from {}".format(pc_path))
+                point_cloud = o3d.io.read_point_cloud(pc_path)
+                points_3d = np.asarray(point_cloud.points)
+                if points_3d.shape[0] > max_nr_points:
+                    # downsample
+                    random_idx = np.random.choice(
+                        points_3d.shape[0], max_nr_points, replace=False
+                    )
+                    points_3d = points_3d[random_idx]
+                    point_clouds.append(points_3d)
+                print("Loaded {} points from mesh".format(points_3d.shape[0]))
+            else:
+                raise ValueError("Unsupported point cloud format")
+        else:
+            raise ValueError("Point cloud path {} does not exist".format(pc_path))
+
+    return point_clouds
 
 
 class MVDataset(Dataset):
@@ -63,7 +67,7 @@ class MVDataset(Dataset):
         dataset_name,
         scene_name,
         data_path,
-        point_cloud_path=None,
+        point_clouds_paths=[],
         split="train",  # "all", train", "test"
         use_every_for_test_split=8,
         train_test_no_overlap=True,
@@ -118,12 +122,10 @@ class MVDataset(Dataset):
             print("ERROR: dataset not supported")
             sys.exit()
 
-        if point_cloud_path is not None:
-            self.point_cloud = load_point_cloud(point_cloud_path)
+        if len(point_clouds_paths) > 0:
+            self.point_clouds = load_point_clouds(point_clouds_paths)
         else:
-            self.point_cloud = np.empty((0, 3))
-
-        # scene = Scene(cameras_all, point_cloud)
+            self.point_clouds = []
 
         # # align and center poses
         # poses_all = get_poses_all(cameras_all)

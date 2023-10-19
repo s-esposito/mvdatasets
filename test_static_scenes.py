@@ -27,7 +27,10 @@ assert os.path.exists(scene_data_path), "Scene data path does not exist"
 print("Scene data path: {}".format(scene_data_path))
 
 # load gt mesh if exists
-gt_mesh_path = os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")
+gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
+# point_cloud_path = os.path.join(
+#     "debug", "point_clouds", dataset_name, f"{scene_name}.ply"
+# )
 # # if exists, load it
 # if os.path.exists(gt_mesh_path):
 #     print("Found gt mesh at {}".format(gt_mesh_path))
@@ -47,8 +50,9 @@ training_data = MVDataset(
     dataset_name,
     scene_name,
     scene_data_path,
-    point_cloud_path=gt_mesh_path,
-    split="all",
+    point_clouds_paths=gt_meshes_paths,
+    split="train",
+    use_every_for_test_split=2,
     auto_center_method="none",  # "poses", "focus", "none"
     auto_orient_method="none",  # "up", "none"
     # auto_scale_poses=False,
@@ -67,10 +71,10 @@ training_data = MVDataset(
 
 fig = plot_cameras(
     training_data.cameras,
-    points=training_data.point_cloud,
+    points=training_data.point_clouds[0],
     azimuth_deg=20,
     elevation_deg=30,
-    up="z",
+    up="y",
     figsize=(15, 15),
 )
 
@@ -87,18 +91,19 @@ print("img_torch", img_torch.shape)
 img_pil = tensor2image(img_torch)
 img_pil.save("test_static_scenes_mask.png")
 
-camera_idx = 0
+camera_idx = 3
 img_np = training_data.cameras[camera_idx].get_frame().cpu().numpy()
-w2c = np.linalg.inv(training_data.cameras[camera_idx].get_pose().cpu().numpy())
 intrinsics = training_data.cameras[camera_idx].intrinsics.cpu().numpy()
 points_2d = project_points_3d_to_2d(
-    points=training_data.point_cloud, intrinsics=intrinsics, w2c=w2c
+    points_3d=training_data.point_clouds[0],
+    intrinsics=intrinsics,
+    c2w=training_data.cameras[camera_idx].get_pose().cpu().numpy(),
 )
 # filter out points outside image range
 points_2d = points_2d[points_2d[:, 0] > 0]
 points_2d = points_2d[points_2d[:, 1] > 0]
-points_2d = points_2d[points_2d[:, 1] < img_np.shape[1]]
-points_2d = points_2d[points_2d[:, 0] < img_np.shape[0]]
+points_2d = points_2d[points_2d[:, 0] < img_np.shape[1]]
+points_2d = points_2d[points_2d[:, 1] < img_np.shape[0]]
 print("points_2d", points_2d.shape)
 
 fig = plt.figure()

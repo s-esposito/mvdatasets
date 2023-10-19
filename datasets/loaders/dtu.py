@@ -92,9 +92,24 @@ def load_dtu(
         projection_np = projection_np[:3, :4]
         intrinsics, pose = load_K_Rt_from_P(None, projection_np)
 
+        # flip local x-axis
+        # pose[:3, 0] *= -1
+
         # rotation around x axis by 115 degrees
         rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_degrees))
         pose = pose_global_rotation(pose, rotation)
+
+        # transformation flipping the z-axis
+        # rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, -1]], dtype=np.float32)
+        # pose = pose_global_rotation(pose, rotation)
+
+        # rotation around x axis by 115 degrees
+        # rotation = rot_x_3d(deg2rad(-rotate_scene_x_axis_degrees))
+        # pose = pose_global_rotation(pose, rotation)
+
+        pose[:3, 0] *= -1
+        pose[:3, 2] *= -1
+        pose[:3, 1] *= -1
 
         # scale
         pose[:3, 3] *= scene_scale_multiplier

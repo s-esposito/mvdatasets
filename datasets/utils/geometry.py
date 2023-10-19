@@ -103,20 +103,26 @@ def transform_points_3d(points, transform):
     return np.dot(transform[:3, :3], points.T).T + transform[:3, 3]
 
 
-def project_points_3d_to_2d(points, intrinsics, w2c):
+def project_points_3d_to_2d(points_3d, intrinsics, c2w):
     """Project 3D points to 2D points
-    args: points (N, 3)
-    projection_matrix (3, 4)
-    out: points (N, 2)
+    args:
+        points_3d (N, 3)
+        c2w: (3, 4)
+        intrinsics: (3, 3)
+    out:
+        points_2d (N, 2)
     """
 
-    # transform the points from the world coordinate system to the camera coordinate system using the inverse of the camera pose matrix
-    transformed_points = transform_points_3d(points, w2c)
+    # get world to camera transformation
+    w2c = np.linalg.inv(c2w)
 
-    # Assuming camera_intrinsics is a 3x3 numpy array representing the intrinsic matrix
-    projected_points = np.dot(intrinsics, transformed_points.T).T
-    # Normalize the coordinates
-    projected_points[:, 0] /= projected_points[:, 2]
-    projected_points[:, 1] /= projected_points[:, 2]
+    # view transformation
+    points_3d_camera = transform_points_3d(points_3d, w2c)
 
-    return projected_points[:, :2]
+    # perspective transformation
+    points_2d_homogeneous = (intrinsics @ points_3d_camera.T).T
+
+    # convert to 2D coordinates by dividing by the last column (homogeneous coordinate)
+    points_2d = points_2d_homogeneous[:, :2] / points_2d_homogeneous[:, 2:]
+
+    return points_2d

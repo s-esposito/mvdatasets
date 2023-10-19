@@ -7,6 +7,7 @@ import open3d as o3d
 from PIL import Image
 
 from datasets.utils.images import numpy2image, image2numpy
+from datasets.utils.geometry import rot_x_3d, rot_z_3d, pose_local_rotation
 from datasets.scenes.camera import Camera
 
 # def load_particles_fluidsym(path):
@@ -67,7 +68,19 @@ def load_pac_nerf(data_path, n_cameras=1, load_with_mask=False, device="cpu"):
         ]
 
         poses_all[cam_id] = np.eye(4)
-        poses_all[cam_id, :3, :4] = entry["c2w"]
+
+        pose = np.eye(4)
+        pose[:3, :4] = np.array(entry["c2w"])
+        # invert z axis
+        # pose[:3, 2] *= -1
+        # rotate 180 around z-axis
+        # rot_z = rot_z_3d(np.pi)
+        # pose = pose_local_rotation(pose, rot_z)
+        # invert x axis
+        pose[:3, 0] *= -1
+        # pose = pose_local_rotation(pose, rot_x)
+
+        poses_all[cam_id] = pose
         intrinsics_all[cam_id] = entry["intrinsic"]
         img_pil = Image.open(os.path.join(data_path, entry["file_path"]))
         img_np = image2numpy(img_pil)[..., :3]

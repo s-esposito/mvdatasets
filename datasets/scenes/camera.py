@@ -102,13 +102,13 @@ class Camera:
         pose = self.transform @ self.pose
         return pose
 
-    def get_projection(self):
-        """return camera projection matrix
-        out: projection (3, 4)
-        """
-        # Perform the matrix multiplication
-        projection = self.intrinsics @ self.get_pose()[:3, :4]
-        return projection
+    # def get_projection(self):
+    #     """return camera projection matrix
+    #     out: projection (3, 4)
+    #     """
+    #     # Perform the matrix multiplication
+    #     projection = self.intrinsics @ self.get_pose()[:3, :4]
+    #     return projection
 
     # def get_pose_inv(self):
     #     pose_inv = torch.inverse(self.get_pose())
