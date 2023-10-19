@@ -28,8 +28,10 @@ This code uses an "OpenGL" style camera coordinate system:
 </p>
 
 <p align="middle">
-  <img src="imgs/dtu_poses.png" width="400"/>
+  <img src="imgs/dtu_poses.png" width="600"/>
 </p>
+
+<!---
 
 # Citation
 
@@ -50,3 +52,5 @@ If you use this library for your research, please consider citing:
 <a href="https://github.com/s-esposito/datasets/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=s-esposito/datasets" />
 </a>
+
+-->
