@@ -1,16 +1,15 @@
 import sys
 import os
-import math
 import torch
 import numpy as np
 from torch.utils.data import Dataset
-from tqdm import tqdm
+import open3d as o3d
 
 # loaders
 from datasets.loaders.dtu import load_dtu
 from datasets.loaders.pac_nerf import load_pac_nerf
-
 from datasets.utils.geometry import rotation_matrix
+from datasets.scenes.scene import Scene
 
 
 def get_poses_all(cameras):
@@ -19,6 +18,39 @@ def get_poses_all(cameras):
         poses.append(camera.get_pose())
     poses = torch.stack(poses, 0)
     return poses
+
+
+def load_point_cloud(point_cloud_path, max_nr_points=1000):
+    """Loads a point cloud from a file.
+    If the file is a mesh, points are its vertices.
+
+    Args:
+        point_cloud_path: path to the point cloud file
+        max_nr_points: maximum number of points to load
+
+    Returns:
+        points_3d: (N, 3) numpy array
+    """
+    # if exists, load it
+    if os.path.exists(point_cloud_path):
+        # if format is .ply or .obj
+        if point_cloud_path.endswith(".ply") or point_cloud_path.endswith(".obj"):
+            print("Loading point cloud from {}".format(point_cloud_path))
+            point_cloud = o3d.io.read_point_cloud(point_cloud_path)
+            points_3d = np.asarray(point_cloud.points)
+            if points_3d.shape[0] > max_nr_points:
+                # downsample
+                random_idx = np.random.choice(
+                    points_3d.shape[0], max_nr_points, replace=False
+                )
+                points_3d = points_3d[random_idx]
+            print("Loaded {} points from mesh".format(points_3d.shape[0]))
+        else:
+            raise ValueError("Unsupported point cloud format")
+    else:
+        raise ValueError("Point cloud path {} does not exist".format(point_cloud_path))
+
+    return points_3d
 
 
 class MVDataset(Dataset):
@@ -31,7 +63,8 @@ class MVDataset(Dataset):
         dataset_name,
         scene_name,
         data_path,
-        split="train",  # "train", "test"
+        point_cloud_path=None,
+        split="train",  # "all", train", "test"
         use_every_for_test_split=8,
         train_test_no_overlap=True,
         load_with_mask=True,
@@ -43,7 +76,6 @@ class MVDataset(Dataset):
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
-        self.path = data_path
         # self.auto_scale_poses = auto_scale_poses
 
         # check if path exists
@@ -52,6 +84,9 @@ class MVDataset(Dataset):
             sys.exit()
 
         # load scene cameras
+        if split not in ["all", "train", "test"]:
+            raise ValueError("Unknown split value, use 'all', 'train' or 'test'")
+
         print(f"Loading {split} data")
 
         if self.dataset_name == "dtu":
@@ -83,17 +118,24 @@ class MVDataset(Dataset):
             print("ERROR: dataset not supported")
             sys.exit()
 
-        # align and center poses
-        poses_all = get_poses_all(cameras_all)
+        if point_cloud_path is not None:
+            self.point_cloud = load_point_cloud(point_cloud_path)
+        else:
+            self.point_cloud = np.empty((0, 3))
 
-        transform = auto_orient_and_center_poses(
-            poses_all,
-            method=auto_orient_method,
-            center_method=auto_center_method,
-        )
+        # scene = Scene(cameras_all, point_cloud)
 
-        for camera in cameras_all:
-            camera.concat_transform(transform)
+        # # align and center poses
+        # poses_all = get_poses_all(cameras_all)
+
+        # transform = auto_orient_and_center_poses(
+        #     poses_all,
+        #     method=auto_orient_method,
+        #     center_method=auto_center_method,
+        # )
+
+        # for camera in cameras_all:
+        #     camera.concat_transform(transform)
 
         # # scale poses
         # if self.auto_scale_poses:
@@ -105,19 +147,22 @@ class MVDataset(Dataset):
         #     for camera in cameras_all:
         #         camera.concat_transform(transform)
 
-        # split into train and test
-        self.cameras = []
-        if split == "train":
-            if train_test_no_overlap:
+        if split == "all":
+            self.cameras = cameras_all
+        else:
+            # split into train and test
+            self.cameras = []
+            if split == "train":
+                if train_test_no_overlap:
+                    for i, camera in enumerate(cameras_all):
+                        if i % use_every_for_test_split != 0:
+                            self.cameras.append(camera)
+                else:
+                    self.cameras = cameras_all
+            if split == "test":
                 for i, camera in enumerate(cameras_all):
-                    if i % use_every_for_test_split != 0:
+                    if i % use_every_for_test_split == 0:
                         self.cameras.append(camera)
-            else:
-                self.cameras = cameras_all
-        if split == "test":
-            for i, camera in enumerate(cameras_all):
-                if i % use_every_for_test_split == 0:
-                    self.cameras.append(camera)
 
         print(f"Loaded {len(self.cameras)} cameras")
 

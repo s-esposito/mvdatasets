@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import cv2 as cv
 
 
 def decompose_projection_matrix(P):
@@ -19,24 +18,33 @@ def decompose_projection_matrix(P):
     K_h = Q @ np.linalg.cholesky(P_b) @ Q
     K = K_h / K_h[2, 2]
     A = np.linalg.inv(K) @ M
-    l = (1 / np.linalg.det(A)) ** (1 / 3)
-    R = l * A
-    t = l * np.linalg.inv(K) @ P[0:3, 3]
+    el = (1 / np.linalg.det(A)) ** (1 / 3)
+    R = el * A
+    t = el * np.linalg.inv(K) @ P[0:3, 3]
     return K, R, t
 
 
 class Camera:
     """Camera class."""
 
-    def __init__(self, imgs, intrinsics=None, pose=None, projection=None, masks=None, transform=None, device="cuda:0"):
+    def __init__(
+        self,
+        imgs,
+        intrinsics=None,
+        pose=None,
+        projection=None,
+        masks=None,
+        transform=None,
+        device="cuda:0",
+    ):
         """Create a camera object, all parameters are torch tensors.
 
         Args:
-            imgs (np.array): (T, H, W, 3)
+            imgs (np.array): (T, H, W, 3) with values in [0, 1]
             intrinsics (np.array): (3, 3)
             pose (np.array): (4, 4)
             projection (np.array): projection matrix (3, 4)
-            masks (np.array): (T, H, W, 1)
+            masks (np.array): (T, H, W, 1) with values in [0, 1]
         """
 
         if intrinsics is None and pose is None and projection is not None:
@@ -50,12 +58,14 @@ class Camera:
             self.intrinsics = torch.from_numpy(intrinsics).float().to(device)
             self.pose = torch.from_numpy(pose).float().to(device)
         else:
-            raise ValueError("Either projection or intrinsics and pose must be provided")
+            raise ValueError(
+                "Either projection or intrinsics and pose must be provided"
+            )
 
         self.intrinsics_inv = torch.inverse(self.intrinsics)
-        self.imgs = torch.from_numpy(imgs.astype(np.float32) / 255).float().to(device)
+        self.imgs = torch.from_numpy(imgs).float().to(device)
         if masks is not None:
-            self.masks = torch.from_numpy(masks.astype(np.float32) / 255).float().to(device)
+            self.masks = torch.from_numpy(masks).float().to(device)
         else:
             self.masks = None
         self.height = imgs.shape[1]
@@ -67,21 +77,25 @@ class Camera:
         else:
             self.transform = torch.from_numpy(np.eye(4)).float().to(device)
 
-        # print each tensor device
-        print("transform", self.transform.device)
-        print("pose", self.pose.device)
-        print("intrinsics", self.intrinsics.device)
-        print("intrinsics_inv", self.intrinsics_inv.device)
-        print("imgs", self.imgs.device)
-        if self.masks is not None:
-            print("masks", self.masks.device)
+        # # print each tensor device
+        # print("transform", self.transform.device)
+        # print("pose", self.pose.device)
+        # print("intrinsics", self.intrinsics.device)
+        # print("intrinsics_inv", self.intrinsics_inv.device)
+        # print("imgs", self.imgs.device)
+        # if self.masks is not None:
+        #     print("masks", self.masks.device)
 
     def get_frame(self, timestamp=0):
-        """returns image and, if exists, a mask at timestamp"""
+        """returns image at timestamp"""
+        return self.imgs[timestamp]
+
+    def get_mask(self, timestamp=0):
+        """return, if exists, a mask at timestamp, else None"""
         mask = None
         if len(self.masks) > timestamp:
             mask = self.masks[timestamp]
-        return self.imgs[timestamp], mask
+        return mask
 
     def get_pose(self):
         """returns camera pose in world space"""

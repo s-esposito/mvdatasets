@@ -24,23 +24,49 @@ def rotation_matrix(a, b):
         return rotation_matrix(a + eps, b)
     s = np.linalg.norm(v)
     skew_sym_mat = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
-    return np.eye(3) + skew_sym_mat + np.dot(skew_sym_mat, skew_sym_mat) * ((1 - c) / (s**2 + 1e-8))
+    return (
+        np.eye(3)
+        + skew_sym_mat
+        + np.dot(skew_sym_mat, skew_sym_mat) * ((1 - c) / (s**2 + 1e-8))
+    )
 
 
 def deg2rad(deg):
     return deg * np.pi / 180
 
 
+def scale_3d(scale):
+    return np.array([[scale, 0, 0], [0, scale, 0], [0, 0, scale]])
+
+
 def rot_x_3d(theta):
-    return np.array([[1, 0, 0], [0, np.cos(theta), -np.sin(theta)], [0, np.sin(theta), np.cos(theta)]])
+    return np.array(
+        [
+            [1, 0, 0],
+            [0, np.cos(theta), -np.sin(theta)],
+            [0, np.sin(theta), np.cos(theta)],
+        ]
+    )
 
 
 def rot_y_3d(theta):
-    return np.array([[np.cos(theta), 0, np.sin(theta)], [0, 1, 0], [-np.sin(theta), 0, np.cos(theta)]])
+    return np.array(
+        [
+            [np.cos(theta), 0, np.sin(theta)],
+            [0, 1, 0],
+            [-np.sin(theta), 0, np.cos(theta)],
+        ]
+    )
 
 
 def rot_z_3d(theta):
-    return np.array([[np.cos(theta), -np.sin(theta), 0], [np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
+    return np.array(
+        [
+            [np.cos(theta), -np.sin(theta), 0],
+            [np.sin(theta), np.cos(theta), 0],
+            [0, 0, 1],
+        ]
+    )
 
 
 def pose_local_rotation(pose, rotation):
@@ -77,7 +103,7 @@ def transform_points_3d(points, transform):
     return np.dot(transform[:3, :3], points.T).T + transform[:3, 3]
 
 
-def project_points_3d_to_2d(points, camera):
+def project_points_3d_to_2d(points, intrinsics, w2c):
     """Project 3D points to 2D points
     args: points (N, 3)
     projection_matrix (3, 4)
@@ -85,10 +111,10 @@ def project_points_3d_to_2d(points, camera):
     """
 
     # transform the points from the world coordinate system to the camera coordinate system using the inverse of the camera pose matrix
-    transformed_points = transform_points_3d(points, np.linalg.inv(camera.get_pose()))
+    transformed_points = transform_points_3d(points, w2c)
 
     # Assuming camera_intrinsics is a 3x3 numpy array representing the intrinsic matrix
-    projected_points = np.dot(camera.intrinsics, transformed_points.T).T
+    projected_points = np.dot(intrinsics, transformed_points.T).T
     # Normalize the coordinates
     projected_points[:, 0] /= projected_points[:, 2]
     projected_points[:, 1] /= projected_points[:, 2]

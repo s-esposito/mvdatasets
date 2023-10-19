@@ -1,14 +1,20 @@
 import os
 from glob import glob
 import numpy as np
-import torch
 from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
 
-
-from datasets.utils.camera import Camera
-from datasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, pose_local_rotation, pose_global_rotation
+from datasets.utils.images import numpy2image, image2numpy
+from datasets.scenes.camera import Camera
+from datasets.utils.geometry import (
+    deg2rad,
+    scale_3d,
+    rot_x_3d,
+    rot_y_3d,
+    pose_local_rotation,
+    pose_global_rotation,
+)
 
 
 # from https://github.com/Totoro97/NeuS/blob/main/models/dataset.py
@@ -52,10 +58,10 @@ def load_dtu(
     pbar = tqdm(images_list, desc="Loading images", leave=True)
     for im_name in pbar:
         # load PIL image
-        img = Image.open(im_name)
-        img = np.array(img)
-        # img = img[::downscale_factor, ::downscale_factor]
-        imgs.append(img)
+        img_pil = Image.open(im_name)
+        img_np = image2numpy(img_pil)
+        # img_np = img_np[::downscale_factor, ::downscale_factor]
+        imgs.append(img_np)
 
     # (optional) load mask images to cpu as numpy arrays
     masks = []
@@ -64,16 +70,19 @@ def load_dtu(
         pbar = tqdm(masks_list, desc="Loading masks", leave=True)
         for im_name in pbar:
             # load PIL image
-            mask = Image.open(im_name)
-            mask = np.array(mask)[:, :, 0, None]
-            # mask = mask[::downscale_factor, ::downscale_factor]
-            masks.append(mask)
+            mask_pil = Image.open(im_name)
+            mask_np = image2numpy(mask_pil)
+            mask_np = mask_np[:, :, 0, None]
+            # mask_np = mask_np[::downscale_factor, ::downscale_factor]
+            masks.append(mask_np)
 
     camera_dict = np.load(os.path.join(data_path, "cameras_sphere.npz"))
     # world_mat is a projection matrix from world to image
     world_mats_np = [camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))]
     # scale_mat: used for coordinate normalization, we assume the scene to render is inside a unit sphere at origin.
-    scale_mats_np = [camera_dict["scale_mat_%d" % idx] for idx in range(len(images_list))]
+    scale_mats_np = [
+        camera_dict["scale_mat_%d" % idx] for idx in range(len(images_list))
+    ]
 
     # decompose into intrinsics and extrinsics
     for idx, mats in enumerate(zip(world_mats_np, scale_mats_np)):
@@ -85,6 +94,14 @@ def load_dtu(
 
         # rotation around x axis by 115 degrees
         rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_degrees))
+        pose = pose_global_rotation(pose, rotation)
+
+        # scale
+        pose[:3, 3] *= scene_scale_multiplier
+
+        # scale = scale_3d(scene_scale_multiplier)
+        # tf_world_cam_rescaled=recaling_matrix*tf_world_cam_rescaled;
+        # tf_cam_world=tf_world_cam_rescaled.inverse();
 
         # rotates pose by 90 degrees around world x axis
         # pose = pose_global_rotation(pose, rot_x_3d(np.pi / 2))
@@ -101,7 +118,13 @@ def load_dtu(
         else:
             cam_masks = None
 
-        camera = Camera(intrinsics=intrinsics, pose=pose, imgs=cam_imgs, masks=cam_masks, device=device)
+        camera = Camera(
+            intrinsics=intrinsics,
+            pose=pose,
+            imgs=cam_imgs,
+            masks=cam_masks,
+            device=device,
+        )
 
         cameras.append(camera)
 

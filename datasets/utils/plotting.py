@@ -3,10 +3,12 @@ import torch
 import matplotlib.pyplot as plt
 from itertools import product, combinations
 
-from datasets.utils.camera import Camera
+from datasets.scenes.camera import Camera
 
 
-def plot_cameras(cameras, points=None, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15)):
+def plot_cameras(
+    cameras, points=None, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15)
+):
     """
     # cameras: list of Camera objects
 
@@ -128,9 +130,7 @@ def plot_cameras(cameras, points=None, azimuth_deg=60, elevation_deg=30, up="z",
             )
             ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(i))
 
-    min_lim = np.min(camera_centers)
-    max_lim = np.max(camera_centers)
-    lim = np.max([abs(min_lim), abs(max_lim)]) + scale
+    lim = np.max(np.linalg.norm(camera_centers, axis=1))
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
     ax.set_zlim([-1, lim])

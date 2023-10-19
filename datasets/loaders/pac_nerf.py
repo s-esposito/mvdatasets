@@ -1,13 +1,13 @@
 import json
-import torch
 import numpy as np
 import os
 from tqdm import tqdm
-import imageio
 import cv2 as cv
 import open3d as o3d
+from PIL import Image
 
-from datasets.utils.camera import Camera
+from datasets.utils.images import numpy2image, image2numpy
+from datasets.scenes.camera import Camera
 
 # def load_particles_fluidsym(path):
 #     f = open(path, "rb")
@@ -31,14 +31,14 @@ from datasets.utils.camera import Camera
 #     return points_3d
 
 
-def load_particles_pacnerf(path, nr_points=1000):
-    # read point cloud from ply file
-    point_cloud = o3d.io.read_point_cloud(path)
-    points = np.asarray(point_cloud.points)
-    # downsample selecting nr_points random points
-    random_idx = np.random.choice(points.shape[0], nr_points, replace=False)
-    points = points[random_idx]
-    return points
+# def load_particles_pacnerf(path, nr_points=1000):
+#     # read point cloud from ply file
+#     point_cloud = o3d.io.read_point_cloud(path)
+#     points = np.asarray(point_cloud.points)
+#     # downsample selecting nr_points random points
+#     random_idx = np.random.choice(points.shape[0], nr_points, replace=False)
+#     points = points[random_idx]
+#     return points
 
 
 def load_pac_nerf(data_path, n_cameras=1, load_with_mask=False, device="cpu"):
@@ -53,30 +53,67 @@ def load_pac_nerf(data_path, n_cameras=1, load_with_mask=False, device="cpu"):
 
     poses_all = np.zeros((n_cameras, 4, 4))
     intrinsics_all = np.zeros((n_cameras, 3, 3))
-    rgb_all = None
+    imgs_all = None
+    bg_imgs_all = None
 
     for entry in tqdm(data_info):
-        cam_id, frame_id = [int(i) for i in entry["file_path"].split("/")[-1].rstrip(".png").lstrip("r_").split("_")]
-
-        if frame_id < 0:
-            # TODO: if load_with_mask is set to True
-            # use background image to construct per frame masks
-            continue
+        cam_id, frame_id = [
+            int(i)
+            for i in entry["file_path"]
+            .split("/")[-1]
+            .rstrip(".png")
+            .lstrip("r_")
+            .split("_")
+        ]
 
         poses_all[cam_id] = np.eye(4)
         poses_all[cam_id, :3, :4] = entry["c2w"]
         intrinsics_all[cam_id] = entry["intrinsic"]
-        img = np.array(imageio.imread(os.path.join(data_path, entry["file_path"])))[..., :3]
+        img_pil = Image.open(os.path.join(data_path, entry["file_path"]))
+        img_np = image2numpy(img_pil)[..., :3]
 
-        if rgb_all is None:
+        if frame_id < 0:
+            # background frame
+            if bg_imgs_all is None:
+                # need to read image dimensions first
+                height, width = img_np.shape[:2]
+                bg_imgs_all = np.zeros((n_cameras, height, width, 3))
+            bg_imgs_all[cam_id] = img_np
+
+        if imgs_all is None:
             # need to read image dimensions first
-            height, width = img.shape[:2]
-            rgb_all = np.zeros((n_cameras, n_frames, height, width, 3))
+            height, width = img_np.shape[:2]
+            imgs_all = np.zeros((n_cameras, n_frames, height, width, 3))
 
-        rgb_all[cam_id, frame_id] = img
+        imgs_all[cam_id, frame_id] = img_np
+
+    # nb: not working great, image differences are noisy
+    # should use the same approach as in the original code
+    masks_all = np.zeros((n_cameras, n_frames, height, width, 1))
+    if load_with_mask:
+        # use background image to construct per frame masks
+        for cam_id in range(n_cameras):
+            for frame_id in range(n_frames):
+                masks_all[cam_id, frame_id] = np.all(
+                    imgs_all[cam_id, frame_id] == bg_imgs_all[cam_id],
+                    axis=-1,
+                    keepdims=True,
+                ).astype(np.float32)
 
     cameras = []
-    for intrinsics, pose, imgs in zip(intrinsics_all, poses_all, rgb_all):
-        cameras.append(Camera(imgs, intrinsics=intrinsics, pose=pose, device=device))
+    if load_with_mask:
+        for intrinsics, pose, imgs, masks in zip(
+            intrinsics_all, poses_all, imgs_all, masks_all
+        ):
+            cameras.append(
+                Camera(
+                    imgs, masks=masks, intrinsics=intrinsics, pose=pose, device=device
+                )
+            )
+    else:
+        for intrinsics, pose, imgs in zip(intrinsics_all, poses_all, imgs_all):
+            cameras.append(
+                Camera(imgs, intrinsics=intrinsics, pose=pose, device=device)
+            )
 
     return cameras
