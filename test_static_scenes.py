@@ -105,8 +105,9 @@ for i in tqdm(range(nr_iterations)):
     if profiler is not None:
         profiler.start("get_next_batch")
 
-    #
-    idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx = get_next_batch(data_loader)
+    # get rays and gt values
+    with torch.set_grad_enabled(False):
+        idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx = get_next_batch(data_loader)
 
     if profiler is not None:
         profiler.end("get_next_batch")
