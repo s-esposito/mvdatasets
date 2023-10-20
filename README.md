@@ -31,6 +31,10 @@ This code uses an "OpenGL" style camera coordinate system:
   <img src="imgs/dtu_poses.png" width="600"/>
 </p>
 
+<p align="middle">
+  <img src="imgs/data_loader.gif" width="600"/>
+</p>
+
 <!---
 
 # Citation

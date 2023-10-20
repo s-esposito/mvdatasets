@@ -80,6 +80,7 @@ class MVDataset(Dataset):
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
+        self.per_camera_rays_batch_size = 512
         # self.auto_scale_poses = auto_scale_poses
 
         # check if path exists
@@ -172,17 +173,56 @@ class MVDataset(Dataset):
         return len(self.cameras)
 
     def __getitem__(self, idx):
+        """Cast random rays through random pixels of a camera.
+
+        Args:
+            idx (int): camera index
+
+        Returns:
+            idx (int): camera index
+            rays_o (torch.tensor): (N, 3)
+            rays_d (torch.tensor): (N, 3)
+            gt_rgb (torch.tensor): (N, 3)
+            gt_mask (torch.tensor): (N, 1)
+        """
+        # get camera
         camera = self.cameras[idx]
 
-        # TODO: rays_o, rays_d, gt_rgb, gt_mask
-        # other possibile dataset dependent outputs: gt_depth, gt_normal, gt_albedo, gt_brdf, gt_visibility
+        # select a random timestamp
+        frame_idx = np.random.randint(0, camera.nr_frames)
 
-        intrinsics = camera.intrinsics.to("cuda")
-        pose = camera.get_pose().to("cuda")
-        img = camera.img.to("cuda")
-        mask = camera.mask.to("cuda")
+        # select random pixels
+        pixels = camera.get_random_pixels(self.per_camera_rays_batch_size)
+        # cast rays through them
+        rays_o, rays_d = camera.get_rays_per_pixels(pixels)
+        # get ground truth values from frame
+        gt_rgb, gt_mask = camera.get_frame_per_pixels(pixels, timestamp=frame_idx)
 
-        return intrinsics, pose, img, mask
+        # pixel = torch.cat(
+        #     [
+        #         torch.randperm(camera.height)[: self.per_camera_rays_batch_size],
+        #         torch.randperm(camera.width)[: self.per_camera_rays_batch_size],
+        #     ],
+        #     dim=-1,
+        # )
+
+        # rays_o, rays_d = camera.get_rays_per_pixels(pixel)
+
+        # TODO: make more flexible
+        # other dataset-dependent outputs could be:
+        # gt_depth, gt_normal, gt_albedo, gt_brdf, gt_visibility
+
+        rays_o = rays_o.squeeze(0)
+        rays_d = rays_d.squeeze(0)
+        gt_rgb = gt_rgb.squeeze(0)
+        gt_mask = gt_mask.squeeze(0)
+
+        # print("rays_o", rays_o.device)
+        # print("rays_d", rays_d.device)
+        # print("gt_rgb", gt_rgb.device)
+        # print("gt_mask", gt_mask.device)
+
+        return idx, rays_o, rays_d, gt_rgb, gt_mask
 
 
 # from nerfstudio
