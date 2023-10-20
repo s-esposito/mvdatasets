@@ -4,7 +4,7 @@
 <br>
 University of Tübingen, Autonomous Vision Group
 
-Various data loaders for multi-view datasets commonly used in 3D reconstruction and view-synthesis.
+Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.
 
 Static (3D):
 - [DTU](#)
