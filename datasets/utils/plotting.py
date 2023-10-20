@@ -476,3 +476,31 @@ def plot_current_batch(
     ax.view_init(elevation_deg, azimuth_deg)
 
     return fig
+
+
+# TODO: plot_projected_points
+# camera_idx = 3
+# img_np = dataset_train.cameras[camera_idx].get_frame().cpu().numpy()
+# intrinsics = dataset_train.cameras[camera_idx].intrinsics.cpu().numpy()
+# points_2d = project_points_3d_to_2d(
+#     points_3d=dataset_train.point_clouds[0],
+#     intrinsics=intrinsics,
+#     c2w=dataset_train.cameras[camera_idx].get_pose().cpu().numpy(),
+# )
+# # filter out points outside image range
+# points_2d = points_2d[points_2d[:, 0] > 0]
+# points_2d = points_2d[points_2d[:, 1] > 0]
+# points_2d = points_2d[points_2d[:, 0] < img_np.shape[1]]
+# points_2d = points_2d[points_2d[:, 1] < img_np.shape[0]]
+# print("points_2d", points_2d.shape)
+
+# fig = plt.figure()
+# plt.imshow(img_np, alpha=1.0)
+# colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+# colors /= np.max(colors)
+# colors += 0.5
+# colors /= np.max(colors)
+# plt.scatter(points_2d[:, 0], points_2d[:, 1], s=5, c=colors, marker=".")
+# plt.gca().set_aspect("equal", adjustable="box")
+# plt.xlabel("x")
+# plt.ylabel("y")

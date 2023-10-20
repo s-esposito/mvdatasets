@@ -77,10 +77,12 @@ class MVDataset(Dataset):
         # auto_scale_poses=False,  # automatically scale the poses to fit in +/- 1 bounding box
         # downscale_factor=1
         device="cpu",
+        profiler=None,
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
         self.per_camera_rays_batch_size = 512
+        self.profiler = profiler
         # self.auto_scale_poses = auto_scale_poses
 
         # check if path exists
@@ -184,29 +186,46 @@ class MVDataset(Dataset):
             rays_d (torch.tensor): (N, 3)
             gt_rgb (torch.tensor): (N, 3)
             gt_mask (torch.tensor): (N, 1)
+            frame_idx (int): frame index
         """
+
+        if self.profiler is not None:
+            self.profiler.start(f"dataset_getitem_{idx}")
+
         # get camera
         camera = self.cameras[idx]
 
-        # select a random timestamp
-        frame_idx = np.random.randint(0, camera.nr_frames)
+        if self.profiler is not None:
+            self.profiler.start(f"pixels_sampling_{idx}")
 
         # select random pixels
         pixels = camera.get_random_pixels(self.per_camera_rays_batch_size)
+
+        if self.profiler is not None:
+            self.profiler.end(f"pixels_sampling_{idx}")
+
+        if self.profiler is not None:
+            self.profiler.start(f"ray_casting_{idx}")
+
         # cast rays through them
         rays_o, rays_d = camera.get_rays_per_pixels(pixels)
+
+        if self.profiler is not None:
+            self.profiler.end(f"ray_casting_{idx}")
+
+        if self.profiler is not None:
+            self.profiler.start(f"frame_data_retrieval_{idx}")
+
+        # select a random timestamp
+        frame_idx = torch.randint(camera.nr_frames, (1,))
+
         # get ground truth values from frame
-        gt_rgb, gt_mask = camera.get_frame_per_pixels(pixels, timestamp=frame_idx)
+        gt_rgb, gt_mask = camera.get_frame_per_pixels(
+            pixels, timestamp=frame_idx.item()
+        )
 
-        # pixel = torch.cat(
-        #     [
-        #         torch.randperm(camera.height)[: self.per_camera_rays_batch_size],
-        #         torch.randperm(camera.width)[: self.per_camera_rays_batch_size],
-        #     ],
-        #     dim=-1,
-        # )
-
-        # rays_o, rays_d = camera.get_rays_per_pixels(pixel)
+        if self.profiler is not None:
+            self.profiler.end(f"frame_data_retrieval_{idx}")
 
         # TODO: make more flexible
         # other dataset-dependent outputs could be:
@@ -222,7 +241,10 @@ class MVDataset(Dataset):
         # print("gt_rgb", gt_rgb.device)
         # print("gt_mask", gt_mask.device)
 
-        return idx, rays_o, rays_d, gt_rgb, gt_mask
+        if self.profiler is not None:
+            self.profiler.end(f"dataset_getitem_{idx}")
+
+        return idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
 
 
 # from nerfstudio
@@ -278,61 +300,61 @@ class MVDataset(Dataset):
 #     return focus_pt
 
 
-def auto_orient_and_center_poses(
-    poses,
-    method="up",  # "up", "none"
-    center_method="focus",  # "poses", "focus", "none"
-):
-    """Orients and centers the poses.
+# def auto_orient_and_center_poses(
+#     poses,
+#     method="up",  # "up", "none"
+#     center_method="focus",  # "poses", "focus", "none"
+# ):
+#     """Orients and centers the poses.
 
-    We provide three methods for orientation:
+#     We provide three methods for orientation:
 
-    - up: Orient the poses so that the average up vector is aligned with the z axis.
-        This method works well when images are not at arbitrary angles.
+#     - up: Orient the poses so that the average up vector is aligned with the z axis.
+#         This method works well when images are not at arbitrary angles.
 
-    There are two centering methods:
+#     There are two centering methods:
 
-    - poses: The poses are centered around the origin.
-    - focus: The origin is set to the focus of attention of all cameras (the
-        closest point to cameras optical axes). Recommended for inward-looking
-        camera configurations.
+#     - poses: The poses are centered around the origin.
+#     - focus: The origin is set to the focus of attention of all cameras (the
+#         closest point to cameras optical axes). Recommended for inward-looking
+#         camera configurations.
 
-    Args:
-        poses: The poses to orient.
-        method: The method to use for orientation.
-        center_method: The method to use to center the poses.
+#     Args:
+#         poses: The poses to orient.
+#         method: The method to use for orientation.
+#         center_method: The method to use to center the poses.
 
-    Returns:
-        Tuple of the oriented poses and the transform matrix.
-    """
+#     Returns:
+#         Tuple of the oriented poses and the transform matrix.
+#     """
 
-    origins = poses[..., :3, 3]
+#     origins = poses[..., :3, 3]
 
-    mean_origin = torch.mean(origins, dim=0)
-    # translation_diff = origins - mean_origin
+#     mean_origin = torch.mean(origins, dim=0)
+#     # translation_diff = origins - mean_origin
 
-    if center_method == "poses":
-        translation = mean_origin
-    # elif center_method == "focus":
-    #     translation = focus_of_attention(poses, mean_origin)
-    elif center_method == "none":
-        translation = torch.zeros_like(mean_origin)
-    else:
-        raise ValueError(f"Unknown value for center_method: {center_method}")
+#     if center_method == "poses":
+#         translation = mean_origin
+#     # elif center_method == "focus":
+#     #     translation = focus_of_attention(poses, mean_origin)
+#     elif center_method == "none":
+#         translation = torch.zeros_like(mean_origin)
+#     else:
+#         raise ValueError(f"Unknown value for center_method: {center_method}")
 
-    if method == "up":
-        up = torch.mean(poses[:, :3, 1], dim=0)
-        up = up / torch.linalg.norm(up)
-        rotation = rotation_matrix(up.cpu().numpy(), np.array([0, 0, 1.0]))
-        rotation = torch.from_numpy(rotation)
-        # transform = torch.cat([rotation, rotation @ -translation[..., None]], dim=-1)
-        transform = torch.eye(4)
-        transform[:3, :3] = rotation
-        transform[:3, 3] = -rotation @ -translation
-    elif method == "none":
-        transform = torch.eye(4)
-        transform[:3, 3] = -translation
-    else:
-        raise ValueError(f"Unknown value for method: {method}")
+#     if method == "up":
+#         up = torch.mean(poses[:, :3, 1], dim=0)
+#         up = up / torch.linalg.norm(up)
+#         rotation = rotation_matrix(up.cpu().numpy(), np.array([0, 0, 1.0]))
+#         rotation = torch.from_numpy(rotation)
+#         # transform = torch.cat([rotation, rotation @ -translation[..., None]], dim=-1)
+#         transform = torch.eye(4)
+#         transform[:3, :3] = rotation
+#         transform[:3, 3] = -rotation @ -translation
+#     elif method == "none":
+#         transform = torch.eye(4)
+#         transform[:3, 3] = -translation
+#     else:
+#         raise ValueError(f"Unknown value for method: {method}")
 
-    return transform
+#     return transform
