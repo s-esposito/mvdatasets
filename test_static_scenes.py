@@ -11,6 +11,7 @@ from tqdm import tqdm
 
 from datasets.utils.plotting import plot_cameras, plot_camera_rays, plot_current_batch
 from datasets.mv_dataset import MVDataset
+from datasets.utils.tensor_reel import TensorReel
 from datasets.utils.profiler import Profiler
 from torch.utils.data import DataLoader
 
@@ -18,12 +19,12 @@ from torch.utils.data import DataLoader
 seed = 42
 torch.manual_seed(seed)
 
-# Check if CUDA (GPU support) is available
+# # Check if CUDA (GPU support) is available
 if torch.cuda.is_available():
     device = "cuda"
     torch.cuda.manual_seed(seed)  # Set a random seed for GPU
 else:
-    device = "cpu"
+    device = "cuda"
 torch.set_default_device(device)
 
 # Set default tensor type
@@ -56,7 +57,6 @@ dataset_train = MVDataset(
     auto_orient_method="none",  # "up", "none"
     # auto_scale_poses=False,
     profiler=profiler,
-    device=device,
 )
 
 # Visualize cameras
@@ -83,11 +83,15 @@ dataset_train = MVDataset(
 
 # plt.show()
 
+batch_size = 512
+
+# # PyTorch DataLoader (~28 it/s), camera's data in on GPU
+
 from datasets.utils.loader import DatasetSampler, custom_collate, get_next_batch
 
 # Create a DataLoader for the MVDataset
 cameras_batch_size = len(dataset_train.cameras)  # alway sample from all cameras
-max_rays_batch_size = 512
+max_rays_batch_size = batch_size
 per_camera_rays_batch_size = max_rays_batch_size // cameras_batch_size
 dataset_train.per_camera_rays_batch_size = per_camera_rays_batch_size
 # nr_workers = 1
@@ -100,17 +104,102 @@ data_loader = DataLoader(
     # num_workers=nr_workers,
 )
 
-nr_iterations = 100
-for i in tqdm(range(nr_iterations)):
+nr_iterations = 1000
+pbar = tqdm(range(nr_iterations))
+for i in pbar:
+    pbar.set_description("Ray casting")
+
     if profiler is not None:
         profiler.start("get_next_batch")
 
     # get rays and gt values
     with torch.set_grad_enabled(False):
-        idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx = get_next_batch(data_loader)
+        camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx = get_next_batch(
+            data_loader
+        )
+
+        if device != "cpu":
+            camera_idx = camera_idx.to(device)
+            rays_o = rays_o.to(device)
+            rays_d = rays_d.to(device)
+            gt_rgb = gt_rgb.to(device)
+            gt_mask = gt_mask.to(device)
+            frame_idx = frame_idx.to(device)
+
+        # print("camera_idx", camera_idx.shape, camera_idx.device)
+        # print("rays_o", rays_o.shape, rays_o.device)
+        # print("rays_d", rays_d.shape, rays_d.device)
+        # print("gt_rgb", gt_rgb.shape, gt_rgb.device)
+        # print("gt_mask", gt_mask.shape, gt_mask.device)
+        # print("frame_idx", frame_idx.shape, frame_idx.device)
 
     if profiler is not None:
         profiler.end("get_next_batch")
+
+profiler.reset()
+
+# TensorReel (~1300 it/s), camera's data in concatenated in big tensors on GPU
+
+tensor_reel = TensorReel(dataset_train, device=device)
+
+nr_iterations = 1000
+# cameras_idxs = [0, 1, 8]
+cameras_idxs = None
+timestamp = None
+pbar = tqdm(range(nr_iterations))
+for i in pbar:
+    pbar.set_description("Ray casting")
+
+    if profiler is not None:
+        profiler.start("get_next_batch")
+
+    # get rays and gt values
+    with torch.set_grad_enabled(False):
+        (
+            camera_idx,
+            rays_o,
+            rays_d,
+            gt_rgb,
+            gt_mask,
+            frame_idx,
+        ) = tensor_reel.get_next_batch(
+            batch_size=batch_size, cameras_idxs=cameras_idxs, timestamp=timestamp
+        )
+
+        # print("camera_idx", camera_idx.shape, camera_idx.device)
+        # print("rays_o", rays_o.shape, rays_o.device)
+        # print("rays_d", rays_d.shape, rays_d.device)
+        # print("gt_rgb", gt_rgb.shape, gt_rgb.device)
+        # print("gt_mask", gt_mask.shape, gt_mask.device)
+        # print("frame_idx", frame_idx.shape, frame_idx.device)
+
+    if profiler is not None:
+        profiler.end("get_next_batch")
+
+    # fig = plot_current_batch(
+    #     dataset_train.cameras,
+    #     camera_idx,
+    #     rays_o,
+    #     rays_d,
+    #     gt_rgb,
+    #     gt_mask,
+    #     azimuth_deg=60,
+    #     elevation_deg=30,
+    #     up="y",
+    #     figsize=(15, 15),
+    # )
+
+    # # plt.show()
+    # plt.savefig(f"test_static_scenes_batch_{i}.png", bbox_inches="tight", pad_inches=0)
+
+    # print("idx", idx.shape, idx.device)
+    # print("rays_o", rays_o.shape, rays_o.device)
+    # print("rays_d", rays_d.shape, rays_d.device)
+    # print("gt_rgb", gt_rgb.shape, gt_rgb.device)
+    # print("gt_mask", gt_mask.shape, gt_mask.device)
+    # print("frame_idx", frame_idx.shape, frame_idx.device)
+
+    # print("idx", idx)
 
 # for i in tqdm(range(nr_iterations)):
 #     profiler.start("get_next_batch")

@@ -41,10 +41,10 @@ class TensorReel:
             if self.masks is not None:
                 self.masks = self.masks.to(device)
 
-        print("intrinsics_inv", self.intrinsics_inv.shape, self.intrinsics_inv.device)
-        print("poses", self.poses.shape, self.poses.device)
-        print("frames", self.frames.shape, self.frames.device)
-        print("masks", self.masks.shape, self.masks.device)
+        # print("intrinsics_inv", self.intrinsics_inv.shape, self.intrinsics_inv.device)
+        # print("poses", self.poses.shape, self.poses.device)
+        # print("frames", self.frames.shape, self.frames.device)
+        # print("masks", self.masks.shape, self.masks.device)
 
         self.device = device
         self.height = self.frames.shape[2]
