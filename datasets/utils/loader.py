@@ -47,8 +47,16 @@ def get_next_batch(data_loader):
     frame_idx = frame_idx.repeat_interleave(
         data_loader.dataset.per_camera_rays_batch_size
     )
+
+    # print("idx", idx.shape, idx.device)
+    # print("rays_o", rays_o.shape, rays_o.device)
+    # print("rays_d", rays_d.shape, rays_d.device)
+    # print("gt_rgb", gt_rgb.shape, gt_rgb.device)
+    # print("gt_mask", gt_mask.shape, gt_mask.device)
+    # print("frame_idx", frame_idx.shape, frame_idx.device)
+
     if data_loader.sampler.shuffle:
-        rand_perm = torch.randperm(idx.shape[0])
+        rand_perm = torch.randperm(idx.shape[0], device=rays_o.device)
         idx = idx[rand_perm]
         rays_o = rays_o[rand_perm]
         rays_d = rays_d[rand_perm]

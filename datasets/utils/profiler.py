@@ -11,6 +11,13 @@ class Profiler:
         self.history = {}  # keep avg time for each name
         self.verbose = verbose
 
+    def reset(self):
+        """
+        Resets the profiler.
+        """
+        self.active = {}
+        self.history = {}
+
     def start(self, name):
         """
         Starts a timer with the given name.

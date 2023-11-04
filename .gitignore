@@ -3,3 +3,8 @@
 *.pyc
 debug
 plots
+build
+include
+deps
+src
+mv_datasets.egg-info

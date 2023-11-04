@@ -1,7 +1,11 @@
 import torch
-import torch.nn.functional as F
 import numpy as np
 
+from datasets.utils.raycasting import (
+    get_camera_rays_per_pixels,
+    get_random_pixels,
+    get_frame_per_pixels,
+)
 
 # def decompose_projection_matrix(P):
 #     """
@@ -79,6 +83,8 @@ class Camera:
         else:
             self.transform = torch.from_numpy(np.eye(4)).float().to(device)
 
+        self.device = device
+
         # # print each tensor device
         # print("transform", self.transform.device)
         # print("pose", self.pose.device)
@@ -92,9 +98,21 @@ class Camera:
         """return camera intrinsics"""
         return self.intrinsics
 
+    def get_intrinsics_inv(self):
+        """return inverse of camera intrinsics"""
+        return self.intrinsics_inv
+
+    def get_frames(self):
+        """return all camera frames"""
+        return self.imgs
+
     def get_frame(self, timestamp=0):
         """returns image at timestamp"""
         return self.imgs[timestamp]
+
+    def get_masks(self):
+        """return, if exists, all camera masks, else None"""
+        return self.masks
 
     def get_mask(self, timestamp=0):
         """return, if exists, a mask at timestamp, else None"""
@@ -112,53 +130,6 @@ class Camera:
         # apply transform
         self.transform = transform @ self.transform
 
-    def get_rays_per_pixels(self, pixels):
-        """given a list of pixels, return rays origins and directions
-
-        args:
-            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
-
-        out:
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
-        """
-        # ray origin is just the camera center
-        c2w = self.get_pose()
-        rays_o = c2w[:3, -1].unsqueeze(0).expand(pixels.shape[0], -1)
-
-        # get pixels as 3d points on a plane at z=-1 (in camera space)
-        pixels = pixels.float()
-        points_3d_camera = torch.stack(
-            [
-                pixels[:, 1] * self.intrinsics_inv[0, 0],
-                pixels[:, 0] * self.intrinsics_inv[1, 1],
-                -1 * torch.ones_like(pixels[:, 0]),
-            ],
-            dim=-1,
-        )
-
-        # normalize rays
-        rays_d_camera = F.normalize(points_3d_camera, dim=-1)
-
-        # rotate points to world space
-        rays_d = (c2w[:3, :3] @ rays_d_camera.T).T
-
-        return rays_o, rays_d
-
-    def get_random_pixels(self, nr_pixels):
-        """given a number or pixels, return random pixels
-
-        out:
-            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
-        """
-        # sample nr_rays random pixels
-        pixels = torch.rand(nr_pixels, 2)
-        pixels[:, 0] *= self.height
-        pixels[:, 1] *= self.width
-        pixels = pixels.int()
-
-        return pixels
-
     def get_random_rays(self, nr_rays):
         """given a number or rays, return rays origins and random directions
 
@@ -170,24 +141,42 @@ class Camera:
             rays_d (torch.tensor): (N, 3)
         """
 
-        pixels = self.get_random_pixels(nr_rays)
-        return self.get_rays_per_pixels(pixels)
+        pixels = get_random_pixels(self.height, self.width, nr_rays)
+        return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
+
+    def get_random_pixels(self, nr_pixels):
+        """given a number or pixels, return random pixels
+
+        out:
+            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
+        """
+        return get_random_pixels(self.height, self.width, nr_pixels, device=self.device)
+
+    def get_rays_per_pixels(self, pixels):
+        """given a list of pixels, return rays origins and directions
+
+        args:
+            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
+
+        out:
+            rays_o (torch.tensor): (N, 3)
+            rays_d (torch.tensor): (N, 3)
+        """
+        # print("pose", self.get_pose().shape, self.get_pose().device)
+        # print("intrinsics_inv", self.intrinsics_inv.shape, self.intrinsics_inv.device)
+        # print("pixels", pixels.shape, pixels.device)
+        return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
 
     def get_frame_per_pixels(self, pixels, timestamp=0):
-        """given a list of pixels, return the corresponding frame values
+        """given a list of pixels, return color and mask values
 
         args:
             pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
 
         out:
             rgb (torch.tensor): (N, 3)
-            alpha (torch.tensor): (N, 1)
+            mask (torch.tensor): (N, 1)
         """
-        img = self.get_frame(timestamp)
-        mask = self.get_mask(timestamp)
-
-        # camera image plane is flipped vertically
-        rgb = img[(self.height - 1) - pixels[:, 0], pixels[:, 1]]
-        alpha = mask[(self.height - 1) - pixels[:, 0], pixels[:, 1]]
-
-        return rgb, alpha
+        return get_frame_per_pixels(
+            self.get_frame(timestamp), self.get_mask(timestamp), pixels
+        )

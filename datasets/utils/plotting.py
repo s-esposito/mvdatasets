@@ -335,9 +335,12 @@ def plot_current_batch(
     rgb = rgb.cpu().numpy()
     mask = mask.cpu().numpy()
 
+    # Get unique camera idxs
+    unique_cameras_idx = np.unique(cameras_idx, axis=0)
+
     # Get all camera poses
     poses = []
-    for idx in cameras_idx:
+    for idx in unique_cameras_idx:
         poses.append(cameras[idx].get_pose().cpu().numpy())
     poses = np.stack(poses, 0)
 
@@ -367,8 +370,9 @@ def plot_current_batch(
             ax.plot3D(*zip(s, e), color="black", alpha=0.5)
 
     # get unique poses (not to draw multiple times the same camera frame)
-    poses = np.unique(poses, axis=0)
+    # poses = np.unique(poses, axis=0)
     for i, pose in enumerate(poses):
+        idx = unique_cameras_idx[i]
         if up == "z":
             ax.quiver(
                 pose[0, 3],
@@ -400,7 +404,7 @@ def plot_current_batch(
                 length=scale,
                 color="b",
             )
-            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(i))
+            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(idx))
         else:  # up = "y"
             ax.quiver(
                 pose[0, 3],
@@ -432,7 +436,7 @@ def plot_current_batch(
                 length=scale,
                 color="b",
             )
-            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(i))
+            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(idx))
 
     # Draw rays
     ray_lenght = scene_radius * 1.5

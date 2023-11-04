@@ -10,6 +10,7 @@ from datasets.loaders.dtu import load_dtu
 from datasets.loaders.pac_nerf import load_pac_nerf
 from datasets.utils.geometry import rotation_matrix
 from datasets.scenes.scene import Scene
+from datasets.utils.raycasting import get_frame_per_pixels
 
 
 def get_poses_all(cameras):
@@ -58,7 +59,10 @@ def load_point_clouds(point_clouds_paths, max_nr_points=1000):
 
 
 class MVDataset(Dataset):
-    """Dataset class for all static multi-view datasets."""
+    """Dataset class for all static multi-view datasets.
+
+    All data is stored in CPU memory.
+    """
 
     # self.cameras = []
 
@@ -76,7 +80,6 @@ class MVDataset(Dataset):
         auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # automatically scale the poses to fit in +/- 1 bounding box
         # downscale_factor=1
-        device="cpu",
         profiler=None,
     ):
         self.dataset_name = dataset_name
@@ -102,7 +105,7 @@ class MVDataset(Dataset):
                 data_path,
                 load_with_mask=load_with_mask,
                 # downscale_factor=downscale_factor
-                device=device,
+                device="cpu",
             )
 
         elif self.dataset_name == "nerf_synthetic":
@@ -114,7 +117,7 @@ class MVDataset(Dataset):
                 data_path,
                 n_cameras=11,
                 load_with_mask=load_with_mask,
-                device=device,
+                device="cpu",
             )
 
         # elif self.dataset_name == "llff":
@@ -217,12 +220,12 @@ class MVDataset(Dataset):
             self.profiler.start(f"frame_data_retrieval_{idx}")
 
         # select a random timestamp
-        frame_idx = torch.randint(camera.nr_frames, (1,))
+        frame_idx = torch.randint(camera.nr_frames, (1,), device=camera.device)
 
         # get ground truth values from frame
-        gt_rgb, gt_mask = camera.get_frame_per_pixels(
-            pixels, timestamp=frame_idx.item()
-        )
+        frame = camera.get_frame(timestamp=frame_idx.item())
+        mask = camera.get_mask(timestamp=frame_idx.item())
+        gt_rgb, gt_mask = get_frame_per_pixels(pixels, frame, mask=mask)
 
         if self.profiler is not None:
             self.profiler.end(f"frame_data_retrieval_{idx}")
@@ -236,15 +239,12 @@ class MVDataset(Dataset):
         gt_rgb = gt_rgb.squeeze(0)
         gt_mask = gt_mask.squeeze(0)
 
-        # print("rays_o", rays_o.device)
-        # print("rays_d", rays_d.device)
-        # print("gt_rgb", gt_rgb.device)
-        # print("gt_mask", gt_mask.device)
-
         if self.profiler is not None:
             self.profiler.end(f"dataset_getitem_{idx}")
 
-        return idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
+        camera_idx = torch.tensor([idx], device=camera.device)
+
+        return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
 
 
 # from nerfstudio
