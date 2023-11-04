@@ -6,5 +6,6 @@ plots
 build
 deps
 include
+deps
 src
 mv_datasets.egg-info
