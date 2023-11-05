@@ -6,11 +6,11 @@ from torch.utils.data import Dataset
 import open3d as o3d
 
 # loaders
-from datasets.loaders.dtu import load_dtu
-from datasets.loaders.pac_nerf import load_pac_nerf
-from datasets.utils.geometry import rotation_matrix
-from datasets.scenes.scene import Scene
-from datasets.utils.raycasting import get_frame_per_pixels
+from mvdatasets.loaders.dtu import load_dtu
+from mvdatasets.loaders.pac_nerf import load_pac_nerf
+from mvdatasets.utils.geometry import rotation_matrix
+from mvdatasets.scenes.scene import Scene
+from mvdatasets.utils.raycasting import get_frame_per_pixels
 
 
 def get_poses_all(cameras):

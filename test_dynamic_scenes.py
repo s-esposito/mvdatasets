@@ -9,16 +9,16 @@ import open3d as o3d
 import struct
 
 # from datasets.loaders.pac_nerf import load_particles_pacnerf
-from datasets.utils.plotting import plot_cameras
-from datasets.utils.geometry import (
+from mvdatasets.utils.plotting import plot_cameras
+from mvdatasets.utils.geometry import (
     transform_points_3d,
     rot_x_3d,
     rot_y_3d,
     rot_z_3d,
     project_points_3d_to_2d,
 )
-from datasets.mv_dataset import MVDataset
-from datasets.utils.images import tensor2image
+from mvdatasets.mvdataset import MVDataset
+from mvdatasets.utils.images import tensor2image
 
 torch.manual_seed(42)
 torch.set_default_dtype(torch.float32)

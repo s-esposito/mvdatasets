@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from datasets.utils.raycasting import (
+from mvdatasets.utils.raycasting import (
     get_camera_rays_per_pixels,
     get_random_pixels,
     get_frame_per_pixels,

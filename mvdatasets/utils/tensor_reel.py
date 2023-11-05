@@ -1,6 +1,6 @@
 import torch
 
-from datasets.utils.raycasting import (
+from mvdatasets.utils.raycasting import (
     get_cameras_rays_per_pixel,
     get_random_pixels,
     get_cameras_frames_per_pixels,

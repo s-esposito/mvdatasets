@@ -5,9 +5,9 @@ from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
 
-from datasets.utils.images import numpy2image, image2numpy
-from datasets.scenes.camera import Camera
-from datasets.utils.geometry import (
+from mvdatasets.utils.images import numpy2image, image2numpy
+from mvdatasets.scenes.camera import Camera
+from mvdatasets.utils.geometry import (
     deg2rad,
     scale_3d,
     rot_x_3d,

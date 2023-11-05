@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from itertools import product, combinations
 
-from datasets.scenes.camera import Camera
+from mvdatasets.scenes.camera import Camera
 
 # Use in a notebook with:
 

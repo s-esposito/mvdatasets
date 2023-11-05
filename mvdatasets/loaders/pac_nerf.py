@@ -6,9 +6,9 @@ import cv2 as cv
 import open3d as o3d
 from PIL import Image
 
-from datasets.utils.images import numpy2image, image2numpy
-from datasets.utils.geometry import rot_x_3d, rot_z_3d, pose_local_rotation
-from datasets.scenes.camera import Camera
+from mvdatasets.utils.images import numpy2image, image2numpy
+from mvdatasets.utils.geometry import rot_x_3d, rot_z_3d, pose_local_rotation
+from mvdatasets.scenes.camera import Camera
 
 # def load_particles_fluidsym(path):
 #     f = open(path, "rb")

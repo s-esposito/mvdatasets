@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import open3d as o3d
 from tqdm import tqdm
 
-from datasets.utils.plotting import plot_cameras, plot_camera_rays, plot_current_batch
-from datasets.mv_dataset import MVDataset
-from datasets.utils.tensor_reel import TensorReel
-from datasets.utils.profiler import Profiler
+from mvdatasets.utils.plotting import plot_cameras, plot_camera_rays, plot_current_batch
+from mvdatasets.mvdataset import MVDataset
+from mvdatasets.utils.tensor_reel import TensorReel
+from mvdatasets.utils.profiler import Profiler
 from torch.utils.data import DataLoader
 
 # Set a random seed for reproducibility
@@ -87,7 +87,7 @@ batch_size = 512
 
 # # PyTorch DataLoader (~28 it/s), camera's data in on GPU
 
-from datasets.utils.loader import DatasetSampler, custom_collate, get_next_batch
+from mvdatasets.utils.loader import DatasetSampler, custom_collate, get_next_batch
 
 # Create a DataLoader for the MVDataset
 cameras_batch_size = len(dataset_train.cameras)  # alway sample from all cameras

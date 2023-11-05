@@ -8,4 +8,6 @@ deps
 include
 deps
 src
-mv_datasets.egg-info
+mvdatasets.egg-info
+dist
+cpp
