@@ -1,64 +1,20 @@
 import sys
 import os
 import torch
-import numpy as np
-from torch.utils.data import Dataset
-import open3d as o3d
-
-# loaders
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.pac_nerf import load_pac_nerf
-from mvdatasets.utils.geometry import rotation_matrix
-from mvdatasets.scenes.scene import Scene
 from mvdatasets.utils.raycasting import get_frame_per_pixels
+from mvdatasets.utils.point_clouds import load_point_clouds
+from mvdatasets.utils.common import is_dataset_supported
+
+# from torch.utils.data import Dataset
+# import open3d as o3d
+# import numpy as np
+# from mvdatasets.utils.geometry import rotation_matrix
+# from mvdatasets.scenes.scene import Scene
 
 
-def get_poses_all(cameras):
-    poses = []
-    for camera in cameras:
-        poses.append(camera.get_pose())
-    poses = torch.stack(poses, 0)
-    return poses
-
-
-def load_point_clouds(point_clouds_paths, max_nr_points=1000):
-    """Loads point cloud from files.
-    If the file is a mesh, points are its vertices.
-
-    Args:
-        point_clouds_paths: ordered list of point cloud file paths
-        max_nr_points: maximum number of points to load
-
-    Returns:
-        point_clouds []: ordered list of (N, 3) numpy arrays
-    """
-
-    point_clouds = []
-    for pc_path in point_clouds_paths:
-        # if exists, load it
-        if os.path.exists(pc_path):
-            # if format is .ply or .obj
-            if pc_path.endswith(".ply") or pc_path.endswith(".obj"):
-                print("Loading point cloud from {}".format(pc_path))
-                point_cloud = o3d.io.read_point_cloud(pc_path)
-                points_3d = np.asarray(point_cloud.points)
-                if points_3d.shape[0] > max_nr_points:
-                    # downsample
-                    random_idx = np.random.choice(
-                        points_3d.shape[0], max_nr_points, replace=False
-                    )
-                    points_3d = points_3d[random_idx]
-                    point_clouds.append(points_3d)
-                print("Loaded {} points from mesh".format(points_3d.shape[0]))
-            else:
-                raise ValueError("Unsupported point cloud format")
-        else:
-            raise ValueError("Point cloud path {} does not exist".format(pc_path))
-
-    return point_clouds
-
-
-class MVDataset(Dataset):
+class MVDataset:
     """Dataset class for all static multi-view datasets.
 
     All data is stored in CPU memory.
@@ -70,68 +26,73 @@ class MVDataset(Dataset):
         self,
         dataset_name,
         scene_name,
-        data_path,
+        datasets_path,  # dataset root path
+        splits=["train", "test"],  # ["train", "test"] or None (all)
+        test_camera_freq=8,
+        train_test_overlap=False,
+        load_mask=True,
         point_clouds_paths=[],
-        split="train",  # "all", train", "test"
-        use_every_for_test_split=8,
-        train_test_no_overlap=True,
-        load_with_mask=True,
-        auto_orient_method="up",  # "up", "none"
-        auto_center_method="none",  # "poses", "focus", "none"
-        # auto_scale_poses=False,  # automatically scale the poses to fit in +/- 1 bounding box
-        # downscale_factor=1
-        profiler=None,
+        # auto_orient_method="none",  # "up", "none"
+        # auto_center_method="none",  # "poses", "focus", "none"
+        # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
+        subsample_factor=1.0
+        # profiler=None,
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
-        self.per_camera_rays_batch_size = 512
-        self.profiler = profiler
+        # self.per_camera_rays_batch_size = 512
+        # self.profiler = profiler
         # self.auto_scale_poses = auto_scale_poses
+
+        data_path = os.path.join(datasets_path, dataset_name, scene_name)
 
         # check if path exists
         if not os.path.exists(data_path):
-            print("ERROR: path does not exist")
-            sys.exit()
+            raise ValueError(f"ERROR: data path {data_path} does not exist")
 
         # load scene cameras
-        if split not in ["all", "train", "test"]:
-            raise ValueError("Unknown split value, use 'all', 'train' or 'test'")
-
-        print(f"Loading {split} data")
-
-        if self.dataset_name == "dtu":
-            # load dtu
-            cameras_all = load_dtu(
-                data_path,
-                load_with_mask=load_with_mask,
-                # downscale_factor=downscale_factor
-                device="cpu",
+        if splits is None:
+            splits = ["all"]
+        elif "train" not in splits and "test" not in splits:
+            raise ValueError(
+                "ERROR: splits must contain at least one of 'train' or 'test'"
             )
 
+        # check if dataset is supported
+        if not is_dataset_supported(dataset_name):
+            raise ValueError(f"ERROR: dataset {dataset_name} is not supported")
+
+        print(f"Loading {splits} splits")
+
+        # load dtu
+        if self.dataset_name == "dtu":
+            cameras_all = load_dtu(data_path, load_mask=load_mask)
+
+        # load nerf_synthetic
         elif self.dataset_name == "nerf_synthetic":
             pass
 
+        # load pac_nerf
         elif self.dataset_name == "pac_nerf":
-            # load pac_nerf
-            cameras_all = load_pac_nerf(
-                data_path,
-                n_cameras=11,
-                load_with_mask=load_with_mask,
-                device="cpu",
-            )
+            cameras_all = load_pac_nerf(data_path, n_cameras=11, load_mask=load_mask)
 
         # elif self.dataset_name == "llff":
         #     pass
         # elif self.dataset_name == "tanks_and_temples":
         #     pass
-        else:
-            print("ERROR: dataset not supported")
-            sys.exit()
 
+        # (optional) load point clouds
         if len(point_clouds_paths) > 0:
             self.point_clouds = load_point_clouds(point_clouds_paths)
         else:
             self.point_clouds = []
+
+        def get_poses_all(cameras):
+            poses = []
+            for camera in cameras:
+                poses.append(camera.get_pose())
+            poses = torch.stack(poses, 0)
+            return poses
 
         # # align and center poses
         # poses_all = get_poses_all(cameras_all)
@@ -155,96 +116,104 @@ class MVDataset(Dataset):
         #     for camera in cameras_all:
         #         camera.concat_transform(transform)
 
-        if split == "all":
-            self.cameras = cameras_all
-        else:
-            # split into train and test
-            self.cameras = []
-            if split == "train":
-                if train_test_no_overlap:
+        # split data into train and test (or keep the all set)
+        self.data = {}
+        for split in splits:
+            if split == "all":
+                self.data[split] = cameras_all
+            else:
+                self.data[split] = []
+                if split == "train":
+                    if train_test_overlap:
+                        # if train_test_overlap, use all cameras for training
+                        self.data[split] = cameras_all
+                    # else use only a subset of cameras
+                    else:
+                        for i, camera in enumerate(cameras_all):
+                            if i % test_camera_freq != 0:
+                                self.data[split].append(camera)
+                if split == "test":
+                    # select a test camera every test_camera_freq cameras
                     for i, camera in enumerate(cameras_all):
-                        if i % use_every_for_test_split != 0:
-                            self.cameras.append(camera)
-                else:
-                    self.cameras = cameras_all
-            if split == "test":
-                for i, camera in enumerate(cameras_all):
-                    if i % use_every_for_test_split == 0:
-                        self.cameras.append(camera)
+                        if i % test_camera_freq == 0:
+                            self.data[split].append(camera)
 
-        print(f"Loaded {len(self.cameras)} cameras")
+            print(f"{split} split has {len(self.data[split])} cameras")
 
-    def __len__(self):
-        return len(self.cameras)
+    def __getitem__(self, split):
+        return self.data[split]
 
-    def __getitem__(self, idx):
-        """Cast random rays through random pixels of a camera.
+    # def __len__(self):
+    #     return len(self.cameras)
 
-        Args:
-            idx (int): camera index
+    # def __getitem__(self, idx):
+    #     """Cast random rays through random pixels of a camera.
 
-        Returns:
-            idx (int): camera index
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
-            gt_rgb (torch.tensor): (N, 3)
-            gt_mask (torch.tensor): (N, 1)
-            frame_idx (int): frame index
-        """
+    #     Args:
+    #         idx (int): camera index
 
-        if self.profiler is not None:
-            self.profiler.start(f"dataset_getitem_{idx}")
+    #     Returns:
+    #         idx (int): camera index
+    #         rays_o (torch.tensor): (N, 3)
+    #         rays_d (torch.tensor): (N, 3)
+    #         gt_rgb (torch.tensor): (N, 3)
+    #         gt_mask (torch.tensor): (N, 1)
+    #         frame_idx (int): frame index
+    #     """
 
-        # get camera
-        camera = self.cameras[idx]
+    #     if self.profiler is not None:
+    #         self.profiler.start(f"dataset_getitem_{idx}")
 
-        if self.profiler is not None:
-            self.profiler.start(f"pixels_sampling_{idx}")
+    #     # get camera
+    #     camera = self.cameras[idx]
 
-        # select random pixels
-        pixels = camera.get_random_pixels(self.per_camera_rays_batch_size)
+    #     if self.profiler is not None:
+    #         self.profiler.start(f"pixels_sampling_{idx}")
 
-        if self.profiler is not None:
-            self.profiler.end(f"pixels_sampling_{idx}")
+    #     # select random pixels
+    #     pixels = camera.get_random_pixels(self.per_camera_rays_batch_size)
 
-        if self.profiler is not None:
-            self.profiler.start(f"ray_casting_{idx}")
+    #     if self.profiler is not None:
+    #         self.profiler.end(f"pixels_sampling_{idx}")
 
-        # cast rays through them
-        rays_o, rays_d = camera.get_rays_per_pixels(pixels)
+    #     if self.profiler is not None:
+    #         self.profiler.start(f"ray_casting_{idx}")
 
-        if self.profiler is not None:
-            self.profiler.end(f"ray_casting_{idx}")
+    #     # cast rays through them
+    #     rays_o, rays_d = camera.get_rays_per_pixels(pixels)
 
-        if self.profiler is not None:
-            self.profiler.start(f"frame_data_retrieval_{idx}")
+    #     if self.profiler is not None:
+    #         self.profiler.end(f"ray_casting_{idx}")
 
-        # select a random timestamp
-        frame_idx = torch.randint(camera.nr_frames, (1,), device=camera.device)
+    #     if self.profiler is not None:
+    #         self.profiler.start(f"frame_data_retrieval_{idx}")
 
-        # get ground truth values from frame
-        frame = camera.get_frame(timestamp=frame_idx.item())
-        mask = camera.get_mask(timestamp=frame_idx.item())
-        gt_rgb, gt_mask = get_frame_per_pixels(pixels, frame, mask=mask)
+    #     # select a random timestamp
+    #     frame_idx = torch.randint(camera.nr_frames, (1,), device=camera.device)
 
-        if self.profiler is not None:
-            self.profiler.end(f"frame_data_retrieval_{idx}")
+    #     # get ground truth values from frame
+    #     frame = camera.get_frame(timestamp=frame_idx.item())
+    #     mask = camera.get_mask(timestamp=frame_idx.item())
+    #     gt_rgb, gt_mask = get_frame_per_pixels(pixels, frame, mask=mask)
 
-        # TODO: make more flexible
-        # other dataset-dependent outputs could be:
-        # gt_depth, gt_normal, gt_albedo, gt_brdf, gt_visibility
+    #     if self.profiler is not None:
+    #         self.profiler.end(f"frame_data_retrieval_{idx}")
 
-        rays_o = rays_o.squeeze(0)
-        rays_d = rays_d.squeeze(0)
-        gt_rgb = gt_rgb.squeeze(0)
-        gt_mask = gt_mask.squeeze(0)
+    #     # TODO: make more flexible
+    #     # other dataset-dependent outputs could be:
+    #     # gt_depth, gt_normal, gt_albedo, gt_brdf, gt_visibility
 
-        if self.profiler is not None:
-            self.profiler.end(f"dataset_getitem_{idx}")
+    #     rays_o = rays_o.squeeze(0)
+    #     rays_d = rays_d.squeeze(0)
+    #     gt_rgb = gt_rgb.squeeze(0)
+    #     gt_mask = gt_mask.squeeze(0)
 
-        camera_idx = torch.tensor([idx], device=camera.device)
+    #     if self.profiler is not None:
+    #         self.profiler.end(f"dataset_getitem_{idx}")
 
-        return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
+    #     camera_idx = torch.tensor([idx], device=camera.device)
+
+    #     return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
 
 
 # from nerfstudio

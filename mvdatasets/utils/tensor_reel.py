@@ -8,43 +8,50 @@ from mvdatasets.utils.raycasting import (
 
 
 class TensorReel:
-    def __init__(self, dataset, device="cuda"):
-        intrinsics_inv = []
-        poses = []
+    def __init__(self, cameras_list, device="cuda"):
+        """Create a tensor_reel object, containing all data
+        stored contiguosly in tensors.
+
+        Args:
+            cameras_list (list): list of cameras objects
+            device (str, optional): device to move tensors to. Defaults to "cuda".
+
+        Attributes:
+            frames (torch.tensor): (N, T, H, W, 3) in [0, 1]
+            masks (optional, torch.tensor): (N, T, H, W, 1) in [0, 1] or None
+            pose (torch.tensor): (N, 4, 4)
+            intrinsics_inv (torch.tensor): (N, 3, 3)
+        """
+
         frames = []
         masks = []
-        # frames_dims = []
+        poses = []
+        intrinsics_inv = []
 
-        # for all cameras in dataset
-        for camera in dataset.cameras:
-            intrinsics_inv.append(camera.get_intrinsics_inv())
-            poses.append(camera.get_pose())
-            frames.append(camera.get_frames())
-            if camera.get_masks() is not None:
-                masks.append(camera.get_masks())
-            # frames_dims.append((camera.height, camera.width))
+        # collect data from all cameras
+        for camera in cameras_list:
+            frames.append(torch.from_numpy(camera.get_frames()).float())
+            if camera.has_masks:
+                masks.append(torch.from_numpy(camera.get_masks()).float())
+            poses.append(torch.from_numpy(camera.get_pose()).float())
+            intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
 
-        # concat camera data to single tensors
-        self.intrinsics_inv = torch.stack(intrinsics_inv)
-        self.poses = torch.stack(poses)
+        # concat camera data in big tensors
         self.frames = torch.stack(frames)
         if len(masks) > 0:
             self.masks = torch.stack(masks)
         else:
             self.masks = None
+        self.poses = torch.stack(poses)
+        self.intrinsics_inv = torch.stack(intrinsics_inv)
 
-        # move tensors to device
+        # move tensors to desired device
         if device != "cpu":
             self.intrinsics_inv = self.intrinsics_inv.to(device)
             self.poses = self.poses.to(device)
             self.frames = self.frames.to(device)
             if self.masks is not None:
                 self.masks = self.masks.to(device)
-
-        # print("intrinsics_inv", self.intrinsics_inv.shape, self.intrinsics_inv.device)
-        # print("poses", self.poses.shape, self.poses.device)
-        # print("frames", self.frames.shape, self.frames.device)
-        # print("masks", self.masks.shape, self.masks.device)
 
         self.device = device
         self.height = self.frames.shape[2]
@@ -58,10 +65,7 @@ class TensorReel:
         else:
             # sample from given cameras idxs with repetitions
             sampled_idx = torch.randint(len(cameras_idxs), (batch_size,))
-            # print("sampled_idx", sampled_idx)
             camera_idx = torch.tensor(cameras_idxs, device=self.device)[sampled_idx]
-            # print("camera_idx", camera_idx)
-            # camera_idx = (torch.ones(batch_size) * nr_camera).int()
 
         # random int in range [0, nr_frames_in_sequence-1] with repetitions
         nr_frames_in_sequence = self.frames.shape[1]

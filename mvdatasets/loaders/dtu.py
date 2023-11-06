@@ -43,11 +43,10 @@ def load_K_Rt_from_P(filename, P=None):
 
 def load_dtu(
     data_path,
-    load_with_mask=True,
-    rotate_scene_x_axis_degrees=115,
-    scene_scale_multiplier=0.4,
-    # downscale_factor=1
-    device="cpu",
+    load_mask=True,
+    rotate_scene_x_axis_deg=115,
+    scene_scale_mult=0.4,
+    subsample_factor=1,
 ):
     # create cameras objects
     cameras = []
@@ -60,12 +59,12 @@ def load_dtu(
         # load PIL image
         img_pil = Image.open(im_name)
         img_np = image2numpy(img_pil)
-        # img_np = img_np[::downscale_factor, ::downscale_factor]
+        # img_np = img_np[::subsample_factor, ::subsample_factor]
         imgs.append(img_np)
 
     # (optional) load mask images to cpu as numpy arrays
     masks = []
-    if load_with_mask:
+    if load_mask:
         masks_list = sorted(glob(os.path.join(data_path, "mask/*.png")))
         pbar = tqdm(masks_list, desc="Loading masks", leave=True)
         for im_name in pbar:
@@ -73,7 +72,7 @@ def load_dtu(
             mask_pil = Image.open(im_name)
             mask_np = image2numpy(mask_pil)
             mask_np = mask_np[:, :, 0, None]
-            # mask_np = mask_np[::downscale_factor, ::downscale_factor]
+            # mask_np = mask_np[::subsample_factor, ::subsample_factor]
             masks.append(mask_np)
 
     camera_dict = np.load(os.path.join(data_path, "cameras_sphere.npz"))
@@ -96,7 +95,7 @@ def load_dtu(
         # pose[:3, 0] *= -1
 
         # rotation around x axis by 115 degrees
-        rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_degrees))
+        rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
         pose = pose_global_rotation(pose, rotation)
 
         # transformation flipping the z-axis
@@ -104,7 +103,7 @@ def load_dtu(
         # pose = pose_global_rotation(pose, rotation)
 
         # rotation around x axis by 115 degrees
-        # rotation = rot_x_3d(deg2rad(-rotate_scene_x_axis_degrees))
+        # rotation = rot_x_3d(deg2rad(-rotate_scene_x_axis_deg))
         # pose = pose_global_rotation(pose, rotation)
 
         pose[:3, 0] *= -1
@@ -112,9 +111,9 @@ def load_dtu(
         pose[:3, 1] *= -1
 
         # scale
-        pose[:3, 3] *= scene_scale_multiplier
+        pose[:3, 3] *= scene_scale_mult
 
-        # scale = scale_3d(scene_scale_multiplier)
+        # scale = scale_3d(scene_scale_mult)
         # tf_world_cam_rescaled=recaling_matrix*tf_world_cam_rescaled;
         # tf_cam_world=tf_world_cam_rescaled.inverse();
 
@@ -128,17 +127,13 @@ def load_dtu(
         cam_imgs = imgs[idx][None, ...]
 
         # get mask (optional)
-        if load_with_mask and len(masks) > idx:
+        if load_mask and len(masks) > idx:
             cam_masks = masks[idx][None, ...]
         else:
             cam_masks = None
 
         camera = Camera(
-            intrinsics=intrinsics,
-            pose=pose,
-            imgs=cam_imgs,
-            masks=cam_masks,
-            device=device,
+            intrinsics=intrinsics, pose=pose, imgs=cam_imgs, masks=cam_masks
         )
 
         cameras.append(camera)

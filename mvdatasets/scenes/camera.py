@@ -1,11 +1,11 @@
-import torch
 import numpy as np
+import cv2 as cv
 
-from mvdatasets.utils.raycasting import (
-    get_camera_rays_per_pixels,
-    get_random_pixels,
-    get_frame_per_pixels,
-)
+# from mvdatasets.utils.raycasting import (
+#     get_camera_rays_per_pixels,
+#     get_random_pixels,
+#     get_frame_per_pixels,
+# )
 
 # def decompose_projection_matrix(P):
 #     """
@@ -32,67 +32,36 @@ from mvdatasets.utils.raycasting import (
 class Camera:
     """Camera class."""
 
-    def __init__(
-        self,
-        imgs,
-        intrinsics,
-        pose,
-        # projection=None,
-        masks=None,
-        transform=None,
-        device="cuda:0",
-    ):
-        """Create a camera object, all parameters are torch tensors.
+    def __init__(self, imgs, intrinsics, pose, masks=None, transform=None):
+        """Create a camera object, all parameters are np.ndarrays.
 
         Args:
             imgs (np.array): (T, H, W, 3) with values in [0, 1]
             intrinsics (np.array): (3, 3)
             pose (np.array): (4, 4)
-            projection (np.array): projection matrix (3, 4)
             masks (np.array): (T, H, W, 1) with values in [0, 1]
         """
 
-        # if intrinsics is None and pose is None and projection is not None:
-        #     K, R, t = decompose_projection_matrix(projection.numpy())
-        #     Rt = np.eye(4)
-        #     Rt[:3, :3] = R
-        #     Rt[:3, 3] = t
-        #     self.intrinsics = torch.from_numpy(K).float().to(device)
-        #     self.pose = torch.from_numpy(Rt).float().to(device)
-        # elif intrinsics is not None and pose is not None:
-        self.intrinsics = torch.from_numpy(intrinsics).float().to(device)
-        self.pose = torch.from_numpy(pose).float().to(device)
-        # else:
-        #     raise ValueError(
-        #         "Either projection or intrinsics and pose must be provided"
-        #     )
-
-        self.intrinsics_inv = torch.inverse(self.intrinsics)
-        self.imgs = torch.from_numpy(imgs).float().to(device)
+        self.intrinsics = intrinsics
+        self.pose = pose
+        self.intrinsics_inv = np.linalg.inv(intrinsics)
+        self.imgs = imgs
         if masks is not None:
-            self.masks = torch.from_numpy(masks).float().to(device)
+            self.has_masks = True
+            self.masks = masks
         else:
+            self.has_masks = False
             self.masks = None
+
         self.height = imgs.shape[1]
         self.width = imgs.shape[2]
-        self.nr_pixels = self.height * self.width
-        self.nr_frames = imgs.shape[0]
+        # self.nr_pixels = self.height * self.width
+        # self.nr_frames = imgs.shape[0]
 
         if transform is not None:
-            self.transform = torch.from_numpy(transform).float().to(device)
+            self.transform = transform
         else:
-            self.transform = torch.from_numpy(np.eye(4)).float().to(device)
-
-        self.device = device
-
-        # # print each tensor device
-        # print("transform", self.transform.device)
-        # print("pose", self.pose.device)
-        # print("intrinsics", self.intrinsics.device)
-        # print("intrinsics_inv", self.intrinsics_inv.device)
-        # print("imgs", self.imgs.device)
-        # if self.masks is not None:
-        #     print("masks", self.masks.device)
+            self.transform = np.eye(4)
 
     def get_intrinsics(self):
         """return camera intrinsics"""
@@ -106,9 +75,10 @@ class Camera:
         """return all camera frames"""
         return self.imgs
 
-    def get_frame(self, timestamp=0):
+    def get_frame(self, timestamp=0, subsampling_factor=1.0):
         """returns image at timestamp"""
-        return self.imgs[timestamp]
+        img = self.imgs[timestamp]
+        return img
 
     def get_masks(self):
         """return, if exists, all camera masks, else None"""
@@ -130,53 +100,100 @@ class Camera:
         # apply transform
         self.transform = transform @ self.transform
 
-    def get_random_rays(self, nr_rays):
-        """given a number or rays, return rays origins and random directions
+    def subsample(self, scale):
+        """subsample camera frames and masks by scale (inplace operation)"""
 
-        args:
-            nr_rays (int): number or random rays to sample
+        # update dimentions
+        # new_height = self.height // scale
+        # new_width = self.width // scale
 
-        out:
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
-        """
+        # subsample frames
+        new_imgs = []
+        for img in self.imgs:
+            new_imgs.append(
+                cv.resize(img, (0, 0), fx=scale, fy=scale, interpolation=cv.INTER_AREA)
+            )
+        self.imgs = np.stack(new_imgs)
 
-        pixels = get_random_pixels(self.height, self.width, nr_rays)
-        return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
+        # subsample masks
+        if self.has_masks:
+            new_masks = []
+            for mask in self.masks:
+                new_masks.append(
+                    cv.resize(
+                        mask, (0, 0), fx=scale, fy=scale, interpolation=cv.INTER_AREA
+                    )
+                )
+            self.masks = np.stack(new_masks)
 
-    def get_random_pixels(self, nr_pixels):
-        """given a number or pixels, return random pixels
+        self.height = self.imgs.shape[1]
+        self.width = self.imgs.shape[2]
 
-        out:
-            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
-        """
-        return get_random_pixels(self.height, self.width, nr_pixels, device=self.device)
+        # modify intrinsics
+        self.intrinsics = self.intrinsics * scale
+        self.intrinsics_inv = np.linalg.inv(self.intrinsics)
 
-    def get_rays_per_pixels(self, pixels):
-        """given a list of pixels, return rays origins and directions
+    def __str__(self):
+        """print camera information"""
+        string = ""
+        string += "intrinsics:\n"
+        string += str(self.intrinsics) + "\n"
+        string += "pose:\n"
+        string += str(self.pose) + "\n"
+        string += "transform:\n"
+        string += str(self.transform) + "\n"
+        string += "imgs:\n"
+        string += str(self.imgs.shape) + "\n"
+        if self.has_masks:
+            string += "masks:\n"
+            string += str(self.masks.shape) + "\n"
 
-        args:
-            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
+        return string
 
-        out:
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
-        """
-        # print("pose", self.get_pose().shape, self.get_pose().device)
-        # print("intrinsics_inv", self.intrinsics_inv.shape, self.intrinsics_inv.device)
-        # print("pixels", pixels.shape, pixels.device)
-        return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
+    # def get_random_rays(self, nr_rays):
+    #     """given a number or rays, return rays origins and random directions
 
-    def get_frame_per_pixels(self, pixels, timestamp=0):
-        """given a list of pixels, return color and mask values
+    #     args:
+    #         nr_rays (int): number or random rays to sample
 
-        args:
-            pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
+    #     out:
+    #         rays_o (np.ndarray): (N, 3)
+    #         rays_d (np.ndarray): (N, 3)
+    #     """
 
-        out:
-            rgb (torch.tensor): (N, 3)
-            mask (torch.tensor): (N, 1)
-        """
-        return get_frame_per_pixels(
-            self.get_frame(timestamp), self.get_mask(timestamp), pixels
-        )
+    #     pixels = get_random_pixels(self.height, self.width, nr_rays)
+    #     return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
+
+    # def get_random_pixels(self, nr_pixels):
+    #     """given a number or pixels, return random pixels
+
+    #     out:
+    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
+    #     """
+    #     return get_random_pixels(self.height, self.width, nr_pixels)
+
+    # def get_rays_per_pixels(self, pixels):
+    #     """given a list of pixels, return rays origins and directions
+
+    #     args:
+    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
+
+    #     out:
+    #         rays_o (np.ndarray): (N, 3)
+    #         rays_d (np.ndarray): (N, 3)
+    #     """
+    #     return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
+
+    # def get_frame_per_pixels(self, pixels, timestamp=0):
+    #     """given a list of pixels, return color and mask values
+
+    #     args:
+    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
+
+    #     out:
+    #         rgb (np.ndarray): (N, 3)
+    #         mask (np.ndarray): (N, 1)
+    #     """
+    #     return get_frame_per_pixels(
+    #         self.get_frame(timestamp), self.get_mask(timestamp), pixels
+    #     )

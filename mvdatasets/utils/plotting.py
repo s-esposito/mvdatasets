@@ -29,7 +29,7 @@ def plot_cameras(
     # Get all camera poses
     poses = []
     for camera in cameras:
-        poses.append(camera.get_pose().cpu().numpy())
+        poses.append(camera.get_pose())
     poses = np.stack(poses, 0)
 
     # Get all camera centers
@@ -162,7 +162,7 @@ def plot_camera_rays(
         raise ValueError("up must be either 'y' or 'z'")
 
     # Get all camera poses
-    pose = camera.get_pose().cpu().numpy()
+    pose = camera.get_pose()
 
     pixels = camera.get_random_pixels(nr_rays)
     rays_o, rays_d = camera.get_rays_per_pixels(pixels)
@@ -341,7 +341,7 @@ def plot_current_batch(
     # Get all camera poses
     poses = []
     for idx in unique_cameras_idx:
-        poses.append(cameras[idx].get_pose().cpu().numpy())
+        poses.append(cameras[idx].get_pose())
     poses = np.stack(poses, 0)
 
     # Get all camera centers
@@ -489,7 +489,7 @@ def plot_current_batch(
 # points_2d = project_points_3d_to_2d(
 #     points_3d=dataset_train.point_clouds[0],
 #     intrinsics=intrinsics,
-#     c2w=dataset_train.cameras[camera_idx].get_pose().cpu().numpy(),
+#     c2w=dataset_train.cameras[camera_idx].get_pose(),
 # )
 # # filter out points outside image range
 # points_2d = points_2d[points_2d[:, 0] > 0]

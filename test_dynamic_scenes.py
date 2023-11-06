@@ -56,7 +56,7 @@ training_data = MVDataset(
     scene_data_path,
     point_clouds_paths=particles_paths,
     split="all",
-    load_with_mask=True,
+    load_mask=True,
     auto_center_method="none",  # "poses", "focus", "none"
     auto_orient_method="none",  # "up", "none"
     device=device,
