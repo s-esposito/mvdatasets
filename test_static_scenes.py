@@ -11,6 +11,7 @@ import open3d as o3d
 from tqdm import tqdm
 
 from mvdatasets.utils.plotting import plot_cameras, plot_camera_rays, plot_current_batch
+from mvdatasets.utils.raycasting import get_camera_rays, get_camera_frames
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.profiler import Profiler
@@ -55,11 +56,43 @@ mv_data = MVDataset(
 camera = deepcopy(mv_data["train"][0])
 print(camera)
 
+# gen rays
+rays_o, rays_d = get_camera_rays(camera)
+print("rays_o", rays_o.shape, rays_o.device)
+print("rays_d", rays_d.shape, rays_d.device)
+
+rgb, mask = get_camera_frames(camera)
+print("rgb", rgb.shape, rgb.device)
+print("mask", mask.shape, mask.device)
+
+# img = rgb.cpu().numpy().reshape(camera.height, camera.width, 3)
+# plt.imshow(img)
+# plt.show()
+
 # make from the gt frame a smaller frame until we reach a certain size
-while min(camera.width, camera.height) > 400:
+while min(camera.width, camera.height) > 200:
     print("camera.width", camera.width, "camera.height", camera.height)
     camera.subsample(scale=0.5)
 print("camera.width", camera.width, "camera.height", camera.height)
+
+# gen rays
+rays_o, rays_d = get_camera_rays(camera)
+print("rays_o", rays_o.shape, rays_o.device)
+print("rays_d", rays_d.shape, rays_d.device)
+
+rgb, mask = get_camera_frames(camera)
+print("rgb", rgb.shape, rgb.device)
+print("mask", mask.shape, mask.device)
+
+# img = rgb.cpu().numpy().reshape(camera.height, camera.width, 3)
+# plt.imshow(img)
+# plt.show()
+
+# visualize camera
+fig = plot_camera_rays(
+    camera, 512, azimuth_deg=60, elevation_deg=30, up="y", figsize=(15, 15)
+)
+plt.show()
 
 exit()
 

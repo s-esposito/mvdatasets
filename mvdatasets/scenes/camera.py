@@ -1,12 +1,6 @@
 import numpy as np
 import cv2 as cv
 
-# from mvdatasets.utils.raycasting import (
-#     get_camera_rays_per_pixels,
-#     get_random_pixels,
-#     get_frame_per_pixels,
-# )
-
 # def decompose_projection_matrix(P):
 #     """
 #     Decompose a projection matrix into K, R, t such that P = K[R|t].
@@ -75,7 +69,7 @@ class Camera:
         """return all camera frames"""
         return self.imgs
 
-    def get_frame(self, timestamp=0, subsampling_factor=1.0):
+    def get_frame(self, timestamp=0):
         """returns image at timestamp"""
         img = self.imgs[timestamp]
         return img
@@ -149,51 +143,3 @@ class Camera:
             string += str(self.masks.shape) + "\n"
 
         return string
-
-    # def get_random_rays(self, nr_rays):
-    #     """given a number or rays, return rays origins and random directions
-
-    #     args:
-    #         nr_rays (int): number or random rays to sample
-
-    #     out:
-    #         rays_o (np.ndarray): (N, 3)
-    #         rays_d (np.ndarray): (N, 3)
-    #     """
-
-    #     pixels = get_random_pixels(self.height, self.width, nr_rays)
-    #     return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
-
-    # def get_random_pixels(self, nr_pixels):
-    #     """given a number or pixels, return random pixels
-
-    #     out:
-    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
-    #     """
-    #     return get_random_pixels(self.height, self.width, nr_pixels)
-
-    # def get_rays_per_pixels(self, pixels):
-    #     """given a list of pixels, return rays origins and directions
-
-    #     args:
-    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
-
-    #     out:
-    #         rays_o (np.ndarray): (N, 3)
-    #         rays_d (np.ndarray): (N, 3)
-    #     """
-    #     return get_camera_rays_per_pixels(self.get_pose(), self.intrinsics_inv, pixels)
-
-    # def get_frame_per_pixels(self, pixels, timestamp=0):
-    #     """given a list of pixels, return color and mask values
-
-    #     args:
-    #         pixels (np.ndarray, int): (N, 2) with values in [0, height-1], [0, width-1]
-
-    #     out:
-    #         rgb (np.ndarray): (N, 3)
-    #         mask (np.ndarray): (N, 1)
-    #     """
-    #     return get_frame_per_pixels(
-    #         self.get_frame(timestamp), self.get_mask(timestamp), pixels
-    #     )

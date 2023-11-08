@@ -2,6 +2,19 @@ import torch
 import torch.nn.functional as F
 
 
+def get_pixels(height, width, device="cpu"):
+    """returns all image pixels coords"""
+
+    pixels_x, pixels_y = torch.meshgrid(
+        torch.arange(height, device=device),
+        torch.arange(width, device=device),
+        indexing="ij",
+    )
+    pixels = torch.stack([pixels_x, pixels_y], dim=-1).reshape(-1, 2).int()
+
+    return pixels
+
+
 def get_random_pixels(height, width, nr_pixels, device="cpu"):
     """given a number or pixels, return random pixels
 
@@ -54,6 +67,32 @@ def get_camera_rays_per_pixels(c2w, intrinsics_inv, pixels):
     return rays_o, rays_d
 
 
+def get_camera_rays(camera, pixels=None, device="cpu"):
+    """returns all image rays origins and directions from a single camera
+
+    args:
+        camera (Camera): camera object
+        pixels (torch.tensor, int, optional): (N, 2) with values in
+                                            [0, height-1], [0, width-1], default is None
+        device (str, optional): device to store tensors. Defaults to "cpu".
+
+    out:
+        rays_o (torch.tensor): (N, 3)
+        rays_d (torch.tensor): (N, 3)
+
+    """
+
+    if pixels is None:
+        pixels = get_pixels(camera.height, camera.width, device=device)
+
+    c2w = torch.from_numpy(camera.get_pose()).float().to(device)
+    intrinsics_inv = torch.from_numpy(camera.get_intrinsics_inv()).float().to(device)
+
+    rays_o, rays_d = get_camera_rays_per_pixels(c2w, intrinsics_inv, pixels)
+
+    return rays_o, rays_d
+
+
 def get_cameras_rays_per_pixel(c2w_all, intrinsics_inv_all, pixels):
     """given a list of c2w, intrinsics_inv and pixels, return rays origins and
     directions from multiple cameras
@@ -95,7 +134,7 @@ def get_cameras_rays_per_pixel(c2w_all, intrinsics_inv_all, pixels):
     return rays_o, rays_d
 
 
-def get_frame_per_pixels(pixels, frames, mask=None):
+def get_camera_frames_per_pixels(pixels, frame, mask=None):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
     args:
@@ -106,20 +145,59 @@ def get_frame_per_pixels(pixels, frames, mask=None):
         gray (torch.tensor): (N, 1)
     """
 
-    height = frames.shape[0]
-    # width = frame.shape[1]
-
-    # camera image plane is flipped vertically
-    rgb = frames[(height - 1) - pixels[:, 0], pixels[:, 1]]
-    gray = None
+    rgb = frame[pixels[:, 0], pixels[:, 1]]
+    mask_val = None
     if mask is not None:
-        gray = mask[(height - 1) - pixels[:, 0], pixels[:, 1]]
+        mask_val = mask[pixels[:, 0], pixels[:, 1]]
+    mask_val = mask_val.unsqueeze(-1)
 
-    return rgb, gray
+    # TODO: is this correct?
+    # # camera image plane is flipped vertically
+    # rgb = frames[(height - 1) - pixels[:, 0], pixels[:, 1]]
+    # gray = None
+    # if mask is not None:
+    #     gray = mask[(height - 1) - pixels[:, 0], pixels[:, 1]]
+
+    return rgb, mask_val
 
 
-def get_cameras_frames_per_pixels(camera_idx, frame_idx, pixels, frames, mask=None):
-    """TODO
+def get_camera_frames(camera, pixels=None, timestamp=0, device="cpu"):
+    """returns all camera images pixels values"""
+
+    if pixels is None:
+        pixels = get_pixels(camera.height, camera.width, device=device)
+
+    frame = torch.from_numpy(camera.get_frame(timestamp=timestamp)).float().to(device)
+    mask = None
+    if camera.has_masks:
+        mask = torch.from_numpy(camera.get_mask(timestamp=timestamp)).float().to(device)
+
+    rgb, mask_val = get_camera_frames_per_pixels(pixels, frame, mask=mask)
+
+    return rgb, mask_val
+
+
+def get_camera_rays_and_frames(camera, device="cpu"):
+    """returns all camera rays and images pixels values"""
+    rays_o, rays_d = get_camera_rays(camera, device=device)
+    rgb, mask = get_camera_frames(camera, device=device)
+    return rays_o, rays_d, rgb, mask
+
+
+def get_camera_random_rays_and_frames(camera, nr_rays=512, timestamp=0, device="cpu"):
+    """given a camera and a number of rays,
+    return random rays and images pixels values"""
+
+    pixels = get_random_pixels(camera.height, camera.width, nr_rays, device=device)
+
+    rays_o, rays_d = get_camera_rays(camera, pixels=pixels, device=device)
+    rgb, mask = get_camera_frames(camera, pixels=pixels, timestamp=0, device=device)
+
+    return rays_o, rays_d, rgb, mask
+
+
+def get_cameras_frames_per_pixels(pixels, camera_idx, frame_idx, frames, masks=None):
+    """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
     args:
         pixels (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
@@ -129,13 +207,19 @@ def get_cameras_frames_per_pixels(camera_idx, frame_idx, pixels, frames, mask=No
         gray (torch.tensor): (N, 1)
     """
 
-    height = frames.shape[2]
-    # width = frames.shape[3]
+    # get rgb and mask gt values at pixels
+    rgb = frames[camera_idx, frame_idx, pixels[:, 0], pixels[:, 1]]
 
-    # camera image plane is flipped vertically
-    rgb = frames[camera_idx, frame_idx, (height - 1) - pixels[:, 0], pixels[:, 1]]
-    gray = None
-    if mask is not None:
-        gray = mask[camera_idx, frame_idx, (height - 1) - pixels[:, 0], pixels[:, 1]]
+    # TODO: should this be reversed?
+    # rgb = self.frames[
+    #     camera_idx, frame_idx, (self.height - 1) - pixels[:, 0], pixels[:, 1]
+    # ]
+    mask_val = None
+    if masks is not None:
+        mask_val = masks[camera_idx, frame_idx, pixels[:, 0], pixels[:, 1]]
 
-    return rgb, gray
+        # mask_val = self.masks[
+        #     camera_idx, frame_idx, (self.height - 1) - pixels[:, 0], pixels[:, 1]
+        # ]
+
+    return rgb, mask_val

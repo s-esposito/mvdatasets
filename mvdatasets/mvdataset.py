@@ -3,10 +3,10 @@ import os
 import torch
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.pac_nerf import load_pac_nerf
-from mvdatasets.utils.raycasting import get_frame_per_pixels
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
 
+# from mvdatasets.utils.raycasting import get_camera_frames_per_pixels
 # from torch.utils.data import Dataset
 # import open3d as o3d
 # import numpy as np
@@ -194,7 +194,7 @@ class MVDataset:
     #     # get ground truth values from frame
     #     frame = camera.get_frame(timestamp=frame_idx.item())
     #     mask = camera.get_mask(timestamp=frame_idx.item())
-    #     gt_rgb, gt_mask = get_frame_per_pixels(pixels, frame, mask=mask)
+    #     gt_rgb, gt_mask = get_camera_frames_per_pixels(camera, pixels)
 
     #     if self.profiler is not None:
     #         self.profiler.end(f"frame_data_retrieval_{idx}")

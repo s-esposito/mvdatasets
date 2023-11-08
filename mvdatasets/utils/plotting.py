@@ -1,10 +1,14 @@
-import numpy as np
 import torch
-import math
+import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product, combinations
+from mvdatasets.utils.raycasting import (
+    get_camera_random_rays_and_frames,
+    get_camera_rays,
+)
 
-from mvdatasets.scenes.camera import Camera
+# from mvdatasets.scenes.camera import Camera
+# import math
 
 # Use in a notebook with:
 
@@ -164,9 +168,41 @@ def plot_camera_rays(
     # Get all camera poses
     pose = camera.get_pose()
 
-    pixels = camera.get_random_pixels(nr_rays)
-    rays_o, rays_d = camera.get_rays_per_pixels(pixels)
-    rgb, mask = camera.get_frame_per_pixels(pixels)
+    # rays_o, rays_d, rgb, mask = get_camera_random_rays_and_frames(camera, nr_rays)
+
+    # DEBUG --------
+    from mvdatasets.utils.raycasting import get_pixels
+
+    xy = get_pixels(camera.height, camera.width, device="cpu")
+    rays_o, rays_d = get_camera_rays(camera, pixels=xy, device="cpu")
+    z = torch.zeros(xy.shape[0], 1, device="cpu")
+    print("xy", xy.shape, xy.device)
+    print("z", z.shape, z.device)
+    rgb = torch.cat([xy, z], dim=1)
+    rgb[:, 0] /= torch.max(rgb[:, 0])
+    rgb[:, 1] /= torch.max(rgb[:, 1])
+    # rgb -> grb
+    rgb = rgb[:, [1, 0, 2]]
+
+    # visualize rgb
+    plt.imshow(rgb.reshape(camera.height, camera.width, 3).cpu().numpy())
+    plt.show()
+
+    mask = torch.ones(rgb.shape[0], 1, device="cpu")
+
+    # subsample
+    idx = torch.randperm(xy.shape[0], device="cpu")[:nr_rays]
+    rays_o = rays_o[idx]
+    rays_d = rays_d[idx]
+    rgb = rgb[idx]
+    mask = mask[idx]
+
+    print("rays_o", rays_o.shape, rays_o.device)
+    print("rays_d", rays_d.shape, rays_d.device)
+    print("rgb", rgb.shape, rgb.device)
+    print("mask", mask.shape, mask.device)
+
+    # --------------
 
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()

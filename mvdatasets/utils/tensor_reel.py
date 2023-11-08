@@ -1,8 +1,8 @@
 import torch
 
 from mvdatasets.utils.raycasting import (
-    get_cameras_rays_per_pixel,
     get_random_pixels,
+    get_cameras_rays_per_pixel,
     get_cameras_frames_per_pixels,
 )
 
@@ -84,9 +84,9 @@ class TensorReel:
             self.poses[camera_idx], self.intrinsics_inv[camera_idx], pixels
         )
 
-        # get rgb and mask gt values at pixels
+        # get ground truth frames values at pixels
         gt_rgb, gt_mask = get_cameras_frames_per_pixels(
-            camera_idx, frame_idx, pixels, self.frames, self.masks
+            pixels, camera_idx, frame_idx, self.frames, masks=self.masks
         )
 
         return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
