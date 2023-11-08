@@ -26,7 +26,9 @@ import cv2 as cv
 class Camera:
     """Camera class."""
 
-    def __init__(self, imgs, intrinsics, pose, masks=None, transform=None):
+    def __init__(
+        self, imgs, intrinsics, pose, masks=None, transform=None, camera_idx=0
+    ):
         """Create a camera object, all parameters are np.ndarrays.
 
         Args:
@@ -36,6 +38,7 @@ class Camera:
             masks (np.array): (T, H, W, 1) with values in [0, 1]
         """
 
+        self.camera_idx = camera_idx
         self.intrinsics = intrinsics
         self.pose = pose
         self.intrinsics_inv = np.linalg.inv(intrinsics)
@@ -69,20 +72,20 @@ class Camera:
         """return all camera frames"""
         return self.imgs
 
-    def get_frame(self, timestamp=0):
-        """returns image at timestamp"""
-        img = self.imgs[timestamp]
+    def get_frame(self, frame_idx=0):
+        """returns image at frame_idx"""
+        img = self.imgs[frame_idx]
         return img
 
     def get_masks(self):
         """return, if exists, all camera masks, else None"""
         return self.masks
 
-    def get_mask(self, timestamp=0):
-        """return, if exists, a mask at timestamp, else None"""
+    def get_mask(self, frame_idx=0):
+        """return, if exists, a mask at frame_idx, else None"""
         mask = None
-        if len(self.masks) > timestamp:
-            mask = self.masks[timestamp]
+        if len(self.masks) > frame_idx:
+            mask = self.masks[frame_idx]
         return mask
 
     def get_pose(self):
@@ -116,7 +119,7 @@ class Camera:
                 new_masks.append(
                     cv.resize(
                         mask, (0, 0), fx=scale, fy=scale, interpolation=cv.INTER_AREA
-                    )
+                    )[..., None]
                 )
             self.masks = np.stack(new_masks)
 
@@ -124,7 +127,10 @@ class Camera:
         self.width = self.imgs.shape[2]
 
         # modify intrinsics
-        self.intrinsics = self.intrinsics * scale
+        self.intrinsics[0, 0] *= scale
+        self.intrinsics[1, 1] *= scale
+        self.intrinsics[0, 2] *= scale
+        self.intrinsics[1, 2] *= scale
         self.intrinsics_inv = np.linalg.inv(self.intrinsics)
 
     def __str__(self):

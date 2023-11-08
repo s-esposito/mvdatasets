@@ -88,11 +88,11 @@ img_pil = tensor2image(img_torch)
 img_pil.save("test_dynamic_scenes_mask.png")
 
 camera_idx = 1
-timestamp_idx = 7
-img_np = training_data.cameras[camera_idx].get_frame(timestamp_idx).cpu().numpy()
+frame_idx_idx = 7
+img_np = training_data.cameras[camera_idx].get_frame(frame_idx_idx).cpu().numpy()
 intrinsics = training_data.cameras[camera_idx].intrinsics.cpu().numpy()
 points_2d = project_points_3d_to_2d(
-    points_3d=training_data.point_clouds[timestamp_idx],
+    points_3d=training_data.point_clouds[frame_idx_idx],
     intrinsics=intrinsics,
     c2w=training_data.cameras[camera_idx].get_pose().cpu().numpy(),
 )

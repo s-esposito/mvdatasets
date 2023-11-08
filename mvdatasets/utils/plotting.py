@@ -6,6 +6,7 @@ from mvdatasets.utils.raycasting import (
     get_camera_random_rays_and_frames,
     get_camera_rays,
 )
+from mvdatasets.utils.geometry import project_points_3d_to_2d
 
 # from mvdatasets.scenes.camera import Camera
 # import math
@@ -173,6 +174,8 @@ def plot_camera_rays(
     # DEBUG --------
     from mvdatasets.utils.raycasting import get_pixels
 
+    print("camera.height", camera.height)
+    print("camera.width", camera.width)
     xy = get_pixels(camera.height, camera.width, device="cpu")
     rays_o, rays_d = get_camera_rays(camera, pixels=xy, device="cpu")
     z = torch.zeros(xy.shape[0], 1, device="cpu")
@@ -183,31 +186,36 @@ def plot_camera_rays(
     rgb[:, 1] /= torch.max(rgb[:, 1])
     # rgb -> grb
     rgb = rgb[:, [1, 0, 2]]
-
-    # visualize rgb
-    plt.imshow(rgb.reshape(camera.height, camera.width, 3).cpu().numpy())
-    plt.show()
-
     mask = torch.ones(rgb.shape[0], 1, device="cpu")
-
-    # subsample
-    idx = torch.randperm(xy.shape[0], device="cpu")[:nr_rays]
-    rays_o = rays_o[idx]
-    rays_d = rays_d[idx]
-    rgb = rgb[idx]
-    mask = mask[idx]
-
-    print("rays_o", rays_o.shape, rays_o.device)
-    print("rays_d", rays_d.shape, rays_d.device)
-    print("rgb", rgb.shape, rgb.device)
-    print("mask", mask.shape, mask.device)
-
-    # --------------
 
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     rgb = rgb.cpu().numpy()
     mask = mask.cpu().numpy()
+
+    rgb = camera.get_frame()
+    print("rgb.height", rgb.shape[0])
+    print("rgb.width", rgb.shape[1])
+    rgb = rgb.reshape(-1, 3)
+    print(rgb)
+
+    # visualize rgb with origin bottom left
+    plt.imshow(rgb.reshape(camera.height, camera.width, 3), origin="lower")
+    plt.show()
+
+    # subsample
+    idx = np.random.permutation(xy.shape[0])[:nr_rays]
+    rays_o = rays_o[idx]
+    rays_d = rays_d[idx]
+    rgb = rgb[idx]
+    mask = mask[idx]
+
+    print("rays_o", rays_o.shape)
+    print("rays_d", rays_d.shape)
+    print("rgb", rgb.shape)
+    print("mask", mask.shape)
+
+    # --------------
 
     # Get all camera centers
     camera_center = pose[:3, 3]
@@ -518,29 +526,30 @@ def plot_current_batch(
     return fig
 
 
-# TODO: plot_projected_points
-# camera_idx = 3
-# img_np = dataset_train.cameras[camera_idx].get_frame().cpu().numpy()
-# intrinsics = dataset_train.cameras[camera_idx].intrinsics.cpu().numpy()
-# points_2d = project_points_3d_to_2d(
-#     points_3d=dataset_train.point_clouds[0],
-#     intrinsics=intrinsics,
-#     c2w=dataset_train.cameras[camera_idx].get_pose(),
-# )
-# # filter out points outside image range
-# points_2d = points_2d[points_2d[:, 0] > 0]
-# points_2d = points_2d[points_2d[:, 1] > 0]
-# points_2d = points_2d[points_2d[:, 0] < img_np.shape[1]]
-# points_2d = points_2d[points_2d[:, 1] < img_np.shape[0]]
-# print("points_2d", points_2d.shape)
+def plot_camera_reprojected_point_cloud(
+    camera, point_clouds, frame_idx=0, figsize=(15, 15)
+):
+    if frame_idx > len(point_clouds):
+        raise ValueError("frame_idx must be less than len(point_clouds)")
 
-# fig = plt.figure()
-# plt.imshow(img_np, alpha=1.0)
-# colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
-# colors /= np.max(colors)
-# colors += 0.5
-# colors /= np.max(colors)
-# plt.scatter(points_2d[:, 0], points_2d[:, 1], s=5, c=colors, marker=".")
-# plt.gca().set_aspect("equal", adjustable="box")
-# plt.xlabel("x")
-# plt.ylabel("y")
+    point_cloud = point_clouds[frame_idx]
+    rgb = camera.get_frame(frame_idx=frame_idx)
+    if camera.has_masks:
+        mask = camera.get_mask(frame_idx=frame_idx)
+        print("rgb", rgb.shape)
+        print("mask", mask.shape)
+        rgb = rgb * mask
+
+    points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
+
+    fig = plt.figure(figsize=figsize)
+    plt.imshow(rgb, alpha=0.8, origin="lower")
+    colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+    colors[:, 0] /= camera.width
+    colors[:, 1] /= camera.height
+    plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=colors, marker=".")
+    plt.gca().set_aspect("equal", adjustable="box")
+    plt.xlabel("x")
+    plt.ylabel("y")
+
+    return fig

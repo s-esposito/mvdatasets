@@ -86,6 +86,7 @@ class MVDataset:
             self.point_clouds = load_point_clouds(point_clouds_paths)
         else:
             self.point_clouds = []
+        print(f"Loaded {len(self.point_clouds)} point clouds")
 
         def get_poses_all(cameras):
             poses = []
@@ -188,12 +189,12 @@ class MVDataset:
     #     if self.profiler is not None:
     #         self.profiler.start(f"frame_data_retrieval_{idx}")
 
-    #     # select a random timestamp
+    #     # select a random frame_idx
     #     frame_idx = torch.randint(camera.nr_frames, (1,), device=camera.device)
 
     #     # get ground truth values from frame
-    #     frame = camera.get_frame(timestamp=frame_idx.item())
-    #     mask = camera.get_mask(timestamp=frame_idx.item())
+    #     frame = camera.get_frame(frame_idx=frame_idx.item())
+    #     mask = camera.get_mask(frame_idx=frame_idx.item())
     #     gt_rgb, gt_mask = get_camera_frames_per_pixels(camera, pixels)
 
     #     if self.profiler is not None:

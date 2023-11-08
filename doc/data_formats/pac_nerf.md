@@ -1,6 +1,6 @@
 [
     {
-        "file_path": "./data/r_{cam_id}_{nr_timestamp}.png",
+        "file_path": "./data/r_{cam_id}_{nr_frame_idx}.png",
         "time": 0.2916666666666667,
         "c2w": [
             [

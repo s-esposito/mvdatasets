@@ -133,7 +133,11 @@ def load_dtu(
             cam_masks = None
 
         camera = Camera(
-            intrinsics=intrinsics, pose=pose, imgs=cam_imgs, masks=cam_masks
+            intrinsics=intrinsics,
+            pose=pose,
+            imgs=cam_imgs,
+            masks=cam_masks,
+            camera_idx=idx,
         )
 
         cameras.append(camera)

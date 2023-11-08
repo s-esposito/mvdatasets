@@ -103,15 +103,19 @@ def transform_points_3d(points, transform):
     return np.dot(transform[:3, :3], points.T).T + transform[:3, 3]
 
 
-def project_points_3d_to_2d(points_3d, intrinsics, c2w):
+def project_points_3d_to_2d(camera, points_3d):
     """Project 3D points to 2D points
     args:
-        points_3d (N, 3)
-        c2w: (3, 4)
-        intrinsics: (3, 3)
+        points_3d (np.ndarray) : (N, 3)
+        c2w (np.ndarray) : (4, 4)
+        intrinsics (np.ndarray) : (3, 3)
     out:
-        points_2d (N, 2)
+        points_2d (np.ndarray) : (N, 2)
     """
+
+    # get camera data
+    intrinsics = camera.get_intrinsics()
+    c2w = camera.get_pose()
 
     # get world to camera transformation
     w2c = np.linalg.inv(c2w)
@@ -124,5 +128,14 @@ def project_points_3d_to_2d(points_3d, intrinsics, c2w):
 
     # convert to 2D coordinates by dividing by the last column (homogeneous coordinate)
     points_2d = points_2d_homogeneous[:, :2] / points_2d_homogeneous[:, 2:]
+
+    # filter out points outside image range
+    points_2d = points_2d[points_2d[:, 0] > 0]
+    points_2d = points_2d[points_2d[:, 1] > 0]
+    points_2d = points_2d[points_2d[:, 0] < camera.width]
+    points_2d = points_2d[points_2d[:, 1] < camera.height]
+
+    # flip image plane y axis
+    points_2d[:, 1] = camera.height - points_2d[:, 1]
 
     return points_2d

@@ -57,22 +57,22 @@ class TensorReel:
         self.height = self.frames.shape[2]
         self.width = self.frames.shape[3]
 
-    def get_next_batch(self, batch_size=512, cameras_idxs=None, timestamp=None):
+    def get_next_batch(self, batch_size=512, cameras_idx=None, frame_idx=None):
         # random int in range [0, nr_cameras-1] with repetitions
         nr_cameras = self.poses.shape[0]  # alway sample from all cameras
-        if cameras_idxs is None:
+        if cameras_idx is None:
             camera_idx = torch.randint(nr_cameras, (batch_size,))
         else:
             # sample from given cameras idxs with repetitions
-            sampled_idx = torch.randint(len(cameras_idxs), (batch_size,))
-            camera_idx = torch.tensor(cameras_idxs, device=self.device)[sampled_idx]
+            sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
+            camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
         # random int in range [0, nr_frames_in_sequence-1] with repetitions
         nr_frames_in_sequence = self.frames.shape[1]
-        if timestamp is None:
+        if frame_idx is None:
             frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
         else:
-            frame_idx = (torch.ones(batch_size) * timestamp).int()
+            frame_idx = (torch.ones(batch_size) * frame_idx).int()
 
         # get random pixels
         pixels = get_random_pixels(

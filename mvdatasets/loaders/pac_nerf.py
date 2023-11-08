@@ -115,12 +115,31 @@ def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
 
     cameras = []
     if load_mask:
+        idx = 0
         for intrinsics, pose, imgs, masks in zip(
             intrinsics_all, poses_all, imgs_all, masks_all
         ):
-            cameras.append(Camera(imgs, masks=masks, intrinsics=intrinsics, pose=pose))
+            cameras.append(
+                Camera(
+                    imgs,
+                    masks=masks,
+                    intrinsics=intrinsics,
+                    pose=pose,
+                    camera_idx=idx,
+                )
+            )
+            idx += 1
     else:
+        idx = 0
         for intrinsics, pose, imgs in zip(intrinsics_all, poses_all, imgs_all):
-            cameras.append(Camera(imgs, intrinsics=intrinsics, pose=pose))
+            cameras.append(
+                Camera(
+                    imgs,
+                    intrinsics=intrinsics,
+                    pose=pose,
+                    camera_idx=idx,
+                )
+            )
+        idx += 1
 
     return cameras
