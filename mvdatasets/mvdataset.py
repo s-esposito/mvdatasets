@@ -2,9 +2,11 @@ import sys
 import os
 import torch
 from mvdatasets.loaders.dtu import load_dtu
+from mvdatasets.loaders.blender import load_blender
 from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
+# from mvdatasets.utils.bounding_primitives import Sphere, AABB
 
 # from mvdatasets.utils.raycasting import get_camera_frames_per_pixels
 # from torch.utils.data import Dataset
@@ -32,6 +34,7 @@ class MVDataset:
         train_test_overlap=False,
         load_mask=True,
         point_clouds_paths=[],
+        meshes_paths=[],
         # auto_orient_method="none",  # "up", "none"
         # auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
@@ -70,11 +73,18 @@ class MVDataset:
 
         # load nerf_synthetic
         elif self.dataset_name == "nerf_synthetic":
-            pass
+            cameras_all = load_blender(
+                data_path, load_mask=load_mask
+            )
 
         # load pac_nerf
         elif self.dataset_name == "pac_nerf":
-            cameras_all = load_pac_nerf(data_path, n_cameras=11, load_mask=load_mask)
+            # TODO: find n_cameras automatically
+            cameras_all = load_pac_nerf(
+                                        data_path,
+                                        n_cameras=11,
+                                        load_mask=load_mask
+                                    )
 
         # elif self.dataset_name == "llff":
         #     pass
@@ -84,10 +94,18 @@ class MVDataset:
         # (optional) load point clouds
         if len(point_clouds_paths) > 0:
             self.point_clouds = load_point_clouds(point_clouds_paths)
+            print(f"Loaded {len(self.point_clouds)} point clouds")
         else:
             self.point_clouds = []
-        print(f"Loaded {len(self.point_clouds)} point clouds")
-
+        
+        # (optional) load meshes
+        if len(meshes_paths) > 0:
+            # TODO: load meshes
+            self.meshes = []
+            print(f"Loaded {len(self.meshes)} meshes")
+        else:
+            self.meshes = []
+        
         def get_poses_all(cameras):
             poses = []
             for camera in cameras:
@@ -116,6 +134,16 @@ class MVDataset:
         #     transform[3, 3] = scale_factor
         #     for camera in cameras_all:
         #         camera.concat_transform(transform)
+
+        # # bouding primitives
+        # if bounding_primitive == "sphere":
+        #     bouding_privimitive = Sphere()
+        # else:
+        #     bounding_primitive = AABB()
+
+        # TODO: compute t_near, t_far by casting rays from all cameras,
+        # intersecting with AABB [-1, 1] and returning min/max t
+        # t_near, t_far = calculate_t_near_t_far(cameras_all, bouding_privimitive)
 
         # split data into train and test (or keep the all set)
         self.data = {}

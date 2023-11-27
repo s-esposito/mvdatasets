@@ -136,6 +136,6 @@ def project_points_3d_to_2d(camera, points_3d):
     points_2d = points_2d[points_2d[:, 1] < camera.height]
 
     # flip image plane y axis
-    points_2d[:, 1] = camera.height - points_2d[:, 1]
+    # points_2d[:, 1] = camera.height - points_2d[:, 1]
 
     return points_2d

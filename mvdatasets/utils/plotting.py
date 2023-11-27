@@ -3,8 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product, combinations
 from mvdatasets.utils.raycasting import (
-    get_camera_random_rays_and_frames,
+    get_random_camera_rays_and_frames,
     get_camera_rays,
+    get_camera_frames_per_pixels,
+    get_pixels,
 )
 from mvdatasets.utils.geometry import project_points_3d_to_2d
 
@@ -21,7 +23,7 @@ from mvdatasets.utils.geometry import project_points_3d_to_2d
 
 
 def plot_cameras(
-    cameras, points=None, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15)
+    cameras, points=None, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15), title=None
 ):
     """
     out:
@@ -44,7 +46,10 @@ def plot_cameras(
     scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=figsize)
+    
     ax = fig.add_subplot(111, projection="3d")
+    if title is not None:
+        ax.set_title(title)
 
     # Cartesian axes
     ax.quiver(0, 0, 0, 1, 0, 0, length=scale, color="r")
@@ -169,38 +174,28 @@ def plot_camera_rays(
     # Get all camera poses
     pose = camera.get_pose()
 
-    # rays_o, rays_d, rgb, mask = get_camera_random_rays_and_frames(camera, nr_rays)
-
-    # DEBUG --------
-    from mvdatasets.utils.raycasting import get_pixels
-
-    print("camera.height", camera.height)
-    print("camera.width", camera.width)
-    xy = get_pixels(camera.height, camera.width, device="cpu")
-    rays_o, rays_d = get_camera_rays(camera, pixels=xy, device="cpu")
-    z = torch.zeros(xy.shape[0], 1, device="cpu")
-    print("xy", xy.shape, xy.device)
-    print("z", z.shape, z.device)
-    rgb = torch.cat([xy, z], dim=1)
-    rgb[:, 0] /= torch.max(rgb[:, 0])
-    rgb[:, 1] /= torch.max(rgb[:, 1])
-    # rgb -> grb
-    rgb = rgb[:, [1, 0, 2]]
-    mask = torch.ones(rgb.shape[0], 1, device="cpu")
-
+    rays_o, rays_d, points_2d = get_camera_rays(camera, device="cpu")
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
-    rgb = rgb.cpu().numpy()
-    mask = mask.cpu().numpy()
-
+    
+    # DEBUG --------
+    
+    xy = points_2d[:, [1, 0]]
+    z = np.zeros((xy.shape[0], 1))
+    rgb = np.concatenate([xy, z], axis=1)
+    rgb[:, 0] /= np.max(rgb[:, 0])
+    rgb[:, 1] /= np.max(rgb[:, 1])
+    mask = np.ones((rgb.shape[0], 1))
+    
+    # --------------
+    
     rgb = camera.get_frame()
-    print("rgb.height", rgb.shape[0])
-    print("rgb.width", rgb.shape[1])
-    rgb = rgb.reshape(-1, 3)
-    print(rgb)
-
+    mask = np.ones((camera.height, camera.width, 1))
+    
+    rgb, mask = get_camera_frames_per_pixels(points_2d, rgb, mask=mask)
+    
     # visualize rgb with origin bottom left
-    plt.imshow(rgb.reshape(camera.height, camera.width, 3), origin="lower")
+    plt.imshow(rgb.reshape(camera.height, camera.width, 3))
     plt.show()
 
     # subsample
@@ -209,14 +204,7 @@ def plot_camera_rays(
     rays_d = rays_d[idx]
     rgb = rgb[idx]
     mask = mask[idx]
-
-    print("rays_o", rays_o.shape)
-    print("rays_d", rays_d.shape)
-    print("rgb", rgb.shape)
-    print("mask", mask.shape)
-
-    # --------------
-
+    
     # Get all camera centers
     camera_center = pose[:3, 3]
 
@@ -532,18 +520,23 @@ def plot_camera_reprojected_point_cloud(
     if frame_idx > len(point_clouds):
         raise ValueError("frame_idx must be less than len(point_clouds)")
 
-    point_cloud = point_clouds[frame_idx]
     rgb = camera.get_frame(frame_idx=frame_idx)
+    mask = None
     if camera.has_masks:
         mask = camera.get_mask(frame_idx=frame_idx)
-        print("rgb", rgb.shape)
-        print("mask", mask.shape)
         rgb = rgb * mask
+    pixels = get_pixels(camera.height, camera.width, device="cpu")
+    pixels = pixels.reshape(-1, 2)
+    rgb, mask = get_camera_frames_per_pixels(pixels, rgb, mask=mask)
+    rgb = rgb.reshape(camera.height, camera.width, 3)
+    if mask is not None:
+        mask = mask.reshape(camera.height, camera.width, 1)
 
+    point_cloud = point_clouds[frame_idx]
     points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
 
     fig = plt.figure(figsize=figsize)
-    plt.imshow(rgb, alpha=0.8, origin="lower")
+    plt.imshow(rgb, alpha=0.8)
     colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
     colors[:, 0] /= camera.width
     colors[:, 1] /= camera.height

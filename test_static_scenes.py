@@ -17,7 +17,7 @@ from mvdatasets.utils.plotting import (
     plot_current_batch,
     plot_camera_reprojected_point_cloud,
 )
-from mvdatasets.utils.raycasting import get_camera_rays, get_camera_frames
+from mvdatasets.utils.raycasting import get_pixels, get_camera_rays, get_camera_frames
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.profiler import Profiler
@@ -59,15 +59,71 @@ mv_data = MVDataset(
     load_mask=True,
 )
 
+# PIXELS JITTERING -----------------------------------------------------------
+
+# camera = deepcopy(mv_data["test"][1])
+
+# # make from the gt frame a smaller frame until we reach a certain size
+# while min(camera.width, camera.height) > 100:
+#     print("camera.width", camera.width, "camera.height", camera.height)
+#     camera.subsample(scale=0.5)
+# print("camera.width", camera.width, "camera.height", camera.height)
+
+# # gen rays
+# rays_o, rays_d, pixels = get_camera_rays(camera, jitter_pixels=True)
+# print("rays_o", rays_o.shape, rays_o.device)
+# print("rays_d", rays_d.shape, rays_d.device)
+# print("pixels", pixels.shape, pixels.device)
+
+# rg = get_pixels(camera.height, camera.width, device="cpu").float()
+# rg = rg.reshape(-1, 2)
+# rg[:, 0] /= camera.height
+# rg[:, 1] /= camera.width
+# rgb = np.concatenate([rg, np.zeros((rg.shape[0], 1))], axis=1)
+
+# fig = plt.figure(figsize=(15, 15))
+# # plt.rcParams["axes.facecolor"] = "white"
+# # plt.rcParams["axes.edgecolor"] = "white"
+# # plt.rcParams["axes.grid"] = True
+# # plt.rcParams["grid.alpha"] = 1
+# # plt.rcParams["grid.color"] = "#cccccc"
+
+# ax = fig.add_subplot(111)
+# ax.scatter(pixels[:, 1], pixels[:, 0], s=1, c=rgb)
+# # axis equal
+# ax.axis("equal")
+# #
+# # Major ticks every 20, minor ticks every 5
+# major_ticks = np.arange(0, camera.width, 20)
+# minor_ticks = np.arange(0, camera.width, 1)
+
+# ax.set_xticks(major_ticks)
+# ax.set_xticks(minor_ticks, minor=True)
+# ax.set_yticks(major_ticks)
+# ax.set_yticks(minor_ticks, minor=True)
+
+# # And a corresponding grid
+# ax.grid(which="both")
+
+# # Or if you want different settings for the grids:
+# ax.grid(which="minor", alpha=0.2)
+# ax.grid(which="major", alpha=0.5)
+
+# plt.savefig("screen_space_sampling.png", transparent=False)
+# plt.close()
+
+# exit()
+
 # CAMERA IMAGES SCALE AND PLOTTING ----------------------------------------
 
-# camera = deepcopy(mv_data["train"][0])
+# camera = deepcopy(mv_data["test"][0])
 # print(camera)
 
 # # gen rays
-# rays_o, rays_d = get_camera_rays(camera)
+# rays_o, rays_d, pixels = get_camera_rays(camera, jitter_pixels=True)
 # print("rays_o", rays_o.shape, rays_o.device)
 # print("rays_d", rays_d.shape, rays_d.device)
+# print("pixels", pixels.shape, pixels.device)
 
 # rgb, mask = get_camera_frames(camera)
 # print("rgb", rgb.shape, rgb.device)
@@ -78,19 +134,23 @@ mv_data = MVDataset(
 # # plt.show()
 
 # # make from the gt frame a smaller frame until we reach a certain size
-# while min(camera.width, camera.height) > 200:
+# while min(camera.width, camera.height) > 100:
 #     print("camera.width", camera.width, "camera.height", camera.height)
 #     camera.subsample(scale=0.5)
 # print("camera.width", camera.width, "camera.height", camera.height)
 
 # # gen rays
-# rays_o, rays_d = get_camera_rays(camera)
+# rays_o, rays_d, pixels = get_camera_rays(camera)
 # print("rays_o", rays_o.shape, rays_o.device)
 # print("rays_d", rays_d.shape, rays_d.device)
+# print("pixels", pixels.shape, pixels.device)
 
 # rgb, mask = get_camera_frames(camera)
 # print("rgb", rgb.shape, rgb.device)
 # print("mask", mask.shape, mask.device)
+
+# # plt.imshow(rgb.cpu().numpy().reshape(camera.height, camera.width, 3))
+# # plt.imshow(mask.cpu().numpy().reshape(camera.height, camera.width, 1))
 
 # # img = rgb.cpu().numpy().reshape(camera.height, camera.width, 3)
 # # plt.imshow(img)
@@ -106,40 +166,56 @@ mv_data = MVDataset(
 
 # VISUALIZE ALL TRAINING CAMERAS ---------------------------------------------
 
-# # Visualize cameras
-# fig = plot_cameras(
-#     mv_data["train"],
-#     points=mv_data.point_clouds[0],
-#     azimuth_deg=20,
-#     elevation_deg=30,
-#     up="y",
-#     figsize=(15, 15),
-# )
+# Visualize cameras
+fig = plot_cameras(
+    mv_data["train"],
+    points=mv_data.point_clouds[0],
+    azimuth_deg=20,
+    elevation_deg=30,
+    up="y",
+    figsize=(15, 15),
+    title="training cameras",
+)
 
-# plt.show()
-# # plt.savefig("test_static_scenes.png", bbox_inches="tight", pad_inches=0)
-# # plt.close()
+#  plt.show()
+plt.savefig(os.path.join("imgs", "training_cameras.png"), bbox_inches="tight", pad_inches=0)
+plt.close()
 
-# exit()
+# Visualize cameras
+fig = plot_cameras(
+    mv_data["test"],
+    points=mv_data.point_clouds[0],
+    azimuth_deg=20,
+    elevation_deg=30,
+    up="y",
+    figsize=(15, 15),
+    title="test cameras",
+)
+
+#  plt.show()
+plt.savefig(os.path.join("imgs", "test_cameras.png"), bbox_inches="tight", pad_inches=0)
+plt.close()
+
+exit()
 
 # VISUALIZE REPROJECTED POINTS ----------------------------------------------
 
-# camera = deepcopy(mv_data["train"][23])
+# camera = deepcopy(mv_data["test"][0])
 # print(camera)
 
-# # make from the gt frame a smaller frame until we reach a certain size
-# while min(camera.width, camera.height) > 200:
-#     print("camera.width", camera.width, "camera.height", camera.height)
-#     camera.subsample(scale=0.5)
-# print("camera.width", camera.width, "camera.height", camera.height)
+# # # make from the gt frame a smaller frame until we reach a certain size
+# # while min(camera.width, camera.height) > 200:
+# #     print("camera.width", camera.width, "camera.height", camera.height)
+# #     camera.subsample(scale=0.5)
+# # print("camera.width", camera.width, "camera.height", camera.height)
 
-# print(camera)
+# # print(camera)
 
 # fig = plot_camera_reprojected_point_cloud(camera, mv_data.point_clouds)
 
-# plt.show()
-# # plt.savefig("test_static_scenes_projection.png", transparent=True)
-# # plt.close()
+# # plt.show()
+# plt.savefig("test_static_scenes_projection.png", transparent=True)
+# plt.close()
 
 # exit()
 
@@ -153,8 +229,8 @@ profiler.reset()
 
 tensor_reel = TensorReel(mv_data["train"], device=device)
 
-nr_iterations = 60
-cameras_idx = None
+nr_iterations = 10
+cameras_idx = np.array([0])  # None
 frame_idx = None
 pbar = tqdm(range(nr_iterations))
 azimuth_deg = 0

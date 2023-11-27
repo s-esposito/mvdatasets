@@ -5,7 +5,7 @@ from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
 
-from mvdatasets.utils.images import numpy2image, image2numpy
+from mvdatasets.utils.images import image2numpy, flip_image_horizontally
 from mvdatasets.scenes.camera import Camera
 from mvdatasets.utils.geometry import (
     deg2rad,
@@ -48,31 +48,31 @@ def load_dtu(
     scene_scale_mult=0.4,
     subsample_factor=1,
 ):
-    # create cameras objects
+    # cameras objects
     cameras = []
 
     # load images to cpu as numpy arrays
     imgs = []
     images_list = sorted(glob(os.path.join(data_path, "image/*.png")))
-    pbar = tqdm(images_list, desc="Loading images", leave=True)
+    pbar = tqdm(images_list, desc="images", ncols=100)
     for im_name in pbar:
         # load PIL image
         img_pil = Image.open(im_name)
+        # img_pil = flip_image_horizontally(img_pil)
         img_np = image2numpy(img_pil)
-        # img_np = img_np[::subsample_factor, ::subsample_factor]
         imgs.append(img_np)
 
     # (optional) load mask images to cpu as numpy arrays
     masks = []
     if load_mask:
         masks_list = sorted(glob(os.path.join(data_path, "mask/*.png")))
-        pbar = tqdm(masks_list, desc="Loading masks", leave=True)
+        pbar = tqdm(masks_list, desc="masks", ncols=100)
         for im_name in pbar:
             # load PIL image
             mask_pil = Image.open(im_name)
+            # img_pil = flip_image_horizontally(img_pil)
             mask_np = image2numpy(mask_pil)
             mask_np = mask_np[:, :, 0, None]
-            # mask_np = mask_np[::subsample_factor, ::subsample_factor]
             masks.append(mask_np)
 
     camera_dict = np.load(os.path.join(data_path, "cameras_sphere.npz"))
@@ -92,24 +92,16 @@ def load_dtu(
         intrinsics, pose = load_K_Rt_from_P(None, projection_np)
 
         # flip local x-axis
-        # pose[:3, 0] *= -1
+        pose[:3, 0] *= -1
 
-        # rotation around x axis by 115 degrees
+        # rotation around world x-axis by 115 degrees
         rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
         pose = pose_global_rotation(pose, rotation)
 
         # transformation flipping the z-axis
         # rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, -1]], dtype=np.float32)
         # pose = pose_global_rotation(pose, rotation)
-
-        # rotation around x axis by 115 degrees
-        # rotation = rot_x_3d(deg2rad(-rotate_scene_x_axis_deg))
-        # pose = pose_global_rotation(pose, rotation)
-
-        pose[:3, 0] *= -1
-        pose[:3, 2] *= -1
-        pose[:3, 1] *= -1
-
+        
         # scale
         pose[:3, 3] *= scene_scale_mult
 

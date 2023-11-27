@@ -57,7 +57,9 @@ class TensorReel:
         self.height = self.frames.shape[2]
         self.width = self.frames.shape[3]
 
-    def get_next_batch(self, batch_size=512, cameras_idx=None, frame_idx=None):
+    def get_next_batch(
+        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False
+    ):
         # random int in range [0, nr_cameras-1] with repetitions
         nr_cameras = self.poses.shape[0]  # alway sample from all cameras
         if cameras_idx is None:
@@ -80,13 +82,23 @@ class TensorReel:
         )
 
         # get a ray for each pixel in corresponding camera frame
-        rays_o, rays_d = get_cameras_rays_per_pixel(
-            self.poses[camera_idx], self.intrinsics_inv[camera_idx], pixels
+        rays_o, rays_d, _ = get_cameras_rays_per_pixel(
+            self.poses[camera_idx],
+            self.intrinsics_inv[camera_idx],
+            pixels,
+            jitter_pixels=jitter_pixels,
         )
 
         # get ground truth frames values at pixels
         gt_rgb, gt_mask = get_cameras_frames_per_pixels(
             pixels, camera_idx, frame_idx, self.frames, masks=self.masks
         )
+
+        # print("camera_idx", camera_idx.shape)
+        # print("rays_o", rays_o.shape)
+        # print("rays_d", rays_d.shape)
+        # print("gt_rgb", gt_rgb.shape)
+        # print("gt_mask", gt_mask.shape)
+        # print("frame_idx", frame_idx.shape)
 
         return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx

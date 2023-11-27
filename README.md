@@ -18,15 +18,35 @@ Soon to be supported:
 - [NeRF-360](#)
 
 ## Cameras
-This code uses an "OpenGL" style camera coordinate system:
-- *Right Vector* ($`x`$): Represents rightward direction.
-- *Up Vector* ($`y`$): Represents upward direction.
-- *Forward Vector* ($`z`$): Represents backward direction (along negative Z-axis).
+The camera coordinate system is the OpenCV one (right-handed):
+- X-Axis: Points to the right of the camera's sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
+- Y-Axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
+- Z-Axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
     
+<p align="middle">
+  <img src="imgs/pose_and_intrinsics.png" width="500"/>
+</p>
+
+<p align="middle">
+  <img src="imgs/projection_with_principal_point_offset.png" width="320"/>
+</p>
+
+<!-- 
 <p align="middle">
   <img src="imgs/datasets_frame.png" width="400"/>
 </p>
+-->
 
+### Train and test splits
+
+<p float="left">
+  <img src="imgs/dtu_training_cameras.png" width="500" />
+  <img src="imgs/dtu_test_cameras.png" width="500" />
+</p>
+
+
+<!--
+TODO: update 
 <p align="middle">
   <img src="imgs/dtu_poses.png" width="600"/>
 </p>
@@ -34,13 +54,22 @@ This code uses an "OpenGL" style camera coordinate system:
 <p align="middle">
   <img src="imgs/data_loader.gif" width="600"/>
 </p>
+-->
 
 ## Installation
 
 ```bash
+# 1) install requirements
+todo
+
+# 2) install library
 python setup.py sdist
 pip install dist/mvdatasets-0.1.tar.gz 
 ```
+
+<!-- 
+TODO: (optional: install PyTorch from source with CXX11_ABI=1) 
+
 
 ```bash
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
@@ -74,7 +103,7 @@ If you would like to compile PyTorch with new C++ ABI enabled, then first run th
 ```bash
 export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
 export TORCH_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=1"
-python setup.py install
+python setup.py develop
 ```
 
 Invoke CMake to Build C++ Code:
@@ -95,8 +124,19 @@ Run install:
 After you have successfully built the C++ code using CMake, you can install the Python package using python setup.py install. This step will package the compiled C++ library along with the Python interface code and install it as a Python package.
 
 ```bash
-python setup.py install
+python setup.py develop 
 ```
+-->
+
+## Testing
+
+```bash
+python test_static_scenes.py
+```
+
+## Todo
+
+- [ ] sample probability based on training error
 
 <!---
 
