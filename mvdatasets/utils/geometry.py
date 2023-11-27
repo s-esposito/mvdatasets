@@ -93,8 +93,18 @@ def pose_global_rotation(pose, rotation):
     return rotation_transform @ pose
 
 
-def transform_points_3d(points, transform):
-    """apply transform to points
+def linear_transformation_2d(points, transform):
+    """apply linear transformation to points
+    args:
+        points (N, 2)
+        transform (3, 3)
+    out: points (N, 2)
+    """
+    return np.dot(transform[:2, :2], points.T).T + transform[:2, 2]
+
+
+def linear_transformation_3d(points, transform):
+    """apply linear transformation to points
     args:
         points (N, 3)
         transform (4, 4)
@@ -103,8 +113,50 @@ def transform_points_3d(points, transform):
     return np.dot(transform[:3, :3], points.T).T + transform[:3, 3]
 
 
+def perspective_projection(intrinsics, points_3d):
+    """apply perspective projection to points
+    args:
+        intrinsics (3, 3)
+        points_3d (N, 3)
+    out: points_2d (N, 2)
+    """
+    points_2d_homogeneous = (intrinsics @ points_3d.T).T
+    return points_2d_homogeneous[:, :2] / points_2d_homogeneous[:, 2:]
+
+
+def concat_ones(points):
+    """concatenate ones to points
+    args:
+        points (np.ndarray or torch.tensor) : (N, C)
+    out: 
+        points (np.ndarray or torch.tensor) : (N, C+1)
+    """
+    
+    if torch.is_tensor(points):
+        return torch.cat([points, torch.ones_like(points[:, :1], device=points.device)], dim=-1)
+    elif isinstance(points, np.ndarray):
+        return np.concatenate([points, np.ones_like(points[:, :1])], axis=-1)
+    else:
+        raise ValueError("points must be either torch.tensor or np.ndarray")
+    
+    
+def inv_perspective_projection(intrinsics_inv, points_2d):
+    """apply inverse perspective projection to points
+    args:
+        intrinsics (np.ndarray or torch.tensor) : (3, 3)
+        points_2d (np.ndarray or torch.tensor) : (N, 2) -> (x, y)
+    out: 
+        points_3d (np.ndarray or torch.tensor) : (N, 3)
+    """
+    
+    points_2d_augmented = concat_ones(points_2d)
+    points_3d_unprojected = (intrinsics_inv @ points_2d_augmented.T).T
+    
+    return points_3d_unprojected
+
+
 def project_points_3d_to_2d(camera, points_3d):
-    """Project 3D points to 2D points
+    """Project 3D points to 2D
     args:
         points_3d (np.ndarray) : (N, 3)
         c2w (np.ndarray) : (4, 4)
@@ -120,22 +172,10 @@ def project_points_3d_to_2d(camera, points_3d):
     # get world to camera transformation
     w2c = np.linalg.inv(c2w)
 
-    # view transformation
-    points_3d_camera = transform_points_3d(points_3d, w2c)
+    # transform points in world space to camera space
+    points_3d_camera = linear_transformation_3d(points_3d, w2c)
 
-    # perspective transformation
-    points_2d_homogeneous = (intrinsics @ points_3d_camera.T).T
-
-    # convert to 2D coordinates by dividing by the last column (homogeneous coordinate)
-    points_2d = points_2d_homogeneous[:, :2] / points_2d_homogeneous[:, 2:]
-
-    # filter out points outside image range
-    points_2d = points_2d[points_2d[:, 0] > 0]
-    points_2d = points_2d[points_2d[:, 1] > 0]
-    points_2d = points_2d[points_2d[:, 0] < camera.width]
-    points_2d = points_2d[points_2d[:, 1] < camera.height]
-
-    # flip image plane y axis
-    # points_2d[:, 1] = camera.height - points_2d[:, 1]
+    # convert homogeneous coordinates to 2d coordinates
+    points_2d = perspective_projection(intrinsics, points_3d_camera)
 
     return points_2d

@@ -26,6 +26,7 @@ The camera coordinate system is the OpenCV one (right-handed):
 <p align="middle">
   <img src="imgs/pose_and_intrinsics.png" width="500"/>
 </p>
+Test caption
 
 <p align="middle">
   <img src="imgs/projection_with_principal_point_offset.png" width="320"/>
@@ -131,7 +132,12 @@ python setup.py develop
 ## Testing
 
 ```bash
-python test_static_scenes.py
+# reproduce images
+python tests/train_test_splits.py
+python tests/pixels_sampling.py
+python tests/camera_rays.py
+python tests/reproject_points.py
+python tests/tensor_reel.py
 ```
 
 ## Todo

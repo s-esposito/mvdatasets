@@ -1,4 +1,3 @@
-import sys
 import os
 import torch
 from mvdatasets.loaders.dtu import load_dtu
@@ -8,7 +7,7 @@ from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
 # from mvdatasets.utils.bounding_primitives import Sphere, AABB
 
-# from mvdatasets.utils.raycasting import get_camera_frames_per_pixels
+# from mvdatasets.utils.raycasting import get_camera_frames_per_points_2d
 # from torch.utils.data import Dataset
 # import open3d as o3d
 # import numpy as np
@@ -65,7 +64,7 @@ class MVDataset:
         if not is_dataset_supported(dataset_name):
             raise ValueError(f"ERROR: dataset {dataset_name} is not supported")
 
-        print(f"Loading {splits} splits")
+        print(f"loading {splits} splits")
 
         # load dtu
         if self.dataset_name == "dtu":
@@ -94,7 +93,7 @@ class MVDataset:
         # (optional) load point clouds
         if len(point_clouds_paths) > 0:
             self.point_clouds = load_point_clouds(point_clouds_paths)
-            print(f"Loaded {len(self.point_clouds)} point clouds")
+            print(f"loaded {len(self.point_clouds)} point clouds")
         else:
             self.point_clouds = []
         
@@ -102,7 +101,7 @@ class MVDataset:
         if len(meshes_paths) > 0:
             # TODO: load meshes
             self.meshes = []
-            print(f"Loaded {len(self.meshes)} meshes")
+            print(f"loaded {len(self.meshes)} meshes")
         else:
             self.meshes = []
         
@@ -171,78 +170,6 @@ class MVDataset:
 
     def __getitem__(self, split):
         return self.data[split]
-
-    # def __len__(self):
-    #     return len(self.cameras)
-
-    # def __getitem__(self, idx):
-    #     """Cast random rays through random pixels of a camera.
-
-    #     Args:
-    #         idx (int): camera index
-
-    #     Returns:
-    #         idx (int): camera index
-    #         rays_o (torch.tensor): (N, 3)
-    #         rays_d (torch.tensor): (N, 3)
-    #         gt_rgb (torch.tensor): (N, 3)
-    #         gt_mask (torch.tensor): (N, 1)
-    #         frame_idx (int): frame index
-    #     """
-
-    #     if self.profiler is not None:
-    #         self.profiler.start(f"dataset_getitem_{idx}")
-
-    #     # get camera
-    #     camera = self.cameras[idx]
-
-    #     if self.profiler is not None:
-    #         self.profiler.start(f"pixels_sampling_{idx}")
-
-    #     # select random pixels
-    #     pixels = camera.get_random_pixels(self.per_camera_rays_batch_size)
-
-    #     if self.profiler is not None:
-    #         self.profiler.end(f"pixels_sampling_{idx}")
-
-    #     if self.profiler is not None:
-    #         self.profiler.start(f"ray_casting_{idx}")
-
-    #     # cast rays through them
-    #     rays_o, rays_d = camera.get_rays_per_pixels(pixels)
-
-    #     if self.profiler is not None:
-    #         self.profiler.end(f"ray_casting_{idx}")
-
-    #     if self.profiler is not None:
-    #         self.profiler.start(f"frame_data_retrieval_{idx}")
-
-    #     # select a random frame_idx
-    #     frame_idx = torch.randint(camera.nr_frames, (1,), device=camera.device)
-
-    #     # get ground truth values from frame
-    #     frame = camera.get_frame(frame_idx=frame_idx.item())
-    #     mask = camera.get_mask(frame_idx=frame_idx.item())
-    #     gt_rgb, gt_mask = get_camera_frames_per_pixels(camera, pixels)
-
-    #     if self.profiler is not None:
-    #         self.profiler.end(f"frame_data_retrieval_{idx}")
-
-    #     # TODO: make more flexible
-    #     # other dataset-dependent outputs could be:
-    #     # gt_depth, gt_normal, gt_albedo, gt_brdf, gt_visibility
-
-    #     rays_o = rays_o.squeeze(0)
-    #     rays_d = rays_d.squeeze(0)
-    #     gt_rgb = gt_rgb.squeeze(0)
-    #     gt_mask = gt_mask.squeeze(0)
-
-    #     if self.profiler is not None:
-    #         self.profiler.end(f"dataset_getitem_{idx}")
-
-    #     camera_idx = torch.tensor([idx], device=camera.device)
-
-    #     return camera_idx, rays_o, rays_d, gt_rgb, gt_mask, frame_idx
 
 
 # from nerfstudio

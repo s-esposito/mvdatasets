@@ -5,10 +5,10 @@ from itertools import product, combinations
 from mvdatasets.utils.raycasting import (
     get_random_camera_rays_and_frames,
     get_camera_rays,
-    get_camera_frames_per_pixels,
+    get_camera_frames_per_points_2d,
     get_pixels,
 )
-from mvdatasets.utils.geometry import project_points_3d_to_2d
+from mvdatasets.utils.geometry import project_points_3d_to_2d, linear_transformation_3d, inv_perspective_projection
 
 # from mvdatasets.scenes.camera import Camera
 # import math
@@ -106,7 +106,7 @@ def plot_cameras(
                 length=scale,
                 color="b",
             )
-            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(i))
+            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(cameras[i].camera_idx))
         else:  # up = "y"
             ax.quiver(
                 pose[0, 3],
@@ -138,7 +138,7 @@ def plot_cameras(
                 length=scale,
                 color="b",
             )
-            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(i))
+            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(cameras[i].camera_idx))
 
     lim = scene_radius
     ax.set_xlim([-lim, lim])
@@ -178,28 +178,45 @@ def plot_camera_rays(
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     
+    # get frustum corners in 2d
+    fc_2d = np.array(
+                                    [
+                                        [0, 0],
+                                        [camera.width-1, 0],
+                                        [0, camera.height-1],
+                                        [camera.width, camera.height]
+                                    ]
+                                )
+    
+    fc_3d = inv_perspective_projection(camera.get_intrinsics(), fc_2d)
+    print("fc_3d", fc_3d.shape)
+    
+    c2w = camera.get_pose()
+    fc_3d = linear_transformation_3d(fc_3d, c2w)
+    print("fc_3d", fc_3d)
+    
     # DEBUG --------
     
-    xy = points_2d[:, [1, 0]]
-    z = np.zeros((xy.shape[0], 1))
-    rgb = np.concatenate([xy, z], axis=1)
-    rgb[:, 0] /= np.max(rgb[:, 0])
-    rgb[:, 1] /= np.max(rgb[:, 1])
-    mask = np.ones((rgb.shape[0], 1))
+    # xy = points_2d[:, [1, 0]]
+    # z = np.zeros((xy.shape[0], 1))
+    # rgb = np.concatenate([xy, z], axis=1)
+    # rgb[:, 0] /= np.max(rgb[:, 0])
+    # rgb[:, 1] /= np.max(rgb[:, 1])
+    # mask = np.ones((rgb.shape[0], 1))
     
     # --------------
     
     rgb = camera.get_frame()
     mask = np.ones((camera.height, camera.width, 1))
     
-    rgb, mask = get_camera_frames_per_pixels(points_2d, rgb, mask=mask)
+    rgb, mask = get_camera_frames_per_points_2d(points_2d, rgb, mask=mask)
     
-    # visualize rgb with origin bottom left
-    plt.imshow(rgb.reshape(camera.height, camera.width, 3))
-    plt.show()
+    # # visualize rgb with origin bottom left
+    # plt.imshow(rgb.reshape(camera.height, camera.width, 3))
+    # plt.show()
 
     # subsample
-    idx = np.random.permutation(xy.shape[0])[:nr_rays]
+    idx = np.random.permutation(rays_o.shape[0])[:nr_rays]
     rays_o = rays_o[idx]
     rays_d = rays_d[idx]
     rgb = rgb[idx]
@@ -229,7 +246,11 @@ def plot_camera_rays(
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
             ax.plot3D(*zip(s, e), color="black")
-
+    
+    # Draw frustum
+    for i, j in combinations(range(4), 2):
+        ax.plot3D(*zip(fc_3d[i], fc_3d[j]), color="black")
+    
     # Draw camera frame
     if up == "z":
         ax.quiver(
@@ -262,7 +283,7 @@ def plot_camera_rays(
             length=scale,
             color="b",
         )
-        ax.text(pose[0, 3], pose[1, 3], pose[2, 3], "c")
+        ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(camera.camera_idx))
     else:  # up = "y"
         ax.quiver(
             pose[0, 3],
@@ -294,7 +315,7 @@ def plot_camera_rays(
             length=scale,
             color="b",
         )
-        ax.text(pose[0, 3], pose[2, 3], pose[1, 3], "c")
+        ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(camera.camera_idx))
 
     # Draw rays
     ray_lenght = scene_radius * 1.5
@@ -514,34 +535,48 @@ def plot_current_batch(
     return fig
 
 
-def plot_camera_reprojected_point_cloud(
-    camera, point_clouds, frame_idx=0, figsize=(15, 15)
+def plot_points_2d_on_image(
+    camera, points_2d, frame_idx=0, show_ticks=False, figsize=(15, 15)
 ):
-    if frame_idx > len(point_clouds):
-        raise ValueError("frame_idx must be less than len(point_clouds)")
+    """
 
+    args:
+        camera (Camera): camera object
+        points_2d (np.ndarray, float): (N, 2) -> (x, y)
+        frame_idx (int, optional): Defaults to 0.
+
+    out:
+        matplotlib figure
+    """
     rgb = camera.get_frame(frame_idx=frame_idx)
     mask = None
     if camera.has_masks:
         mask = camera.get_mask(frame_idx=frame_idx)
-        rgb = rgb * mask
-    pixels = get_pixels(camera.height, camera.width, device="cpu")
-    pixels = pixels.reshape(-1, 2)
-    rgb, mask = get_camera_frames_per_pixels(pixels, rgb, mask=mask)
-    rgb = rgb.reshape(camera.height, camera.width, 3)
-    if mask is not None:
-        mask = mask.reshape(camera.height, camera.width, 1)
+        rgb = rgb * np.clip(mask + 0.2, 0, 1)
 
-    point_cloud = point_clouds[frame_idx]
-    points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
-
+    # filter out points outside image range
+    points_2d = points_2d[points_2d[:, 0] >= 0]
+    points_2d = points_2d[points_2d[:, 1] >= 0]
+    points_2d = points_2d[points_2d[:, 0] < camera.width]
+    points_2d = points_2d[points_2d[:, 1] < camera.height]
+    
     fig = plt.figure(figsize=figsize)
-    plt.imshow(rgb, alpha=0.8)
-    colors = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
-    colors[:, 0] /= camera.width
-    colors[:, 1] /= camera.height
-    plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=colors, marker=".")
+    plt.imshow(rgb, alpha=0.8, resample=True)
+    rgb = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+    rgb[:, 0] /= camera.width
+    rgb[:, 1] /= camera.height
+    points_2d -= 0.5  # to avoid imshow shift
+    plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
+    
+    if show_ticks:
+        plt.xticks(np.arange(-0.5, camera.width, 1), minor=True)
+        plt.yticks(np.arange(-0.5, camera.height, 1), minor=True)
+        plt.xticks(np.arange(-0.5, camera.width, 20), labels=np.arange(0.0, camera.width, 20))
+        plt.yticks(np.arange(-0.5, camera.height, 20), labels=np.arange(0.0, camera.height, 20))
+        plt.grid(which="minor", alpha=0.2)
+        plt.grid(which="major", alpha=0.2)
+    
     plt.xlabel("x")
     plt.ylabel("y")
 

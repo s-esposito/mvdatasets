@@ -1,7 +1,11 @@
 import os
+import sys
 import open3d as o3d
 import numpy as np
 import matplotlib.pyplot as plt
+
+# load mvdatasets from parent directory
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
@@ -35,10 +39,13 @@ triangle_mesh.compute_vertex_normals()
 
 # render mesh
 
-camera = mv_data["test"][1]
+camera = mv_data["test"][0]
 
 imgs = render_mesh(camera, triangle_mesh)
 
-plt.imshow(imgs["depth"], origin="lower")
+plt.imshow(imgs["depth"])
 plt.colorbar()
-plt.show()
+
+#  plt.show()
+plt.savefig(os.path.join("imgs", "dtu_mesh_depth.png"), dpi=300)
+plt.close()
