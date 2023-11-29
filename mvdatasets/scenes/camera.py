@@ -27,7 +27,7 @@ class Camera:
     """Camera class."""
 
     def __init__(
-        self, imgs, intrinsics, pose, masks=None, transform=None, camera_idx=0
+        self, imgs, intrinsics, pose, masks=None, global_transform=None, local_transform=None, camera_idx=0
     ):
         """Create a camera object, all parameters are np.ndarrays.
 
@@ -38,6 +38,13 @@ class Camera:
             masks (np.array): (T, H, W, 1) with values in [0, 1]
         """
 
+        # assert shapes are correct
+        assert imgs.ndim == 4 and imgs.shape[-1] == 3
+        assert intrinsics.shape == (3, 3)
+        assert pose.shape == (4, 4)
+        if masks is not None:
+            assert masks.ndim == 4 and masks.shape[-1] == 1
+        
         self.camera_idx = camera_idx
         self.intrinsics = intrinsics
         self.pose = pose
@@ -55,10 +62,15 @@ class Camera:
         # self.nr_pixels = self.height * self.width
         # self.nr_frames = imgs.shape[0]
 
-        if transform is not None:
-            self.transform = transform
+        if global_transform is not None:
+            self.global_transform = global_transform
         else:
-            self.transform = np.eye(4)
+            self.global_transform = np.eye(4)
+            
+        if local_transform is not None:
+            self.local_transform = local_transform
+        else:
+            self.local_transform = np.eye(4)
 
     def get_intrinsics(self):
         """return camera intrinsics"""
@@ -90,12 +102,12 @@ class Camera:
 
     def get_pose(self):
         """returns camera pose in world space"""
-        pose = self.transform @ self.pose
+        pose = self.global_transform @ self.pose
         return pose
 
-    def concat_transform(self, transform):
-        # apply transform
-        self.transform = transform @ self.transform
+    def concat_global_transform(self, global_transform):
+        # apply global_transform
+        self.global_transform = global_transform @ self.global_transform
 
     def subsample(self, scale):
         """subsample camera frames and masks by scale (inplace operation)"""
@@ -140,8 +152,8 @@ class Camera:
         string += str(self.intrinsics) + "\n"
         string += "pose:\n"
         string += str(self.pose) + "\n"
-        string += "transform:\n"
-        string += str(self.transform) + "\n"
+        string += "global_transform:\n"
+        string += str(self.global_transform) + "\n"
         string += "imgs:\n"
         string += str(self.imgs.shape) + "\n"
         if self.has_masks:

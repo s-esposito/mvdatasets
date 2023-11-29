@@ -1,10 +1,13 @@
 import os
 import torch
+from rich import print
+import numpy as np
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
 from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
+from mvdatasets.utils.geometry import linear_transformation_3d
 # from mvdatasets.utils.bounding_primitives import Sphere, AABB
 
 # from mvdatasets.utils.raycasting import get_camera_frames_per_points_2d
@@ -28,12 +31,10 @@ class MVDataset:
         dataset_name,
         scene_name,
         datasets_path,  # dataset root path
-        splits=["train", "test"],  # ["train", "test"] or None (all)
-        test_camera_freq=8,
-        train_test_overlap=False,
+        splits=["train", "test"],  # ["train", "test"]
         load_mask=True,
         point_clouds_paths=[],
-        meshes_paths=[],
+        # meshes_paths=[],
         # auto_orient_method="none",  # "up", "none"
         # auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
@@ -42,7 +43,6 @@ class MVDataset:
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
-        # self.per_camera_rays_batch_size = 512
         # self.profiler = profiler
         # self.auto_scale_poses = auto_scale_poses
 
@@ -64,26 +64,37 @@ class MVDataset:
         if not is_dataset_supported(dataset_name):
             raise ValueError(f"ERROR: dataset {dataset_name} is not supported")
 
+        print(f"dataset: {dataset_name}")
+        print(f"scene: {scene_name}")
         print(f"loading {splits} splits")
+        
+        global_transform = np.eye(4)
 
         # load dtu
         if self.dataset_name == "dtu":
-            cameras_all = load_dtu(data_path, load_mask=load_mask)
-
-        # load nerf_synthetic
-        elif self.dataset_name == "nerf_synthetic":
-            cameras_all = load_blender(
-                data_path, load_mask=load_mask
+            cameras_splits, _ = load_dtu(
+                data_path,
+                splits,
+                load_mask=load_mask,
+                test_camera_freq=8,
+                train_test_overlap=False,
             )
 
-        # load pac_nerf
-        elif self.dataset_name == "pac_nerf":
-            # TODO: find n_cameras automatically
-            cameras_all = load_pac_nerf(
-                                        data_path,
-                                        n_cameras=11,
-                                        load_mask=load_mask
-                                    )
+        # load nerf_synthetic
+        elif self.dataset_name == "blender":
+            cameras_splits, global_transform = load_blender(
+                data_path, splits, load_mask=load_mask
+            )
+
+        # # load pac_nerf
+        # elif self.dataset_name == "pac_nerf":
+        #     # TODO: find n_cameras automatically
+        #     cameras_splits = load_pac_nerf(
+        #                                 data_path,
+        #                                 splits,
+        #                                 n_cameras=11,
+        #                                 load_mask=load_mask
+        #                             )
 
         # elif self.dataset_name == "llff":
         #     pass
@@ -92,18 +103,24 @@ class MVDataset:
 
         # (optional) load point clouds
         if len(point_clouds_paths) > 0:
-            self.point_clouds = load_point_clouds(point_clouds_paths)
+            # load point clouds
+            point_clouds = load_point_clouds(point_clouds_paths)
+            # apply global transform
+            transformed_point_clouds = []
+            for point_cloud in point_clouds:
+                transformed_point_clouds.append(linear_transformation_3d(point_cloud, global_transform))
+            self.point_clouds = transformed_point_clouds
             print(f"loaded {len(self.point_clouds)} point clouds")
         else:
             self.point_clouds = []
         
-        # (optional) load meshes
-        if len(meshes_paths) > 0:
-            # TODO: load meshes
-            self.meshes = []
-            print(f"loaded {len(self.meshes)} meshes")
-        else:
-            self.meshes = []
+        # TODO: (optional) load meshes
+        # if len(meshes_paths) > 0:
+        #     # TODO: load meshes
+        #     self.meshes = []
+        #     print(f"loaded {len(self.meshes)} meshes")
+        # else:
+        #     self.meshes = []
         
         def get_poses_all(cameras):
             poses = []
@@ -113,6 +130,9 @@ class MVDataset:
             return poses
 
         # # align and center poses
+        cameras_all = []
+        for split, cameras_list in cameras_splits.items():
+            cameras_all += cameras_list
         # poses_all = get_poses_all(cameras_all)
 
         # transform = auto_orient_and_center_poses(
@@ -122,7 +142,7 @@ class MVDataset:
         # )
 
         # for camera in cameras_all:
-        #     camera.concat_transform(transform)
+        #     camera.concat_global_transform(transform)
 
         # # scale poses
         # if self.auto_scale_poses:
@@ -132,7 +152,7 @@ class MVDataset:
         #     transform = torch.eye(4)
         #     transform[3, 3] = scale_factor
         #     for camera in cameras_all:
-        #         camera.concat_transform(transform)
+        #         camera.concat_global_transform(transform)
 
         # # bouding primitives
         # if bounding_primitive == "sphere":
@@ -145,27 +165,9 @@ class MVDataset:
         # t_near, t_far = calculate_t_near_t_far(cameras_all, bouding_privimitive)
 
         # split data into train and test (or keep the all set)
-        self.data = {}
+        self.data = cameras_splits
+        
         for split in splits:
-            if split == "all":
-                self.data[split] = cameras_all
-            else:
-                self.data[split] = []
-                if split == "train":
-                    if train_test_overlap:
-                        # if train_test_overlap, use all cameras for training
-                        self.data[split] = cameras_all
-                    # else use only a subset of cameras
-                    else:
-                        for i, camera in enumerate(cameras_all):
-                            if i % test_camera_freq != 0:
-                                self.data[split].append(camera)
-                if split == "test":
-                    # select a test camera every test_camera_freq cameras
-                    for i, camera in enumerate(cameras_all):
-                        if i % test_camera_freq == 0:
-                            self.data[split].append(camera)
-
             print(f"{split} split has {len(self.data[split])} cameras")
 
     def __getitem__(self, split):

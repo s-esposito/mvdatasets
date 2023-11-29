@@ -1,5 +1,8 @@
 def is_dataset_supported(dataset_name):
-    datasets_supported = ["dtu", "blended_mvs", "nerf_synthetic", "pac_nerf"]
+    # TODO: add more datasets
+    # # llff, tanks_and_temples, ...
+    # pac_nerf currently not supported as major changes are needed
+    datasets_supported = ["dtu", "blender"] 
     dataset_name = dataset_name.lower()
     if dataset_name in datasets_supported:
         return True

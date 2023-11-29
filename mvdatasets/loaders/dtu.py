@@ -5,7 +5,7 @@ from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
 
-from mvdatasets.utils.images import image2numpy, flip_image_horizontally
+from mvdatasets.utils.images import image2numpy
 from mvdatasets.scenes.camera import Camera
 from mvdatasets.utils.geometry import (
     deg2rad,
@@ -43,13 +43,24 @@ def load_K_Rt_from_P(filename, P=None):
 
 def load_dtu(
     data_path,
+    splits,
     load_mask=True,
+    test_camera_freq=8,
+    train_test_overlap=False,
     rotate_scene_x_axis_deg=115,
     scene_scale_mult=0.4,
     subsample_factor=1,
 ):
     # cameras objects
-    cameras = []
+    cameras_all = []
+    
+    # global transform
+    global_transform = np.eye(4)
+    # rotate
+    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    # scale
+    s_rotation = scene_scale_mult * rotation
+    global_transform[:3, :3] = s_rotation
 
     # load images to cpu as numpy arrays
     imgs = []
@@ -58,7 +69,6 @@ def load_dtu(
     for im_name in pbar:
         # load PIL image
         img_pil = Image.open(im_name)
-        # img_pil = flip_image_horizontally(img_pil)
         img_np = image2numpy(img_pil)
         imgs.append(img_np)
 
@@ -70,7 +80,6 @@ def load_dtu(
         for im_name in pbar:
             # load PIL image
             mask_pil = Image.open(im_name)
-            # img_pil = flip_image_horizontally(img_pil)
             mask_np = image2numpy(mask_pil)
             mask_np = mask_np[:, :, 0, None]
             masks.append(mask_np)
@@ -91,30 +100,6 @@ def load_dtu(
         projection_np = projection_np[:3, :4]
         intrinsics, pose = load_K_Rt_from_P(None, projection_np)
 
-        # flip local x-axis
-        pose[:3, 0] *= -1
-
-        # rotation around world x-axis by 115 degrees
-        rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-        pose = pose_global_rotation(pose, rotation)
-
-        # transformation flipping the z-axis
-        # rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, -1]], dtype=np.float32)
-        # pose = pose_global_rotation(pose, rotation)
-        
-        # scale
-        pose[:3, 3] *= scene_scale_mult
-
-        # scale = scale_3d(scene_scale_mult)
-        # tf_world_cam_rescaled=recaling_matrix*tf_world_cam_rescaled;
-        # tf_cam_world=tf_world_cam_rescaled.inverse();
-
-        # rotates pose by 90 degrees around world x axis
-        # pose = pose_global_rotation(pose, rot_x_3d(np.pi / 2))
-
-        # rotate local frame by 180 degrees around y axis
-        # pose = pose_local_rotation(pose, rot_y_3d(np.pi))
-
         # get images
         cam_imgs = imgs[idx][None, ...]
 
@@ -127,11 +112,31 @@ def load_dtu(
         camera = Camera(
             intrinsics=intrinsics,
             pose=pose,
+            global_transform=global_transform,
             imgs=cam_imgs,
             masks=cam_masks,
             camera_idx=idx,
         )
 
-        cameras.append(camera)
+        cameras_all.append(camera)
 
-    return cameras
+    # split cameras into train and test
+    cameras_splits = {}
+    for split in splits:
+        cameras_splits[split] = []
+        if split == "train":
+            if train_test_overlap:
+                # if train_test_overlap, use all cameras for training
+                cameras_splits[split] = cameras_all
+            # else use only a subset of cameras
+            else:
+                for i, camera in enumerate(cameras_all):
+                    if i % test_camera_freq != 0:
+                        cameras_splits[split].append(camera)
+        if split == "test":
+            # select a test camera every test_camera_freq cameras
+            for i, camera in enumerate(cameras_all):
+                if i % test_camera_freq == 0:
+                    cameras_splits[split].append(camera)
+
+    return cameras_splits, global_transform

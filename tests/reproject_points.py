@@ -31,31 +31,31 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-dataset_name = "dtu"
-scene_name = "dtu_scan83"
+dataset_names = ["dtu", "blender"]
+scene_names = ["dtu_scan83", "lego"]
 
-# load gt mesh if exists
-gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
+for dataset_name, scene_name in zip(dataset_names, scene_names):
 
-# dataset loading
-mv_data = MVDataset(
-    dataset_name,
-    scene_name,
-    datasets_path,
-    point_clouds_paths=gt_meshes_paths,
-    splits=["train", "test"],
-    test_camera_freq=8,
-    load_mask=True,
-)
+    # load gt mesh if exists
+    gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
 
-camera = deepcopy(mv_data["test"][0])
-print(camera)
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        point_clouds_paths=gt_meshes_paths,
+        splits=["train", "test"]
+    )
 
-point_cloud = mv_data.point_clouds[0]
-points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
+    camera = deepcopy(mv_data["test"][0])
+    print(camera)
 
-fig = plot_points_2d_on_image(camera, points_2d)
+    point_cloud = mv_data.point_clouds[0]
+    points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
 
-# plt.show()
-plt.savefig(os.path.join("imgs", "dtu_point_cloud_projection.png"), transparent=True, dpi=300)
-plt.close()
+    fig = plot_points_2d_on_image(camera, points_2d)
+
+    # plt.show()
+    plt.savefig(os.path.join("imgs", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
+    plt.close()

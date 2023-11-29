@@ -107,7 +107,8 @@ def plot_cameras(
                 color="b",
             )
             ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(cameras[i].camera_idx))
-        else:  # up = "y"
+        else:  
+            # up = "y"
             ax.quiver(
                 pose[0, 3],
                 pose[2, 3],

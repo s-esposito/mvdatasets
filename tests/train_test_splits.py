@@ -45,49 +45,49 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-dataset_name = "dtu"
-scene_name = "dtu_scan83"
+dataset_names = ["dtu", "blender"]
+scene_names = ["dtu_scan83", "lego"]
 
-# load gt mesh if exists
-gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
+for dataset_name, scene_name in zip(dataset_names, scene_names):
 
-# dataset loading
-mv_data = MVDataset(
-    dataset_name,
-    scene_name,
-    datasets_path,
-    point_clouds_paths=gt_meshes_paths,
-    splits=["train", "test"],
-    test_camera_freq=8,
-    load_mask=True,
-)
+    # load gt mesh if exists
+    gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
 
-# Visualize cameras
-fig = plot_cameras(
-    mv_data["train"],
-    points=mv_data.point_clouds[0],
-    azimuth_deg=20,
-    elevation_deg=30,
-    up="y",
-    figsize=(15, 15),
-    title="training cameras",
-)
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        point_clouds_paths=gt_meshes_paths,
+        splits=["train", "test"]
+    )
 
-#  plt.show()
-plt.savefig(os.path.join("imgs", "dtu_training_cameras.png"), bbox_inches="tight", pad_inches=0, dpi=300)
-plt.close()
+    # Visualize cameras
+    fig = plot_cameras(
+        mv_data["train"],
+        points=mv_data.point_clouds[0],
+        azimuth_deg=20,
+        elevation_deg=30,
+        up="y",
+        figsize=(15, 15),
+        title="training cameras",
+    )
 
-# Visualize cameras
-fig = plot_cameras(
-    mv_data["test"],
-    points=mv_data.point_clouds[0],
-    azimuth_deg=20,
-    elevation_deg=30,
-    up="y",
-    figsize=(15, 15),
-    title="test cameras",
-)
+    #  plt.show()
+    plt.savefig(os.path.join("imgs", f"{dataset_name}_training_cameras.png"), bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.close()
 
-#  plt.show()
-plt.savefig(os.path.join("imgs", "dtu_test_cameras.png"), bbox_inches="tight", pad_inches=0, dpi=300)
-plt.close()
+    # Visualize cameras
+    fig = plot_cameras(
+        mv_data["test"],
+        points=mv_data.point_clouds[0],
+        azimuth_deg=20,
+        elevation_deg=30,
+        up="y",
+        figsize=(15, 15),
+        title="test cameras",
+    )
+
+    #  plt.show()
+    plt.savefig(os.path.join("imgs", f"{dataset_name}_test_cameras.png"), transparent=True, bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.close()

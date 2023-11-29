@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from mvdatasets.utils.geometry import concat_ones, inv_perspective_projection
+from mvdatasets.utils.geometry import augment_vectors, inv_perspective_projection
 
 
 def get_pixels(height, width, device="cpu"):
