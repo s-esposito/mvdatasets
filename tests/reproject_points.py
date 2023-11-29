@@ -31,24 +31,28 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-dataset_names = ["dtu", "blender"]
-scene_names = ["dtu_scan83", "lego"]
+# dataset_names = ["dtu", "blender"]
+# scene_names = ["dtu_scan83", "lego"]
+dataset_names = ["blender"]
+scene_names = ["lego"]
 
 for dataset_name, scene_name in zip(dataset_names, scene_names):
 
-    # load gt mesh if exists
-    gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
+    # load gt point cloud if exists
+    gt_point_clouds_paths = [os.path.join("debug/point_clouds/", dataset_name, f"{scene_name}.ply")]
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=gt_meshes_paths,
+        point_clouds_paths=gt_point_clouds_paths,
         splits=["train", "test"]
     )
 
-    camera = deepcopy(mv_data["test"][0])
+    # random camera index
+    rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
+    camera = deepcopy(mv_data["test"][rand_idx])
     print(camera)
 
     point_cloud = mv_data.point_clouds[0]

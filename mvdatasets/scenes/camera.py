@@ -102,7 +102,7 @@ class Camera:
 
     def get_pose(self):
         """returns camera pose in world space"""
-        pose = self.global_transform @ self.pose
+        pose = self.global_transform @ self.pose @ self.local_transform
         return pose
 
     def concat_global_transform(self, global_transform):
@@ -154,6 +154,8 @@ class Camera:
         string += str(self.pose) + "\n"
         string += "global_transform:\n"
         string += str(self.global_transform) + "\n"
+        string += "local_transform:\n"
+        string += str(self.local_transform) + "\n"
         string += "imgs:\n"
         string += str(self.imgs.shape) + "\n"
         if self.has_masks:

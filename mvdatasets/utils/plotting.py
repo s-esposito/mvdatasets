@@ -43,7 +43,7 @@ def plot_cameras(
     camera_centers = poses[:, :3, 3]
 
     scene_radius = np.max(np.linalg.norm(camera_centers, axis=1))
-    scale = scene_radius * 0.1
+    scale = scene_radius * 0.2
 
     fig = plt.figure(figsize=figsize)
     

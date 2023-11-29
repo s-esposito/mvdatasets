@@ -36,6 +36,11 @@ def load_blender(
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
     
+    # local transform
+    local_transform = np.eye(4)
+    rotation = rot_x_3d(deg2rad(180))
+    local_transform[:3, :3] = rotation
+    
     # cameras objects
     cameras_splits = {}
     for split in splits:
@@ -132,6 +137,7 @@ def load_blender(
                 intrinsics=intrinsics,
                 pose=pose,
                 global_transform=global_transform,
+                local_transform=local_transform,
                 imgs=cam_imgs,
                 masks=cam_masks,
                 camera_idx=idx,

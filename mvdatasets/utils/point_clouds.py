@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 
-def load_point_clouds(point_clouds_paths, max_nr_points=1000):
+def load_point_clouds(point_clouds_paths, max_nr_points=10000):
     """Loads point cloud from files.
     If the file is a mesh, points are its vertices.
 
@@ -31,7 +31,7 @@ def load_point_clouds(point_clouds_paths, max_nr_points=1000):
                     )
                     points_3d = points_3d[random_idx]
                     point_clouds.append(points_3d)
-                print("loaded {} points from mesh".format(points_3d.shape[0]))
+                print("loaded {} points".format(points_3d.shape[0]))
             else:
                 raise ValueError("unsupported point cloud format")
         else:
