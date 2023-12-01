@@ -41,8 +41,8 @@ Test caption
 ### Train and test splits
 
 <p float="left">
-  <img src="imgs/dtu_training_cameras.png" width="500" />
-  <img src="imgs/dtu_test_cameras.png" width="500" />
+  <img src="imgs/blender_training_cameras.png" width="400" />
+  <img src="imgs/blender_test_cameras.png" width="400" />
 </p>
 
 
