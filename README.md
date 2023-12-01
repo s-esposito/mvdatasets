@@ -22,15 +22,12 @@ The camera coordinate system is the OpenCV one (right-handed):
 - X-Axis: Points to the right of the camera's sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
 - Y-Axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
 - Z-Axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
-    
-<p align="middle">
-  <img src="imgs/pose_and_intrinsics.png" width="500"/>
-</p>
-Test caption
 
-<p align="middle">
+<p float="left">
+  <img src="imgs/pose_and_intrinsics.png" width="500"/>
   <img src="imgs/projection_with_principal_point_offset.png" width="320"/>
-</p>
+</p>   
+Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/) at the University of Tübingen.
 
 <!-- 
 <p align="middle">
