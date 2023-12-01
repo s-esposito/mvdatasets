@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# library imports
 from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import get_camera_rays
 from mvdatasets.mvdataset import MVDataset
@@ -31,57 +32,55 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-dataset_name = "dtu"
-scene_name = "dtu_scan83"
+dataset_names = ["dtu", "blender"]
+scene_names = ["dtu_scan83", "lego"]
+pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply"]
 
-# load gt mesh if exists
-gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
+for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
 
-# dataset loading
-mv_data = MVDataset(
-    dataset_name,
-    scene_name,
-    datasets_path,
-    point_clouds_paths=gt_meshes_paths,
-    splits=["train", "test"],
-    test_camera_freq=8,
-    load_mask=True,
-)
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        point_clouds_paths=[pc_path],
+        splits=["train", "test"]
+    )
 
-camera = deepcopy(mv_data["test"][0])
+    # random camera index
+    rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
+    camera = deepcopy(mv_data["test"][rand_idx])
+    print(camera)
 
-# make from the gt frame a smaller frame until we reach a certain size
-while min(camera.width, camera.height) > 50:
-    print("camera.width", camera.width, "camera.height", camera.height)
-    camera.subsample(scale=0.5)
-print("camera.width", camera.width, "camera.height", camera.height)
+    # resize camera's rgb modality
+    camera.resize(max_dim=100)
 
-# gen rays
-rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=True)
-fig = plot_points_2d_on_image(
-    camera,
-    points_2d[:, [1, 0]],
-    show_ticks=True,
-    figsize=(15, 15)
-)
-plt.savefig(
-    os.path.join("imgs", "screen_space_sampling_jittered.png"), 
-    transparent=True, 
-    dpi=300
-)
-plt.close()
+    # gen rays
+    rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=True)
+    fig = plot_points_2d_on_image(
+        camera,
+        points_2d[:, [1, 0]],
+        show_ticks=True,
+        figsize=(15, 15)
+    )
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_screen_space_sampling_jittered.png"),
+        transparent=True,
+        dpi=300
+    )
+    plt.close()
 
-# gen rays
-rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=False)
-fig = plot_points_2d_on_image(
-    camera,
-    points_2d[:, [1, 0]],
-    show_ticks=True,
-    figsize=(15, 15)
-)
-plt.savefig(
-    os.path.join("imgs", "screen_space_sampling.png"),
-    transparent=True,
-    dpi=300
-)
-plt.close()
+    # gen rays
+    rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=False)
+    fig = plot_points_2d_on_image(
+        camera,
+        points_2d[:, [1, 0]],
+        show_ticks=True,
+        figsize=(15, 15)
+    )
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_screen_space_sampling.png"),
+        transparent=True,
+        dpi=300
+    )
+    plt.close()

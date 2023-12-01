@@ -32,7 +32,6 @@ torch.set_default_dtype(torch.float32)
 # Set profiler
 profiler = Profiler()  # nb: might slow down the code
 
-imgs = np.zeros((1, 1360, 1360, 3))
 intrinsics = np.array(
     [
         [785.0, 0.0, 680.0],
@@ -47,7 +46,7 @@ pose = np.array([
     [0.0, 0.0, 0.0, 1.0]
 ])
 
-camera = Camera(imgs=imgs, pose=pose, intrinsics=intrinsics)
+camera = Camera(pose=pose, intrinsics=intrinsics)
 print("camera", camera)
 
 points_3d = np.array([[3, 2, 6]])
@@ -91,6 +90,7 @@ print("points_depth", points_depth)
 # print("points_2d", points_2d)
 
 Rt = pose
+
 points_3d = linear_transformation_3d(points_3d, Rt)
 print("points_3d", points_3d)
 
@@ -98,7 +98,9 @@ points_depth = np.linalg.norm(points_3d, axis=1)
 print("points_depth", points_depth)
 
 K = intrinsics
+
 points_2d = perspective_projection(K, points_3d)
 print("points_2d", points_2d)
+
 points_3d = inv_perspective_projection(np.linalg.inv(K), points_2d)
 print("points_3d", points_3d)

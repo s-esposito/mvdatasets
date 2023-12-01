@@ -113,7 +113,7 @@ def load_dtu(
             intrinsics=intrinsics,
             pose=pose,
             global_transform=global_transform,
-            imgs=cam_imgs,
+            rgbs=cam_imgs,
             masks=cam_masks,
             camera_idx=idx,
         )

@@ -1,7 +1,8 @@
 import torch
+import numpy as np
 import torch.nn.functional as F
 
-from mvdatasets.utils.geometry import augment_vectors, inv_perspective_projection
+from mvdatasets.utils.geometry import inv_perspective_projection
 
 
 def get_pixels(height, width, device="cpu"):
@@ -26,7 +27,7 @@ def get_random_pixels(height, width, nr_pixels, device="cpu"):
 
     out:
         pixels (torch.tensor, int): (N, 2) with values in [0, width-1], [0, height-1]
-    """    
+    """
     # sample nr_pixels random pixels
     pixels = torch.rand(nr_pixels, 2, device=device)
     pixels[:, 0] *= height
@@ -34,6 +35,24 @@ def get_random_pixels(height, width, nr_pixels, device="cpu"):
     pixels = pixels.int()
 
     return pixels
+
+# TODO: implement sampling from error map
+# def get_pixels_sampled_from_error_map(error_map, height, width, nr_pixels, device="cpu"):
+#     """given a number of pixels and an error map, sample pixels with error map as probability
+
+#     Args:
+#         error_map (torch.tensor): (height, width, 1) with values in [0, 1]
+#         height (int): frame height
+#         width (int): frame width
+#         nr_pixels (int): number of pixels to sample
+#         device (str, optional): Defaults to "cpu".
+#     """
+
+#     # TODO: use error map as probability to sample pixels
+    
+#     pixels = None
+    
+#     return pixels
 
 
 def get_pixels_centers(pixels):
@@ -88,39 +107,47 @@ def get_points_2d_from_pixels(pixels, jitter_pixels):
 # SINGLE CAMERA ----------------------------------------------------------
 
 
-def get_camera_rays_per_points_2d(c2w, intrinsics_inv, points_2d):
+def get_camera_rays_per_points_2d(c2w, intrinsics_inv, points_2d_screen):
     """given a list of pixels, return rays origins and directions
     from a single camera
 
     args:
         c2w (torch.tensor): (4, 4)
         intrinsics_inv (torch.tensor): (3, 3)
-        points_2d (torch.tensor, float): (N, 2) with values in [0, height-1], [0, width-1]
+        points_2d_screen (torch.tensor, float): (N, 2) with values in [0, height-1], [0, width-1]
 
     out:
         rays_o (torch.tensor): (N, 3)
         rays_d (torch.tensor): (N, 3)
     """
 
-    assert points_2d.shape[1] == 2, "pixels must be (N, 2)"
+    assert points_2d_screen.shape[1] == 2, "points_2d_screen must be (N, 2)"
 
     # ray origin is just the camera center
-    rays_o = c2w[:3, -1].unsqueeze(0).expand(points_2d.shape[0], -1)
+    rays_o = c2w[:3, -1].unsqueeze(0).expand(points_2d_screen.shape[0], -1)
 
     # pixels have height, width order
-    points_3d_unprojected = inv_perspective_projection(intrinsics_inv, points_2d[:, [1, 0]])
-
-    # normalize rays
-    rays_d_camera = F.normalize(points_3d_unprojected, dim=-1)
-
+    points_3d_camera = inv_perspective_projection(
+        intrinsics_inv,
+        points_2d_screen[:, [1, 0]]  # pixels have h, w order but we need x, y
+    )
+    # points_3d_unprojected have all z=1
+    
     # rotate points to world space
-    rays_d = (c2w[:3, :3] @ rays_d_camera.T).T
+    points_3d_world = (c2w[:3, :3] @ points_3d_camera.T).T
+    
+    rays_d = F.normalize(points_3d_world, dim=-1)
+
+    # print("rays_d", rays_d)
 
     return rays_o, rays_d
 
 
 def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
-    """returns image rays origins and directions for pixels
+    """returns image rays origins and directions
+    for 2d points on the image plane.
+    If points are not provided, they are sampled 
+    from the image plane for every pixel.
 
     args:
         camera (Camera): camera object
@@ -134,7 +161,8 @@ def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
     out:
         rays_o (torch.tensor): (N, 3)
         rays_d (torch.tensor): (N, 3)
-        points_2d (torch.tensor, float): (N, 2) screen space sampling coordinates
+        points_2d (torch.tensor, float): (N, 2) screen space
+                                        sampling coordinates
 
     """
 
@@ -155,42 +183,49 @@ def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
     return rays_o, rays_d, points_2d
 
 
-def get_camera_frames_per_points_2d(points_2d, frame, mask=None):
+def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
     args:
         points_2d (torch.tensor, float or int): (N, 2) with values in [0, height-1], [0, width-1]
-        frame (torch.tensor): (height, width, 3)
+        rgb (torch.tensor): (height, width, 3)
         mask (torch.tensor, optional): (height, width, 1), default is None
         
     out:
-        rgb (torch.tensor): (N, 3)
-        mask_val (torch.tensor): (N, 1)
+        vals (dict):
+            rgb_val (optional, torch.tensor): (N, 3)
+            mask_val (optional, torch.tensor): (N, 1)
     """
 
-    assert points_2d.shape[1] == 2, "pixels must be (N, 2)"
+    assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
     
-    if points_2d.dtype == torch.int32:
-        # pixels have height, width order
-        x, y = points_2d[:, 1], points_2d[:, 0]
-        rgb = frame[y, x]
-        mask_val = None
-        if mask is not None:
-            mask_val = mask[y, x]
-        return rgb, mask_val
+    pixels = points_2d.int()  # floor
+    x, y = pixels[:, 1], pixels[:, 0]
+    
+    # prepare output
+    vals = {}
+    
+    # rgb
+    if rgb is not None:
+        rgb_val = rgb[y, x]
+        vals["rgb"] = rgb_val
+        
+    # mask
+    mask_val = None
+    if mask is not None:
+        mask_val = mask[y, x]
+        vals["mask"] = mask_val
+        
+    # TODO: get other frame modalities
     
     # TODO: bilinear interpolation
-    elif points_2d.dtype == torch.float32:
-        points_2d = points_2d.int()
-        x, y = points_2d[:, 1], points_2d[:, 0]
-        rgb = frame[y, x]
-        mask_val = None
-        if mask is not None:
-            mask_val = mask[y, x]
-        return rgb, mask_val
-
-    else:
-        raise ValueError("points_2d must be int32 or float32")
+    # if points_2d.dtype == torch.float32:
+        # ...
+    
+    assert rgb_val is None or rgb_val.shape[1] == 3, "rgb must be (N, 3)"
+    assert mask_val is None or mask_val.shape[1] == 1, "mask_val must be (N, 1)"
+        
+    return vals
 
 
 def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_pixels=False):
@@ -201,15 +236,18 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
         points_2d (torch.tensor, float or int, optional): (N, 2)
                                             Values in [0, height-1], [0, width-1].
                                             Default is None.
+        frame_idx (int, optional): frame index. Defaults to 0.
         device (str, optional): device to store tensors. Defaults to "cpu".
         jitter_pixels (bool, optional): Whether to jitter pixels.
                                         Only used if points_2d is None.
                                         Defaults to False.
                                         
     out:
-        rgb (torch.tensor): (N, 3)
-        mask_val (torch.tensor): (N, 1)
-    
+        vals (dict):
+            rgb_val (optional, torch.tensor): (N, 3)
+            mask_val (optional, torch.tensor): (N, 1)
+        points_2d (torch.tensor, float): (N, 2)
+                                        Values in [0, height-1], [0, width-1].
     """
 
     if points_2d is None:
@@ -217,36 +255,44 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
         pixels = pixels.reshape(-1, 2)
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
 
-    frame = torch.from_numpy(
-            camera.get_frame(frame_idx=frame_idx)
-        ).float().to(device)
+    # rgb
+    rgb = None
+    if camera.has_rgbs():
+        rgb = torch.from_numpy(
+                camera.get_rgb(frame_idx=frame_idx)
+            ).float().to(device)
+    
+    # mask
     mask = None
-    if camera.has_masks:
+    if camera.has_masks():
         mask = torch.from_numpy(
                 camera.get_mask(frame_idx=frame_idx)
             ).float().to(device)
+        
+    # TODO: get other frames
 
-    rgb, mask_val = get_camera_frames_per_points_2d(
-        points_2d, frame, mask=mask
+    vals = get_camera_frames_per_points_2d(
+        points_2d, rgb=rgb, mask=mask
     )
 
-    return rgb, mask_val, points_2d
+    return vals, points_2d
 
 
-def get_all_camera_rays_and_frames(camera, jitter_pixels=False, device="cpu"):
-    """returns all camera rays and images pixels values
+# TODO: deprecated
+# def get_all_camera_rays_and_frames(camera, jitter_pixels=False, device="cpu"):
+#     """returns all camera rays and images pixels values
     
-    jitter_pixels (bool, optional): whether to jitter pixels. Defaults to False.
-    """
+#     jitter_pixels (bool, optional): whether to jitter pixels. Defaults to False.
+#     """
 
-    pixels = get_pixels(camera.height, camera.width, device=device)
-    pixels = pixels.reshape(-1, 2)
-    points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
-    rays_o, rays_d, _ = get_camera_rays(
-        camera, points_2d=points_2d, device=device
-    )
-    rgb, mask, _ = get_camera_frames(camera, points_2d=points_2d, device=device)
-    return rays_o, rays_d, rgb, mask, points_2d
+#     pixels = get_pixels(camera.height, camera.width, device=device)
+#     pixels = pixels.reshape(-1, 2)
+#     points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
+#     rays_o, rays_d, _ = get_camera_rays(
+#         camera, points_2d=points_2d, device=device
+#     )
+#     rgb, mask, _ = get_camera_frames(camera, points_2d=points_2d, device=device)
+#     return rays_o, rays_d, rgb, mask, points_2d
 
 
 def get_random_camera_rays_and_frames(
@@ -258,10 +304,13 @@ def get_random_camera_rays_and_frames(
     jitter_pixels (bool, optional): whether to jitter pixels. Defaults to False.
     """
 
-    pixels = get_random_pixels(camera.height, camera.width, nr_rays, device=device)
+    pixels = get_random_pixels(
+        camera.height, camera.width, nr_rays, device=device
+    )
     points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
-    rays_o, rays_d, _ = get_camera_rays(
-        camera, points_2d=points_2d, jitter_pixels=jitter_pixels, device=device
+    
+    rays_o, rays_d, points_2d = get_camera_rays(
+        camera, points_2d=points_2d, device=device
     )
     rgb, mask, _ = get_camera_frames(
         camera, points_2d=points_2d, frame_idx=frame_idx, device=device
@@ -272,26 +321,25 @@ def get_random_camera_rays_and_frames(
 # TENSOR REEL -------------------------------------------------------------
 
 
-def get_cameras_rays_per_pixel(c2w_all, intrinsics_inv_all, pixels, jitter_pixels=False):
-    """given a list of c2w, intrinsics_inv and pixels, return rays origins and
+def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d):
+    """given a list of c2w, intrinsics_inv and points_2d, return rays origins and
     directions from multiple cameras
 
     args:
         c2w_all (torch.tensor): (N, 4, 4)
         intrinsics_inv_all (torch.tensor): (N, 3, 3)
-        pixels (torch.tensor, int): (N, 2) with values in [0, width-1], [0, height-1]
-        jitter_pixels (bool, optional): whether to jitter pixels. Defaults to False.
+        points_2d (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
 
     out:
         rays_o (torch.tensor): (N, 3)
         rays_d (torch.tensor): (N, 3)
     """
+    
+    assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
 
     # ray origin are the cameras centers
     rays_o = c2w_all[:, :3, -1]
     # print("rays_o", rays_o.shape, rays_o.device)
-
-    points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
     
     # pixels_2d_ = points_2d[:, [1, 0]]  # pixels have width, height order
     pixels_3d = torch.cat(
@@ -309,35 +357,55 @@ def get_cameras_rays_per_pixel(c2w_all, intrinsics_inv_all, pixels, jitter_pixel
     rays_d = c2w_all[:, :3, :3] @ rays_d_camera.unsqueeze(-1)
     rays_d = rays_d.reshape(-1, 3)
 
-    return rays_o, rays_d, points_2d
+    return rays_o, rays_d
 
 
-def get_cameras_frames_per_pixels(pixels, camera_idx, frame_idx, frames, masks=None):
-    """given a list of pixels and a list of frames, return rgb and mask values at pixels
+def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None, masks=None):
+    """given a list of 2d points on the image plane and a list of rgbs,
+    return rgb and mask values at pixels
 
     args:
-        pixels (torch.tensor, int): (N, 2) with values in [0, width-1], [0, height-1]
+        points_2d (torch.tensor, float or int): (N, 2)
+                                            Values in [0, height-1], [0, width-1].
+        camera_idx (int): camera index
+        frame_idx (int): frame index.
+        rgbs (optional, torch.tensor): (N, T, H, W, 3) in [0, 1] or None
+        masks (optional, torch.tensor): (N, T, H, W, 1) in [0, 1] or None
+        
 
     out:
-        rgb (torch.tensor): (N, 3)
-        mask_val (torch.tensor): (N, 1)
+        vals (dict):
+            rgb_val (optional, torch.tensor): (N, 3)
+            mask_val (optional, torch.tensor): (N, 1)
     """
 
-    assert pixels.shape[1] == 2, "pixels must be (N, 2)"
+    assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
 
-    # height = frames.shape[2]
+    pixels = points_2d.int()  # floor
+    x, y = pixels[:, 1], pixels[:, 0]
 
-    # get rgb and mask gt values at pixels
-    rgb = frames[camera_idx, frame_idx, pixels[:, 0], pixels[:, 1]]
-    # rgb = frames[camera_idx, frame_idx, (height - 1) - pixels[:, 0], pixels[:, 1]]
+    # prepare output
+    vals = {}
+    
+    # rgb
+    rgb_val = None
+    if rgbs is not None:
+        rgb_val = rgbs[camera_idx, frame_idx, y, x]
+        vals["rgb"] = rgb_val
+    
+    # mask
     mask_val = None
     if masks is not None:
-        mask_val = masks[camera_idx, frame_idx, pixels[:, 0], pixels[:, 1]]
-        # mask_val = masks[
-        #    camera_idx, frame_idx, (height - 1) - pixels[:, 0], pixels[:, 1]
-        # ]
+        mask_val = masks[camera_idx, frame_idx, y, x]
+        vals["mask"] = mask_val
+        
+    # TODO: get other frame modalities
+    
+    # TODO: bilinear interpolation
+    # if points_2d.dtype == torch.float32:
+        # ...
 
-    assert rgb.shape[1] == 3, "rgb must be (N, 3)"
+    assert rgb_val is None or rgb_val.shape[1] == 3, "rgb must be (N, 3)"
     assert mask_val is None or mask_val.shape[1] == 1, "mask_val must be (N, 1)"
 
-    return rgb, mask_val
+    return vals

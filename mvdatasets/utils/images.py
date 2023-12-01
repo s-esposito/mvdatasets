@@ -48,34 +48,34 @@ def flip_image_horizontally(image):
     """Flip a PIL Image horizontally."""
     return image.transpose(Image.FLIP_LEFT_RIGHT)
 
-
-def tensor_img_bilinear_interp(img, points_2d):
-    """bilinear interpolation of image values at points_2d
+# TODO: implement bilinear interpolation
+# def tensor_img_bilinear_interp(img, points_2d):
+#     """bilinear interpolation of image values at points_2d
     
-    args: 
-        img (torch.tensor or np.ndarray): (H, W, C)
-        points_2d (torch.tensor or np.ndarray): (N, 2) with values in [0, H-1], [0, W-1]
+#     args: 
+#         img (torch.tensor or np.ndarray): (H, W, C)
+#         points_2d (torch.tensor or np.ndarray): (N, 2) with values in [0, H-1], [0, W-1]
     
-    out:
-        interp_vals (torch.tensor or np.ndarray): (N, C)
-    """
+#     out:
+#         interp_vals (torch.tensor or np.ndarray): (N, C)
+#     """
     
-    # Extract dimensions from the image tensor
-    H, W, C = img.shape[:3]
+#     # Extract dimensions from the image tensor
+#     H, W, C = img.shape[:3]
     
-    # Get the number of points to interpolate
-    N = points_2d.shape[0]
+#     # Get the number of points to interpolate
+#     N = points_2d.shape[0]
     
-    # Create an array to store the interpolated values for each point
-    interp_vals = torch.zeros(N, C, dtype=img.dtype, device=img.device)
+#     # Create an array to store the interpolated values for each point
+#     interp_vals = torch.zeros(N, C, dtype=img.dtype, device=img.device)
     
-    # Extract x and y coordinates from the points_2d array
-    y, x = points_2d[:, 0], points_2d[:, 1]
+#     # Extract x and y coordinates from the points_2d array
+#     y, x = points_2d[:, 0], points_2d[:, 1]
     
-    # Calculate the integer part of the coordinates for indexing
-    y0, x0 = torch.floor(y).int(), np.floor(x).astype(int)
+#     # Calculate the integer part of the coordinates for indexing
+#     y0, x0 = torch.floor(y).int(), np.floor(x).astype(int)
     
-    # Calculate the neighboring pixel indices for interpolation
-    y1, x1 = np.minimum(y0 + 1, H - 1), np.minimum(x0 + 1, W - 1)
+#     # Calculate the neighboring pixel indices for interpolation
+#     y1, x1 = np.minimum(y0 + 1, H - 1), np.minimum(x0 + 1, W - 1)
     
     

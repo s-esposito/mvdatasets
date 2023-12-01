@@ -3,12 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product, combinations
 from mvdatasets.utils.raycasting import (
-    get_random_camera_rays_and_frames,
     get_camera_rays,
     get_camera_frames_per_points_2d,
-    get_pixels,
+    get_camera_rays_per_points_2d,
 )
-from mvdatasets.utils.geometry import project_points_3d_to_2d, linear_transformation_3d, inv_perspective_projection
+from mvdatasets.utils.geometry import linear_transformation_3d, inv_perspective_projection
 
 # from mvdatasets.scenes.camera import Camera
 # import math
@@ -41,8 +40,8 @@ def plot_cameras(
 
     # Get all camera centers
     camera_centers = poses[:, :3, 3]
-
-    scene_radius = np.max(np.linalg.norm(camera_centers, axis=1))
+    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
+    scene_radius = max(np.max(camera_distances_from_origin) / 2.0, 1.0)
     scale = scene_radius * 0.2
 
     fig = plt.figure(figsize=figsize)
@@ -174,46 +173,39 @@ def plot_camera_rays(
 
     # Get all camera poses
     pose = camera.get_pose()
+    camera_center = pose[:3, 3]
 
     rays_o, rays_d, points_2d = get_camera_rays(camera, device="cpu")
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     
-    # get frustum corners in 2d
-    fc_2d = np.array(
-                                    [
-                                        [0, 0],
-                                        [camera.width-1, 0],
-                                        [0, camera.height-1],
-                                        [camera.width, camera.height]
-                                    ]
-                                )
+    # get frames
+    rgb = camera.get_rgb()
+    mask = camera.get_mask()
+    vals = get_camera_frames_per_points_2d(points_2d, rgb=rgb, mask=mask)
     
-    fc_3d = inv_perspective_projection(camera.get_intrinsics(), fc_2d)
-    print("fc_3d", fc_3d.shape)
-    
-    c2w = camera.get_pose()
-    fc_3d = linear_transformation_3d(fc_3d, c2w)
-    print("fc_3d", fc_3d)
-    
-    # DEBUG --------
-    
-    # xy = points_2d[:, [1, 0]]
-    # z = np.zeros((xy.shape[0], 1))
-    # rgb = np.concatenate([xy, z], axis=1)
-    # rgb[:, 0] /= np.max(rgb[:, 0])
-    # rgb[:, 1] /= np.max(rgb[:, 1])
-    # mask = np.ones((rgb.shape[0], 1))
-    
-    # --------------
-    
-    rgb = camera.get_frame()
-    mask = np.ones((camera.height, camera.width, 1))
-    
-    rgb, mask = get_camera_frames_per_points_2d(points_2d, rgb, mask=mask)
-    
-    # # visualize rgb with origin bottom left
+    if "rgb" not in vals:
+        # color rays with their uv coordinates
+        xy = points_2d[:, [1, 0]]
+        z = np.zeros((xy.shape[0], 1))
+        rgb = np.concatenate([xy, z], axis=1)
+        rgb[:, 0] /= np.max(rgb[:, 0])
+        rgb[:, 1] /= np.max(rgb[:, 1])
+    else:
+        rgb = vals["rgb"]
+        
+    # # visualize rgb
     # plt.imshow(rgb.reshape(camera.height, camera.width, 3))
+    # plt.show()
+        
+    if "mask" not in vals:
+        # set to ones
+        mask = np.ones((camera.height, camera.width, 1))
+    else:
+        mask = vals["mask"]
+    
+    # # visualize mask
+    # plt.imshow(mask.reshape(camera.height, camera.width, 1))
     # plt.show()
 
     # subsample
@@ -223,11 +215,10 @@ def plot_camera_rays(
     rgb = rgb[idx]
     mask = mask[idx]
     
-    # Get all camera centers
-    camera_center = pose[:3, 3]
-
-    scene_radius = np.linalg.norm(camera_center)
-    scale = scene_radius * 0.1
+    # scene scale
+    camera_distance_from_origin = np.linalg.norm(camera_center)
+    scene_radius = max(camera_distance_from_origin / 2.0, 1.0)
+    scale = scene_radius * 0.2
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection="3d")
@@ -248,10 +239,45 @@ def plot_camera_rays(
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
             ax.plot3D(*zip(s, e), color="black")
     
-    # Draw frustum
-    for i, j in combinations(range(4), 2):
-        ax.plot3D(*zip(fc_3d[i], fc_3d[j]), color="black")
+    # Draw image plane
     
+    # image plane distance
+    image_plane_z = scale
+
+    # get image plane corner points in 3D
+    # from screen coordinates
+    eps = 1e-6
+    corner_points_2d_screen = np.array(
+                                    [
+                                        [0, 0],
+                                        [camera.height-eps, 0],
+                                        [0, camera.width-eps],
+                                        [camera.height-eps, camera.width-eps]
+                                    ]
+                                )
+    
+    _, corner_points_d = get_camera_rays_per_points_2d(
+        torch.from_numpy(pose).float(),
+        torch.from_numpy(camera.get_intrinsics_inv()).float(),
+        torch.from_numpy(corner_points_2d_screen).float()
+    )
+    corner_points_d = corner_points_d.cpu().numpy()
+
+    corner_points_3d_world = camera_center + corner_points_d * image_plane_z
+    
+    for i, j in combinations(range(4), 2):
+        if up == "z":
+            ax.plot3D(*zip(corner_points_3d_world[i], corner_points_3d_world[j]), color="black")
+        else:
+            ax.plot3D(
+                        *zip(
+                            corner_points_3d_world[:, [0, 2, 1]][i],
+                            corner_points_3d_world[:, [0, 2, 1]][j]),
+                        color="black",
+                        linewidth=1.0,
+                        alpha=0.5
+                    )
+            
     # Draw camera frame
     if up == "z":
         ax.quiver(
@@ -318,11 +344,11 @@ def plot_camera_rays(
         )
         ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(camera.camera_idx))
 
-    # Draw rays
-    ray_lenght = scene_radius * 1.5
-    for origin, dir, color, alpha in zip(rays_o, rays_d, rgb, mask):
-        start_point = origin
-        end_point = origin + dir * ray_lenght
+    # draw rays
+    ray_lenght = scene_radius * 2
+    for ray_o, ray_d, color, alpha in zip(rays_o, rays_d, rgb, mask):
+        start_point = ray_o
+        end_point = ray_o + ray_d * ray_lenght
 
         # plot line segment
         if up == "z":
@@ -331,7 +357,7 @@ def plot_camera_rays(
                 [start_point[1], end_point[1]],
                 [start_point[2], end_point[2]],
                 color=color,
-                alpha=0.3 * min(0.25, float(alpha)),
+                alpha=min(0.1, 0.25 * float(alpha)),
             )
         else:
             ax.plot(
@@ -339,7 +365,7 @@ def plot_camera_rays(
                 [start_point[2], end_point[2]],
                 [start_point[1], end_point[1]],
                 color=color,
-                alpha=0.3 * max(0.25, float(alpha)),
+                alpha=min(0.1, 0.25 * float(alpha)),
             )
 
     lim = scene_radius
@@ -505,7 +531,7 @@ def plot_current_batch(
                 [start_point[1], end_point[1]],
                 [start_point[2], end_point[2]],
                 color=color,
-                alpha=0.3 * min(0.25, float(alpha)),
+                alpha=0.3 * min(0.1, float(alpha)),
             )
         else:
             ax.plot(
@@ -513,7 +539,7 @@ def plot_current_batch(
                 [start_point[2], end_point[2]],
                 [start_point[1], end_point[1]],
                 color=color,
-                alpha=0.3 * max(0.25, float(alpha)),
+                alpha=0.3 * max(0.1, float(alpha)),
             )
 
     lim = scene_radius
@@ -549,20 +575,25 @@ def plot_points_2d_on_image(
     out:
         matplotlib figure
     """
-    rgb = camera.get_frame(frame_idx=frame_idx)
+    if not camera.has_rgbs():
+        raise ValueError("camera has no rgb modality")
+    
+    rgb = camera.get_rgb(frame_idx=frame_idx)
     mask = None
-    if camera.has_masks:
+    if camera.has_masks():
         mask = camera.get_mask(frame_idx=frame_idx)
         rgb = rgb * np.clip(mask + 0.2, 0, 1)
-
+    print("rgb", rgb.shape)
+    
+    fig = plt.figure(figsize=figsize)
+    plt.imshow(rgb, alpha=0.8, resample=True)
+    
     # filter out points outside image range
     points_2d = points_2d[points_2d[:, 0] >= 0]
     points_2d = points_2d[points_2d[:, 1] >= 0]
     points_2d = points_2d[points_2d[:, 0] < camera.width]
     points_2d = points_2d[points_2d[:, 1] < camera.height]
-    
-    fig = plt.figure(figsize=figsize)
-    plt.imshow(rgb, alpha=0.8, resample=True)
+
     rgb = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
     rgb[:, 0] /= camera.width
     rgb[:, 1] /= camera.height
@@ -570,11 +601,14 @@ def plot_points_2d_on_image(
     plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
     
+    print("camera.width", camera.width)
+    print("camera.height", camera.height)
+    
     if show_ticks:
         plt.xticks(np.arange(-0.5, camera.width, 1), minor=True)
         plt.yticks(np.arange(-0.5, camera.height, 1), minor=True)
-        plt.xticks(np.arange(-0.5, camera.width, 20), labels=np.arange(0.0, camera.width, 20))
-        plt.yticks(np.arange(-0.5, camera.height, 20), labels=np.arange(0.0, camera.height, 20))
+        plt.xticks(np.arange(-0.5, camera.width, 20), labels=np.arange(0.0, camera.width+1, 20))
+        plt.yticks(np.arange(-0.5, camera.height, 20), labels=np.arange(0.0, camera.height+1, 20))
         plt.grid(which="minor", alpha=0.2)
         plt.grid(which="major", alpha=0.2)
     

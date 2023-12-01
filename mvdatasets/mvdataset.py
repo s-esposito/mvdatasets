@@ -4,18 +4,11 @@ from rich import print
 import numpy as np
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
-from mvdatasets.loaders.pac_nerf import load_pac_nerf
+# from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
 from mvdatasets.utils.geometry import linear_transformation_3d
 # from mvdatasets.utils.bounding_primitives import Sphere, AABB
-
-# from mvdatasets.utils.raycasting import get_camera_frames_per_points_2d
-# from torch.utils.data import Dataset
-# import open3d as o3d
-# import numpy as np
-# from mvdatasets.utils.geometry import rotation_matrix
-# from mvdatasets.scenes.scene import Scene
 
 
 class MVDataset:

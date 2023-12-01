@@ -36,18 +36,12 @@ datasets_path = "/home/stefano/Data"
 dataset_name = "dtu"
 scene_name = "dtu_scan83"
 
-# load gt mesh if exists
-gt_meshes_paths = [os.path.join("debug/meshes/", dataset_name, scene_name, "mesh.ply")]
-
 # dataset loading
 mv_data = MVDataset(
     dataset_name,
     scene_name,
     datasets_path,
-    point_clouds_paths=gt_meshes_paths,
-    splits=["train", "test"],
-    test_camera_freq=8,
-    load_mask=True,
+    splits=["train", "test"]
 )
 
 batch_size = 512

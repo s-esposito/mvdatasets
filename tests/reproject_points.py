@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# library imports
 from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
@@ -31,22 +32,18 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-# dataset_names = ["dtu", "blender"]
-# scene_names = ["dtu_scan83", "lego"]
-dataset_names = ["blender"]
-scene_names = ["lego"]
+dataset_names = ["dtu", "blender"]
+scene_names = ["dtu_scan83", "lego"]
+pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply"]
 
-for dataset_name, scene_name in zip(dataset_names, scene_names):
-
-    # load gt point cloud if exists
-    gt_point_clouds_paths = [os.path.join("debug/point_clouds/", dataset_name, f"{scene_name}.ply")]
+for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=gt_point_clouds_paths,
+        point_clouds_paths=[pc_path],
         splits=["train", "test"]
     )
 

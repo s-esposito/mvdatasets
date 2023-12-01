@@ -45,12 +45,11 @@ torch.set_default_dtype(torch.float32)
 profiler = Profiler()  # nb: might slow down the code
 
 datasets_path = "/home/stefano/Data"
-# dataset_names = ["dtu", "blender"]
-# scene_names = ["dtu_scan83", "lego"]
-dataset_names = ["blender"]
-scene_names = ["lego"]
+dataset_names = ["dtu", "blender"]
+scene_names = ["dtu_scan83", "lego"]
+pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply"]
 
-for dataset_name, scene_name in zip(dataset_names, scene_names):
+for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
 
     # load gt point cloud if exists
     gt_point_clouds_paths = [os.path.join("debug/point_clouds/", dataset_name, f"{scene_name}.ply")]
@@ -60,7 +59,7 @@ for dataset_name, scene_name in zip(dataset_names, scene_names):
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=gt_point_clouds_paths,
+        point_clouds_paths=[pc_path],
         splits=["train", "test"]
     )
 
@@ -76,7 +75,13 @@ for dataset_name, scene_name in zip(dataset_names, scene_names):
     )
 
     #  plt.show()
-    plt.savefig(os.path.join("imgs", f"{dataset_name}_training_cameras.png"), bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
+        transparent=True,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
     plt.close()
 
     # Visualize cameras
@@ -91,5 +96,11 @@ for dataset_name, scene_name in zip(dataset_names, scene_names):
     )
 
     #  plt.show()
-    plt.savefig(os.path.join("imgs", f"{dataset_name}_test_cameras.png"), transparent=True, bbox_inches="tight", pad_inches=0, dpi=300)
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
+        transparent=True,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
     plt.close()

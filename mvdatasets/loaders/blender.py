@@ -63,16 +63,7 @@ def load_blender(
             camera_pose = frame["transform_matrix"]
             frames_list.append((img_path, camera_pose))
         frames_list.sort(key=lambda x: int(x[0].split('.')[0].split('_')[-1]))
-        # print(frames_list)
-        
-        # for im_name in os.listdir(os.path.join(data_path, f"{split}")):
-        #     if "normal" in im_name or "depth" in im_name:
-        #         # skip for now, possibly add later
-        #         continue
-        #     if im_name.endswith('.png'):
-        #         images_list.append(im_name)
-        # images_list = [x for x in images_list if x.endswith('.png')]
-        
+
         if split == 'test':
             # skip every test_skip images
             frames_list = frames_list[::test_skip]
@@ -94,6 +85,12 @@ def load_blender(
             if height is None or width is None:
                 height, width = img_np.shape[:2]
             
+            if load_mask:
+                # use alpha channel as mask
+                # (nb: this is only resonable for synthetic data)
+                mask_np = img_np[..., -1, None]
+                masks.append(mask_np)
+            
             # apply white background, else black
             if white_bg:
                 img_np = img_np[..., :3] * img_np[..., -1:] + (1.0 - img_np[..., -1:])
@@ -101,13 +98,6 @@ def load_blender(
                 img_np = img_np[..., :3]
             
             imgs.append(img_np)
-            
-            if load_mask:
-                # use alpha channel as mask
-                # (nb: this is only resonable for synthetic data)
-                mask_np = img_np[..., -1:]
-                mask_np = mask_np[:, :, 0, None]
-                masks.append(mask_np)
 
         # iterate over frames and create cameras
         for i, frame in enumerate(frames_list):
@@ -138,7 +128,7 @@ def load_blender(
                 pose=pose,
                 global_transform=global_transform,
                 local_transform=local_transform,
-                imgs=cam_imgs,
+                rgbs=cam_imgs,
                 masks=cam_masks,
                 camera_idx=idx,
             )

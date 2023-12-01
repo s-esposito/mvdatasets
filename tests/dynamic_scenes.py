@@ -1,3 +1,5 @@
+# TODO: deprecated, needs to be updated
+
 import numpy
 import PIL
 import os
@@ -89,7 +91,7 @@ img_pil.save("test_dynamic_scenes_mask.png")
 
 camera_idx = 1
 frame_idx_idx = 7
-img_np = training_data.cameras[camera_idx].get_frame(frame_idx_idx).cpu().numpy()
+img_np = training_data.cameras[camera_idx].get_rgb(frame_idx_idx).cpu().numpy()
 intrinsics = training_data.cameras[camera_idx].intrinsics.cpu().numpy()
 points_2d = project_points_3d_to_2d(
     points_3d=training_data.point_clouds[frame_idx_idx],

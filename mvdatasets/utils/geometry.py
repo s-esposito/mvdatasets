@@ -130,6 +130,7 @@ def augment_vectors(vectors):
     else:
         raise ValueError("vectors must be torch.tensor or np.ndarray")
     
+    return None
 
 
 def perspective_projection(intrinsics, points_3d):
@@ -148,26 +149,25 @@ def perspective_projection(intrinsics, points_3d):
     return points_2d
 
     
-def inv_perspective_projection(intrinsics_inv, points_2d):
-    """apply inverse perspective projection to points
+def inv_perspective_projection(intrinsics_inv, points_2d_screen):
+    """apply inverse perspective projection to 2d points
     args:
         intrinsics (np.ndarray or torch.tensor) : (3, 3)
-        points_2d (np.ndarray or torch.tensor) : (N, 2) -> (x, y)
+        points_2d_screen (np.ndarray or torch.tensor) : (N, 2) point in screen coordinates (u,v)
     out: 
         points_3d (np.ndarray or torch.tensor) : (N, 3)
     """
     
-    augmented_points_2d = augment_vectors(points_2d)
-    # print("augmented_points_2d", augmented_points_2d.shape)
-    # K_inv_0 = np.concatenate([intrinsics_inv, np.zeros((3, 1))], axis=1)
-    # print("K_inv_0", K_inv_0.shape)
-    # homogeneous_points_3d = (K_inv_0 @ augmented_points_2d.T).T
-    homogeneous_points_3d = (intrinsics_inv @ augmented_points_2d.T).T
-    print("homogeneous_points_3d", homogeneous_points_3d)
-    augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 2:]
-    points_3d = augmented_points_3d[:, :3]
+    # print("intrinsics_inv", intrinsics_inv)
+    # print("points_2d_screen", points_2d_screen)
     
-    return points_3d
+    augmented_points_2d_screen = augment_vectors(points_2d_screen)
+    # print("augmented_points_2d_screen", augmented_points_2d_screen)
+    augmented_points_3d_camera = (intrinsics_inv @ augmented_points_2d_screen.T).T
+    
+    # print("augmented_points_3d_camera", augmented_points_3d_camera)
+    
+    return augmented_points_3d_camera
 
 
 def project_points_3d_to_2d(camera, points_3d):
