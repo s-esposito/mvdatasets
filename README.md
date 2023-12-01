@@ -27,6 +27,7 @@ The camera coordinate system is the OpenCV one (right-handed):
   <img src="imgs/pose_and_intrinsics.png" width="500"/>
   <img src="imgs/projection_with_principal_point_offset.png" width="320"/>
 </p>   
+
 Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/) at the University of Tübingen.
 
 <!-- 
