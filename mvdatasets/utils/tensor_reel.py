@@ -49,19 +49,19 @@ class TensorReel:
                 masks.append(torch.from_numpy(camera.get_masks()).float())
             
             # normals
-            if camera.has_normals:
+            if camera.has_normals():
                 normals.append(torch.from_numpy(camera.get_normals()).float())
             
             # depths
-            if camera.has_depths:
+            if camera.has_depths():
                 depths.append(torch.from_numpy(camera.get_depths()).float())
             
             # instance_masks
-            if camera.has_instance_masks:
+            if camera.has_instance_masks():
                 instance_masks.append(torch.from_numpy(camera.get_instance_masks()).float())
             
             # semantic_masks
-            if camera.has_semantic_masks:
+            if camera.has_semantic_masks():
                 semantic_masks.append(torch.from_numpy(camera.get_semantic_masks()).float())
             
             # camera params
@@ -129,6 +129,7 @@ class TensorReel:
         self.height = self.rgbs.shape[2]
         self.width = self.rgbs.shape[3]
 
+    @torch.no_grad()
     def get_next_batch(
         self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False
     ):
@@ -137,7 +138,7 @@ class TensorReel:
         if cameras_idx is None:
             camera_idx = torch.randint(nr_cameras, (batch_size,))
         else:
-            # sample from given cameras idxs with repetitions
+            # sample among given cameras indices with repetitions
             sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
             camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
@@ -153,18 +154,23 @@ class TensorReel:
             self.height, self.width, batch_size, device=self.device
         )
         
+        # get 2d points on the image plane
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
 
         # get a ray for each pixel in corresponding camera frame
         rays_o, rays_d = get_cameras_rays_per_points_2d(
-            self.poses[camera_idx],
-            self.intrinsics_inv[camera_idx],
-            points_2d
+            c2w_all=self.poses[camera_idx],
+            intrinsics_inv_all=self.intrinsics_inv[camera_idx],
+            points_2d_screen=points_2d
         )
 
         # get ground truth rgbs values at pixels
-        frame_vals = get_cameras_frames_per_points_2d(
-            pixels, camera_idx, frame_idx, rgbs=self.rgbs, masks=self.masks
+        vals = get_cameras_frames_per_points_2d(
+            points_2d=points_2d,
+            camera_idx=camera_idx,
+            frame_idx=frame_idx,
+            rgbs=self.rgbs,
+            masks=self.masks
         )
 
-        return camera_idx, rays_o, rays_d, frame_vals, frame_idx
+        return camera_idx, rays_o, rays_d, vals, frame_idx

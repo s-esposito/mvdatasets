@@ -152,20 +152,17 @@ def perspective_projection(intrinsics, points_3d):
 def inv_perspective_projection(intrinsics_inv, points_2d_screen):
     """apply inverse perspective projection to 2d points
     args:
-        intrinsics (np.ndarray or torch.tensor) : (3, 3)
+        intrinsics_inv (np.ndarray or torch.tensor) : (3, 3)
         points_2d_screen (np.ndarray or torch.tensor) : (N, 2) point in screen coordinates (u,v)
     out: 
         points_3d (np.ndarray or torch.tensor) : (N, 3)
     """
     
-    # print("intrinsics_inv", intrinsics_inv)
-    # print("points_2d_screen", points_2d_screen)
+    assert intrinsics_inv.shape == (3, 3)
+    assert points_2d_screen.shape[-1] == 2
     
     augmented_points_2d_screen = augment_vectors(points_2d_screen)
-    # print("augmented_points_2d_screen", augmented_points_2d_screen)
     augmented_points_3d_camera = (intrinsics_inv @ augmented_points_2d_screen.T).T
-    
-    # print("augmented_points_3d_camera", augmented_points_3d_camera)
     
     return augmented_points_3d_camera
 

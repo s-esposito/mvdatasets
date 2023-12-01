@@ -63,7 +63,7 @@ todo
 
 # 2) install library
 python setup.py sdist
-pip install dist/mvdatasets-0.1.tar.gz 
+pip install dist/mvdatasets-0.2.tar.gz 
 ```
 
 <!-- 

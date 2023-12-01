@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 
-from mvdatasets.utils.geometry import inv_perspective_projection
+from mvdatasets.utils.geometry import inv_perspective_projection, augment_vectors
 
 
 def get_pixels(height, width, device="cpu"):
@@ -136,9 +136,8 @@ def get_camera_rays_per_points_2d(c2w, intrinsics_inv, points_2d_screen):
     # rotate points to world space
     points_3d_world = (c2w[:3, :3] @ points_3d_camera.T).T
     
+    # normalize rays
     rays_d = F.normalize(points_3d_world, dim=-1)
-
-    # print("rays_d", rays_d)
 
     return rays_o, rays_d
 
@@ -193,8 +192,8 @@ def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
         
     out:
         vals (dict):
-            rgb_val (optional, torch.tensor): (N, 3)
-            mask_val (optional, torch.tensor): (N, 1)
+            rgb_vals (optional, torch.tensor): (N, 3)
+            mask_vals (optional, torch.tensor): (N, 1)
     """
 
     assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
@@ -207,14 +206,14 @@ def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
     
     # rgb
     if rgb is not None:
-        rgb_val = rgb[y, x]
-        vals["rgb"] = rgb_val
+        rgb_vals = rgb[y, x]
+        vals["rgb"] = rgb_vals
         
     # mask
-    mask_val = None
+    mask_vals = None
     if mask is not None:
-        mask_val = mask[y, x]
-        vals["mask"] = mask_val
+        mask_vals = mask[y, x]
+        vals["mask"] = mask_vals
         
     # TODO: get other frame modalities
     
@@ -222,8 +221,8 @@ def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
     # if points_2d.dtype == torch.float32:
         # ...
     
-    assert rgb_val is None or rgb_val.shape[1] == 3, "rgb must be (N, 3)"
-    assert mask_val is None or mask_val.shape[1] == 1, "mask_val must be (N, 1)"
+    assert rgb_vals is None or rgb_vals.shape[1] == 3, "rgb must be (N, 3)"
+    assert mask_vals is None or mask_vals.shape[1] == 1, "mask_vals must be (N, 1)"
         
     return vals
 
@@ -244,8 +243,8 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
                                         
     out:
         vals (dict):
-            rgb_val (optional, torch.tensor): (N, 3)
-            mask_val (optional, torch.tensor): (N, 1)
+            rgb_vals (optional, torch.tensor): (N, 3)
+            mask_vals (optional, torch.tensor): (N, 1)
         points_2d (torch.tensor, float): (N, 2)
                                         Values in [0, height-1], [0, width-1].
     """
@@ -312,51 +311,58 @@ def get_random_camera_rays_and_frames(
     rays_o, rays_d, points_2d = get_camera_rays(
         camera, points_2d=points_2d, device=device
     )
-    rgb, mask, _ = get_camera_frames(
+    vals, _ = get_camera_frames(
         camera, points_2d=points_2d, frame_idx=frame_idx, device=device
     )
+    
+    rgb_vals = None
+    if "rgb" in vals:
+        rgb_vals = vals["rgb"]
+        
+    mask_vals = None
+    if "mask" in vals:
+        mask_vals = vals["mask"]
 
-    return rays_o, rays_d, rgb, mask, points_2d
+    return rays_o, rays_d, rgb_vals, mask_vals, points_2d
 
 # TENSOR REEL -------------------------------------------------------------
 
 
-def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d):
+def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen):
     """given a list of c2w, intrinsics_inv and points_2d, return rays origins and
     directions from multiple cameras
 
     args:
         c2w_all (torch.tensor): (N, 4, 4)
         intrinsics_inv_all (torch.tensor): (N, 3, 3)
-        points_2d (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
+        points_2d_screen (torch.tensor, int): (N, 2) with values in [0, height-1], [0, width-1]
 
     out:
         rays_o (torch.tensor): (N, 3)
         rays_d (torch.tensor): (N, 3)
     """
     
-    assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
-
+    assert c2w_all.dim() == 3 and c2w_all.shape[-2:] == (4, 4), "c2w_all must be (N, 4, 4)"
+    assert intrinsics_inv_all.dim() == 3 and intrinsics_inv_all.shape[-2:] == (3, 3), "intrinsics_inv_all must be (N, 3, 3)"
+    assert points_2d_screen.dim() == 2 and points_2d_screen.shape[-1] == 2, "points_2d_screen must be (N, 2)"
+    assert c2w_all.shape[0] == intrinsics_inv_all.shape[0] == points_2d_screen.shape[0], "c2w_all, intrinsics_inv_all and points_2d_screen must have the same batch size"
+    
     # ray origin are the cameras centers
     rays_o = c2w_all[:, :3, -1]
-    # print("rays_o", rays_o.shape, rays_o.device)
     
-    # pixels_2d_ = points_2d[:, [1, 0]]  # pixels have width, height order
-    pixels_3d = torch.cat(
-        [points_2d, torch.ones_like(points_2d[:, 0]).unsqueeze(-1)], dim=-1
-    )
+    # pixels have height, width order, we need x, y, z order
+    augmented_points_2d_screen = augment_vectors(points_2d_screen[:, [1, 0]])
 
-    # from screen to camera coords
-    points_3d_camera = intrinsics_inv_all @ pixels_3d.unsqueeze(-1)
-    points_3d_camera = points_3d_camera.reshape(-1, 3)
-
-    # normalize rays
-    rays_d_camera = F.normalize(points_3d_camera, dim=-1)
+    # from screen to camera coords (out is (N, 3, 1))
+    points_3d_camera = intrinsics_inv_all @ augmented_points_2d_screen.unsqueeze(-1)
 
     # rotate points to world space
-    rays_d = c2w_all[:, :3, :3] @ rays_d_camera.unsqueeze(-1)
-    rays_d = rays_d.reshape(-1, 3)
-
+    points_3d_world = c2w_all[:, :3, :3] @ points_3d_camera
+    points_3d_world = points_3d_world.reshape(-1, 3)
+    
+    # normalize rays
+    rays_d = F.normalize(points_3d_world, dim=-1)
+    
     return rays_o, rays_d
 
 
@@ -375,8 +381,8 @@ def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None
 
     out:
         vals (dict):
-            rgb_val (optional, torch.tensor): (N, 3)
-            mask_val (optional, torch.tensor): (N, 1)
+            rgb_vals (optional, torch.tensor): (N, 3)
+            mask_vals (optional, torch.tensor): (N, 1)
     """
 
     assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
@@ -388,24 +394,24 @@ def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None
     vals = {}
     
     # rgb
-    rgb_val = None
+    rgb_vals = None
     if rgbs is not None:
-        rgb_val = rgbs[camera_idx, frame_idx, y, x]
-        vals["rgb"] = rgb_val
+        rgb_vals = rgbs[camera_idx, frame_idx, y, x]
+        vals["rgb"] = rgb_vals
     
     # mask
-    mask_val = None
+    mask_vals = None
     if masks is not None:
-        mask_val = masks[camera_idx, frame_idx, y, x]
-        vals["mask"] = mask_val
+        mask_vals = masks[camera_idx, frame_idx, y, x]
+        vals["mask"] = mask_vals
         
     # TODO: get other frame modalities
     
     # TODO: bilinear interpolation
     # if points_2d.dtype == torch.float32:
         # ...
-
-    assert rgb_val is None or rgb_val.shape[1] == 3, "rgb must be (N, 3)"
-    assert mask_val is None or mask_val.shape[1] == 1, "mask_val must be (N, 1)"
+        
+    assert rgb_vals is None or rgb_vals.shape[1] == 3, "rgb must be (N, 3)"
+    assert mask_vals is None or mask_vals.shape[1] == 1, "mask_vals must be (N, 1)"
 
     return vals

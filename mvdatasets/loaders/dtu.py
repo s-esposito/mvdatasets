@@ -61,7 +61,7 @@ def load_dtu(
     # scale
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
-
+    
     # load images to cpu as numpy arrays
     imgs = []
     images_list = sorted(glob(os.path.join(data_path, "image/*.png")))
@@ -83,11 +83,15 @@ def load_dtu(
             mask_np = image2numpy(mask_pil)
             mask_np = mask_np[:, :, 0, None]
             masks.append(mask_np)
-
+    
+    # load camera params
     camera_dict = np.load(os.path.join(data_path, "cameras_sphere.npz"))
     # world_mat is a projection matrix from world to image
-    world_mats_np = [camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))]
-    # scale_mat: used for coordinate normalization, we assume the scene to render is inside a unit sphere at origin.
+    world_mats_np = [
+        camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))
+    ]
+    # scale_mat: used for coordinate normalization,
+    # we assume the scene to render is inside a unit sphere at origin.
     scale_mats_np = [
         camera_dict["scale_mat_%d" % idx] for idx in range(len(images_list))
     ]
