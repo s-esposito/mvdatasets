@@ -62,8 +62,10 @@ TODO: update
 todo
 
 # 2) install library
-python setup.py sdist
+python setup.py develop
 pip install dist/mvdatasets-0.2.tar.gz 
+# or
+python setup.py develop
 ```
 
 <!-- 

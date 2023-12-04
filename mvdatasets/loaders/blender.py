@@ -17,15 +17,57 @@ from mvdatasets.utils.geometry import (
 
 
 def load_blender(
-    data_path,
+    scene_path,
     splits,
-    load_mask=True,
-    rotate_scene_x_axis_deg=-90,
-    scene_scale_mult=0.25,  # keeps the object within the unit sphere
-    subsample_factor=1,
-    white_bg=True,  # remove alpha channel and replace with white background
-    test_skip=20,
+    config
 ):
+    """blender data format loader
+
+    Args:
+        scene_path (str): path to the dataset scene folder
+        splits (list): splits to load (e.g. ["train", "test"])
+        config (dict): dict of config parameters
+
+    Returns:
+        cameras_splits (dict): dict of splits with lists of Camera objects
+        global_transform (np.ndarray): (4, 4)
+    """
+    
+    # CONFIG -----------------------------------------------------------------
+    
+    if "load_mask" in config:
+        load_mask = config["load_mask"]
+    else:
+        load_mask = True
+        
+    if "rotate_scene_x_axis_deg" in config:
+        rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    else:
+        rotate_scene_x_axis_deg = -90
+        
+    if "scene_scale_mult" in config:
+        scene_scale_mult = config["scene_scale_mult"]
+    else:
+        scene_scale_mult = 0.25
+    
+    # TODO: implement subsample_factor
+    # if "subsample_factor" in config:
+    #     subsample_factor = config["subsample_factor"]
+    # else:
+    #     subsample_factor = 1
+    
+    if "white_bg" in config:
+        white_bg = config["white_bg"]
+    else:
+        white_bg = True
+        
+    if "test_skip" in config:
+        test_skip = config["test_skip"]
+    else:
+        test_skip = 20
+        
+    # -------------------------------------------------------------------------
+    
     height, width = None, None
     
     # global transform
@@ -47,7 +89,7 @@ def load_blender(
         cameras_splits[split] = []
 
         # load current split transforms
-        with open(os.path.join(data_path, f"transforms_{split}.json"), "r") as fp:
+        with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)
         
         camera_angle_x = metas["camera_angle_x"]
@@ -75,7 +117,7 @@ def load_blender(
             im_name = frame[0]
             camera_pose = frame[1]
             # load PIL image
-            img_pil = Image.open(os.path.join(data_path, f"{split}", im_name))
+            img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
             img_np = image2numpy(img_pil)
             # TODO: subsample image
             # if subsample_factor != 1:

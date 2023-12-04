@@ -56,9 +56,6 @@ for dataset_name, scene_name in zip(dataset_names, scene_names):
 
     # gen rays
     rays_o, rays_d, points_2d = get_camera_rays(camera)
-    # print("rays_o", rays_o.shape, rays_o.device)
-    # print("rays_d", rays_d.shape, rays_d.device)
-    # print("points_2d", points_2d.shape, points_2d.device)
 
     vals, _ = get_camera_frames(camera, points_2d=points_2d)
     for key, val in vals.items():

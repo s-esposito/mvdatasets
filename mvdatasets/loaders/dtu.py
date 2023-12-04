@@ -42,15 +42,57 @@ def load_K_Rt_from_P(filename, P=None):
 
 
 def load_dtu(
-    data_path,
+    scene_path,
     splits,
-    load_mask=True,
-    test_camera_freq=8,
-    train_test_overlap=False,
-    rotate_scene_x_axis_deg=115,
-    scene_scale_mult=0.4,
-    subsample_factor=1,
+    config
 ):
+    """dtu data format loader
+
+    Args:
+        scene_path (str): path to the dataset scene folder
+        splits (list): splits to load (e.g. ["train", "test"])
+        config (dict): dict of config parameters
+
+    Returns:
+        cameras_splits (dict): dict of splits with lists of Camera objects
+        global_transform (np.ndarray): (4, 4)
+    """
+    
+    # CONFIG -----------------------------------------------------------------
+    
+    if "load_mask" in config:
+        load_mask = config["load_mask"]
+    else:
+        load_mask = True
+    
+    if "test_camera_freq" in config:
+        test_camera_freq = config["test_camera_freq"]
+    else:
+        test_camera_freq = 8
+    
+    if "train_test_overlap" in config:
+        train_test_overlap = config["train_test_overlap"]
+    else:
+        train_test_overlap = False
+        
+    if "rotate_scene_x_axis_deg" in config:
+        rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    else:
+        rotate_scene_x_axis_deg = 115
+    
+    if "scene_scale_mult" in config:
+        scene_scale_mult = config["scene_scale_mult"]
+    else:
+        scene_scale_mult = 0.4
+    
+    # TODO: implement subsample_factor
+    # if "subsample_factor" in config:
+    #     subsample_factor = config["subsample_factor"]
+    # else:
+    #     subsample_factor = 1
+    
+    # -------------------------------------------------------------------------
+    
     # cameras objects
     cameras_all = []
     
@@ -64,7 +106,7 @@ def load_dtu(
     
     # load images to cpu as numpy arrays
     imgs = []
-    images_list = sorted(glob(os.path.join(data_path, "image/*.png")))
+    images_list = sorted(glob(os.path.join(scene_path, "image/*.png")))
     pbar = tqdm(images_list, desc="images", ncols=100)
     for im_name in pbar:
         # load PIL image
@@ -75,7 +117,7 @@ def load_dtu(
     # (optional) load mask images to cpu as numpy arrays
     masks = []
     if load_mask:
-        masks_list = sorted(glob(os.path.join(data_path, "mask/*.png")))
+        masks_list = sorted(glob(os.path.join(scene_path, "mask/*.png")))
         pbar = tqdm(masks_list, desc="masks", ncols=100)
         for im_name in pbar:
             # load PIL image
@@ -85,7 +127,7 @@ def load_dtu(
             masks.append(mask_np)
     
     # load camera params
-    camera_dict = np.load(os.path.join(data_path, "cameras_sphere.npz"))
+    camera_dict = np.load(os.path.join(scene_path, "cameras_sphere.npz"))
     # world_mat is a projection matrix from world to image
     world_mats_np = [
         camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))

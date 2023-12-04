@@ -149,7 +149,7 @@ class Camera:
 
         return frame
     
-    def resize(self, max_dim):
+    def resize(self, max_dim, verbose=False):
         """make frames smaller by iteratively scaling dimensions by 0.5
         until we reach a certain size.
 
@@ -160,14 +160,15 @@ class Camera:
         
         scale_factor = 1
         old_height, old_width = self.height, self.width
-        while min(self.width, self.height) > 100:
+        while min(self.width, self.height) > max_dim:
             for modality_name in self.modalities.keys():
                 self.subsample_modality(modality_name, scale=0.5)
             scale_factor *= 0.5
             self.height, self.width = self.get_screen_space_dims()
         # scale intrinsics accordingly
         self.scale_intrinsics(scale_factor)
-        print(f"camera image plane resized from {old_height}, {old_width} to {self.height}, {self.width}")
+        if verbose:
+            print(f"camera image plane resized from {old_height}, {old_width} to {self.height}, {self.width}")
                     
     def scale_intrinsics(self, scale):
         """scales the intrinsics matrix"""

@@ -23,15 +23,15 @@ class MVDataset:
         self,
         dataset_name,
         scene_name,
-        datasets_path,  # dataset root path
+        datasets_path,
         splits=["train", "test"],  # ["train", "test"]
-        load_mask=True,
         point_clouds_paths=[],
+        config={}, # if not specified, use default config
+        # load_mask=True,
         # meshes_paths=[],
         # auto_orient_method="none",  # "up", "none"
         # auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
-        subsample_factor=1.0
         # profiler=None,
     ):
         self.dataset_name = dataset_name
@@ -39,6 +39,7 @@ class MVDataset:
         # self.profiler = profiler
         # self.auto_scale_poses = auto_scale_poses
 
+        # datasets_path/dataset_name/scene_name
         data_path = os.path.join(datasets_path, dataset_name, scene_name)
 
         # check if path exists
@@ -62,22 +63,36 @@ class MVDataset:
         print(f"loading {splits} splits")
         
         global_transform = np.eye(4)
-
+        
+        # STATIC SCENE DATASETS -----------------------------------------------
+        
         # load dtu
         if self.dataset_name == "dtu":
             cameras_splits, _ = load_dtu(
                 data_path,
                 splits,
-                load_mask=load_mask,
-                test_camera_freq=8,
-                train_test_overlap=False,
+                config
             )
 
-        # load nerf_synthetic
+        # load blender
         elif self.dataset_name == "blender":
             cameras_splits, global_transform = load_blender(
-                data_path, splits, load_mask=load_mask
+                data_path,
+                splits,
+                config
             )
+            
+        # TODO: load multiface
+        
+        # TODO: load bmvs
+        
+        # TODO: load llff
+        
+        # TODO: load tanks_and_temples
+        
+        # TODO: ...
+        
+        # DYNAMIC SCENE DATASETS ----------------------------------------------
 
         # # load pac_nerf
         # elif self.dataset_name == "pac_nerf":
@@ -89,11 +104,8 @@ class MVDataset:
         #                                 load_mask=load_mask
         #                             )
 
-        # elif self.dataset_name == "llff":
-        #     pass
-        # elif self.dataset_name == "tanks_and_temples":
-        #     pass
-
+        # ---------------------------------------------------------------------
+        
         # (optional) load point clouds
         if len(point_clouds_paths) > 0:
             # load point clouds
@@ -101,7 +113,9 @@ class MVDataset:
             # apply global transform
             transformed_point_clouds = []
             for point_cloud in point_clouds:
-                transformed_point_clouds.append(linear_transformation_3d(point_cloud, global_transform))
+                transformed_point_clouds.append(
+                    linear_transformation_3d(point_cloud, global_transform)
+                )
             self.point_clouds = transformed_point_clouds
             print(f"loaded {len(self.point_clouds)} point clouds")
         else:
