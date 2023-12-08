@@ -169,6 +169,8 @@ def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
         pixels = get_pixels(camera.height, camera.width, device=device)
         pixels = pixels.reshape(-1, 2)
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
+        points_2d[:, 0] = points_2d[:, 0].clip(0, camera.height - 1)
+        points_2d[:, 1] = points_2d[:, 1].clip(0, camera.width - 1)
 
     c2w = torch.from_numpy(camera.get_pose()).float().to(device)
     intrinsics_inv = torch.from_numpy(
@@ -253,6 +255,8 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
         pixels = get_pixels(camera.height, camera.width, device=device)
         pixels = pixels.reshape(-1, 2)
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
+        points_2d[:, 0] = points_2d[:, 0].clip(0, camera.height - 1)
+        points_2d[:, 1] = points_2d[:, 1].clip(0, camera.width - 1)
 
     # rgb
     rgb = None
@@ -287,6 +291,8 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
 #     pixels = get_pixels(camera.height, camera.width, device=device)
 #     pixels = pixels.reshape(-1, 2)
 #     points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
+        # points_2d[:, 0] = points_2d[:, 0].clip(0, camera.height - 1)
+        # points_2d[:, 1] = points_2d[:, 1].clip(0, camera.width - 1)
 #     rays_o, rays_d, _ = get_camera_rays(
 #         camera, points_2d=points_2d, device=device
 #     )
@@ -307,6 +313,8 @@ def get_random_camera_rays_and_frames(
         camera.height, camera.width, nr_rays, device=device
     )
     points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
+    points_2d[:, 0] = points_2d[:, 0].clip(0, camera.height - 1)
+    points_2d[:, 1] = points_2d[:, 1].clip(0, camera.width - 1)
     
     rays_o, rays_d, points_2d = get_camera_rays(
         camera, points_2d=points_2d, device=device
