@@ -44,63 +44,78 @@ torch.set_default_dtype(torch.float32)
 # Set profiler
 profiler = Profiler()  # nb: might slow down the code
 
+# Set datasets path
 datasets_path = "/home/stefano/Data"
-dataset_names = ["dtu", "blender"]
-scene_names = ["dtu_scan83", "lego"]
-pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply"]
 
-for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
+# # test DTU
+# dataset_name = "dtu"
+# scene_name = "dtu_scan83"
+# pc_path = "debug/meshes/dtu/dtu_scan83.ply"
 
-    # load gt point cloud if exists
-    gt_point_clouds_paths = [os.path.join("debug/point_clouds/", dataset_name, f"{scene_name}.ply")]
+# # test blender
+# dataset_name = "blender"
+# scene_name = "lego"
+# pc_path = "debug/point_clouds/blender/lego.ply"
 
-    # dataset loading
-    mv_data = MVDataset(
-        dataset_name,
-        scene_name,
-        datasets_path,
-        point_clouds_paths=[pc_path],
-        splits=["train", "test"]
-    )
+# test blendernerf
+dataset_name = "blendernerf"
+scene_name = "plushy"
+pc_path = "debug/meshes/blendernerf/plushy.ply"
 
-    # Visualize cameras
-    fig = plot_cameras(
-        mv_data["train"],
-        points=mv_data.point_clouds[0],
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="y",
-        figsize=(15, 15),
-        title="training cameras",
-    )
+# # test all
+# dataset_names = ["dtu", "blender", "blendernerf"]
+# scene_names = ["dtu_scan83", "lego"]
+# pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply", "debug/meshes/blendernerf/plushy.ply"]
 
-    #  plt.show()
-    plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+# for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
 
-    # Visualize cameras
-    fig = plot_cameras(
-        mv_data["test"],
-        points=mv_data.point_clouds[0],
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="y",
-        figsize=(15, 15),
-        title="test cameras",
-    )
+# dataset loading
+mv_data = MVDataset(
+    dataset_name,
+    scene_name,
+    datasets_path,
+    point_clouds_paths=[pc_path],
+    splits=["train", "test"]
+)
 
-    #  plt.show()
-    plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+# Visualize cameras
+fig = plot_cameras(
+    mv_data["train"],
+    points=mv_data.point_clouds[0],
+    azimuth_deg=20,
+    elevation_deg=30,
+    up="y",
+    figsize=(15, 15),
+    title="training cameras",
+)
+
+#  plt.show()
+plt.savefig(
+    os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
+    transparent=True,
+    bbox_inches="tight",
+    pad_inches=0,
+    dpi=300
+)
+plt.close()
+
+# Visualize cameras
+fig = plot_cameras(
+    mv_data["test"],
+    points=mv_data.point_clouds[0],
+    azimuth_deg=20,
+    elevation_deg=30,
+    up="y",
+    figsize=(15, 15),
+    title="test cameras",
+)
+
+#  plt.show()
+plt.savefig(
+    os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
+    transparent=True,
+    bbox_inches="tight",
+    pad_inches=0,
+    dpi=300
+)
+plt.close()

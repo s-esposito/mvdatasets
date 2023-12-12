@@ -32,59 +32,78 @@ torch.set_default_dtype(torch.float32)
 # Set profiler
 profiler = Profiler()  # nb: might slow down the code
 
+# Set datasets path
 datasets_path = "/home/stefano/Data"
-dataset_names = ["dtu", "blender"]
-scene_names = ["dtu_scan83", "lego"]
 
-for dataset_name, scene_name in zip(dataset_names, scene_names):
+# # test DTU
+# dataset_name = "dtu"
+# scene_name = "dtu_scan83"
+# pc_path = "debug/meshes/dtu/dtu_scan83.ply"
 
-    # dataset loading
-    mv_data = MVDataset(
-        dataset_name,
-        scene_name,
-        datasets_path,
-        splits=["train", "test"],
-    )
+# # test blender
+# dataset_name = "blender"
+# scene_name = "lego"
+# pc_path = "debug/point_clouds/blender/lego.ply"
 
-    # random camera index
-    rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
-    print(camera)
+# test blendernerf
+dataset_name = "blendernerf"
+scene_name = "plushy"
+pc_path = "debug/meshes/blendernerf/plushy.ply"
 
-    # resize camera's rgb modality
-    camera.resize(max_dim=100)
+# # test all
+# dataset_names = ["dtu", "blender", "blendernerf"]
+# scene_names = ["dtu_scan83", "lego"]
+# pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply", "debug/meshes/blendernerf/plushy.ply"]
 
-    # gen rays
-    rays_o, rays_d, points_2d = get_camera_rays(camera)
+# for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
 
-    vals, _ = get_camera_frames(camera, points_2d=points_2d)
-    for key, val in vals.items():
-        print(key, val.shape, val.device)
+# dataset loading
+mv_data = MVDataset(
+    dataset_name,
+    scene_name,
+    datasets_path,
+    splits=["train", "test"],
+)
 
-    # visualize camera
-    fig = plot_camera_rays(
-        camera, 512, azimuth_deg=60, elevation_deg=30, up="y", figsize=(15, 15)
-    )
+# random camera index
+rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
+camera = deepcopy(mv_data["test"][rand_idx])
+print(camera)
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_camera_rays.png"),
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300,
-        transparent=True
-    )
-    plt.close()
-    
-    # # plt.show()
-    # img_path = os.path.join("plots", f"{dataset_name}_camera_test_{rand_idx}.png")
-    # img = camera.get_rgb()
-    # mask = camera.get_mask()
-    
-    # # concatenate mask 3 times
-    # mask = np.concatenate([mask] * 3, axis=-1)
-    # print("mask", mask.shape)
-    
-    # # save image
-    # plt.imsave(img_path, img)
-    # plt.imsave(img_path.replace(".png", "_mask.png"), mask)
+# resize camera's rgb modality
+camera.resize(max_dim=100)
+
+# gen rays
+rays_o, rays_d, points_2d = get_camera_rays(camera)
+
+vals, _ = get_camera_frames(camera, points_2d=points_2d)
+for key, val in vals.items():
+    print(key, val.shape, val.device)
+
+# visualize camera
+fig = plot_camera_rays(
+    camera, 512, azimuth_deg=60, elevation_deg=30, up="y", figsize=(15, 15)
+)
+
+# plt.show()
+plt.savefig(
+    os.path.join("imgs", f"{dataset_name}_camera_rays.png"),
+    bbox_inches="tight",
+    pad_inches=0,
+    dpi=300,
+    transparent=True
+)
+plt.close()
+
+# # plt.show()
+# img_path = os.path.join("plots", f"{dataset_name}_camera_test_{rand_idx}.png")
+# img = camera.get_rgb()
+# mask = camera.get_mask()
+
+# # concatenate mask 3 times
+# mask = np.concatenate([mask] * 3, axis=-1)
+# print("mask", mask.shape)
+
+# # save image
+# plt.imsave(img_path, img)
+# plt.imsave(img_path.replace(".png", "_mask.png"), mask)

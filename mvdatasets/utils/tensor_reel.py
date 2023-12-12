@@ -147,7 +147,7 @@ class TensorReel:
         if frame_idx is None:
             frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
         else:
-           frame_idx = (torch.ones(batch_size) * frame_idx).int()
+            frame_idx = (torch.ones(batch_size) * frame_idx).int()
 
         # get random pixels
         pixels = get_random_pixels(
@@ -155,9 +155,7 @@ class TensorReel:
         )
         
         # get 2d points on the image plane
-        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels)
-        points_2d[:, 0] = points_2d[:, 0].clip(0, self.height - 1)
-        points_2d[:, 1] = points_2d[:, 1].clip(0, self.width - 1)
+        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
 
         # get a ray for each pixel in corresponding camera frame
         rays_o, rays_d = get_cameras_rays_per_points_2d(

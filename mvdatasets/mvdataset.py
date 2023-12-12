@@ -81,6 +81,17 @@ class MVDataset:
                 splits,
                 config
             )
+        
+        # load blendernerf
+        elif self.dataset_name == "blendernerf":
+            cameras_splits, global_transform = load_blender(
+                data_path,
+                splits,
+                config={
+                            "test_skip": 10,
+                            "scene_scale_mult": 1.0
+                        }
+            )
             
         # TODO: load multiface
         
