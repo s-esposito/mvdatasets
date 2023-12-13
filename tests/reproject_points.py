@@ -44,17 +44,16 @@ datasets_path = "/home/stefano/Data"
 # scene_name = "lego"
 # pc_path = "debug/point_clouds/blender/lego.ply"
 
-# test blendernerf
-dataset_name = "blendernerf"
-scene_name = "plushy"
-pc_path = "debug/meshes/blendernerf/plushy.ply"
+# # test blendernerf
+# dataset_name = "blendernerf"
+# scene_name = "plushy"
+# pc_path = "debug/meshes/blendernerf/plushy.ply"
 
-# # test all
-# dataset_names = ["dtu", "blender", "blendernerf"]
-# scene_names = ["dtu_scan83", "lego"]
-# pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply", "debug/meshes/blendernerf/plushy.ply"]
-
-# for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
+# test dmsr
+dataset_name = "dmsr"
+scene_name = "dinning"
+pc_path = "/home/stefano/Data/dmsr/dinning/dinning.ply"
+config = {}
 
 # dataset loading
 mv_data = MVDataset(
@@ -66,7 +65,7 @@ mv_data = MVDataset(
 )
 
 # random camera index
-rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
+rand_idx = 1  # torch.randint(0, len(mv_data["test"]), (1,)).item()
 camera = deepcopy(mv_data["test"][rand_idx])
 print(camera)
 

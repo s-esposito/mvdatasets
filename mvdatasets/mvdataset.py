@@ -4,6 +4,7 @@ from rich import print
 import numpy as np
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
+from mvdatasets.loaders.dmsr import load_dmsr
 # from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
@@ -26,13 +27,14 @@ class MVDataset:
         datasets_path,
         splits=["train", "test"],  # ["train", "test"]
         point_clouds_paths=[],
-        config={}, # if not specified, use default config
+        config={},  # if not specified, use default config
         # load_mask=True,
         # meshes_paths=[],
         # auto_orient_method="none",  # "up", "none"
         # auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
         # profiler=None,
+        verbose=False
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
@@ -71,7 +73,8 @@ class MVDataset:
             cameras_splits, _ = load_dtu(
                 data_path,
                 splits,
-                config
+                config,
+                verbose=verbose
             )
 
         # load blender
@@ -79,7 +82,8 @@ class MVDataset:
             cameras_splits, global_transform = load_blender(
                 data_path,
                 splits,
-                config
+                config,
+                verbose=verbose
             )
         
         # load blendernerf
@@ -87,12 +91,19 @@ class MVDataset:
             cameras_splits, global_transform = load_blender(
                 data_path,
                 splits,
-                config={
-                            "test_skip": 10,
-                            "scene_scale_mult": 1.0
-                        }
+                config,
+                verbose=verbose
             )
             
+        # load dmsr
+        elif self.dataset_name == "dmsr":
+            cameras_splits, global_transform = load_dmsr(
+                data_path,
+                splits,
+                config,
+                verbose=verbose
+            )
+        
         # TODO: load multiface
         
         # TODO: load bmvs

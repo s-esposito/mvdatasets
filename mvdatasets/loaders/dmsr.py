@@ -11,18 +11,19 @@ from mvdatasets.utils.geometry import (
     scale_3d,
     rot_x_3d,
     rot_y_3d,
+    rot_z_3d,
     pose_local_rotation,
     pose_global_rotation,
 )
 
 
-def load_blender(
+def load_dmsr(
     scene_path,
     splits,
     config,
     verbose=False,
 ):
-    """blender data format loader
+    """dmsr data format loader
 
     Args:
         scene_path (str): path to the dataset scene folder
@@ -36,10 +37,21 @@ def load_blender(
     
     # CONFIG -----------------------------------------------------------------
     
-    if "load_mask" not in config:
-        if verbose:
-            print("WARNING: load_mask not in config, setting to True")
-        config["load_mask"] = True
+    # TODO: implement additional modalities loading
+    # if "load_depth" not in config:
+    #     if verbose:
+    #         print("WARNING: load_depth not in config, setting to True")
+    #     config["load_depth"] = False
+        
+    # if "load_semantics" not in config:
+    #     if verbose:
+    #         print("WARNING: load_semantics not in config, setting to True")
+    #     config["load_semantics"] = False
+        
+    # if "load_semantic_instance" not in config:
+    #     if verbose:
+    #         print("WARNING: load_semantic_instance not in config, setting to True")
+    #     config["load_semantic_instance"] = False
         
     if "rotate_scene_x_axis_deg" not in config:
         if verbose:
@@ -49,21 +61,16 @@ def load_blender(
     if "scene_scale_mult" not in config:
         if verbose:
             print("WARNING: scene_scale_mult not in config, setting to 0.25")
-        config["scene_scale_mult"] = 0.25
+        config["scene_scale_mult"] = 0.5
     
     # TODO: implement subsample_factor
     # if "subsample_factor" not in config:
     #     config["subsample_factor"] = 1.0
-    
-    if "white_bg" not in config:
-        if verbose:
-            print("WARNING: white_bg not in config, setting to True")
-        config["white_bg"] = True
         
     if "test_skip" not in config:
         if verbose:
             print("WARNING: test_skip not in config, setting to 20")
-        config["test_skip"] = 20
+        config["test_skip"] = 10
         
     if verbose:
         print("load_blender config:")
@@ -79,6 +86,7 @@ def load_blender(
     # rotate
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    # rotation = rotation @ rot_y_3d(deg2rad(180))
     # scale
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
@@ -87,6 +95,10 @@ def load_blender(
     # local transform
     local_transform = np.eye(4)
     rotation = rot_x_3d(deg2rad(180))
+    # rotation = rotation @ rot_z_3d(deg2rad(180))
+    # rotation = rot_z_3d(deg2rad(90))
+    # rotation = rotation @ np.array([-1, 0, 0], [0, 1, 0], [0, 0, -1]])
+    # rotation = np.array([[0, -1, 0], [-1, 0, 0], [0, 0, -1]])
     local_transform[:3, :3] = rotation
     
     # cameras objects
@@ -95,13 +107,12 @@ def load_blender(
         cameras_splits[split] = []
 
         # load current split transforms
-        with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
+        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
             metas = json.load(fp)
         
         camera_angle_x = metas["camera_angle_x"]
         
         # load images to cpu as numpy arrays
-        # (optional) load mask images to cpu as numpy arrays
         frames_list = []
         
         for frame in metas["frames"]:
@@ -110,6 +121,9 @@ def load_blender(
             frames_list.append((img_path, camera_pose))
         frames_list.sort(key=lambda x: int(x[0].split('.')[0].split('_')[-1]))
 
+        for frame in frames_list:
+            print(frame[0])
+        
         if split == 'test':
             # skip every test_skip images
             test_skip = config["test_skip"]
@@ -122,8 +136,12 @@ def load_blender(
             im_name = frame[0]
             # camera_pose = frame[1]
             # load PIL image
-            img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
+            img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
             img_np = image2numpy(img_pil)
+            
+            # remove alpha (it is always 1)
+            img_np = img_np[:, :, :3]
+            
             # TODO: subsample image
             # if subsample_factor != 1:
             #   subsample image
@@ -132,32 +150,11 @@ def load_blender(
             if height is None or width is None:
                 height, width = img_np.shape[:2]
             
-            if config["load_mask"]:
-                # use alpha channel as mask
-                # (nb: this is only resonable for synthetic data)
-                mask_np = img_np[..., -1, None]
-            else:
-                mask_np = None
-            
-            # apply white background, else black
-            if config["white_bg"]:
-                img_np = img_np[..., :3] * img_np[..., -1:] + (1.0 - img_np[..., -1:])
-            else:
-                img_np = img_np[..., :3]
-            
             # get frame idx and pose
             idx = int(frame[0].split('.')[0].split('_')[-1])
             
             # get images
             cam_imgs = img_np[None, ...]
-            # print(cam_imgs.shape)
-            
-            # get mask (optional)
-            if config["load_mask"]:
-                cam_masks = mask_np[None, ...]
-                # print(cam_masks.shape)
-            else:
-                cam_masks = None
         
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
@@ -173,7 +170,7 @@ def load_blender(
                 global_transform=global_transform,
                 local_transform=local_transform,
                 rgbs=cam_imgs,
-                masks=cam_masks,
+                masks=None,  # dataset has no masks
                 camera_idx=idx,
             )
 

@@ -44,7 +44,8 @@ def load_K_Rt_from_P(filename, P=None):
 def load_dtu(
     scene_path,
     splits,
-    config
+    config,
+    verbose=False,
 ):
     """dtu data format loader
 
@@ -60,36 +61,39 @@ def load_dtu(
     
     # CONFIG -----------------------------------------------------------------
     
-    if "load_mask" in config:
-        load_mask = config["load_mask"]
-    else:
-        load_mask = True
+    if "load_mask" not in config:
+        if verbose:
+            print("WARNING: load_mask not in config, setting to True")
+        config["load_mask"] = True
     
-    if "test_camera_freq" in config:
-        test_camera_freq = config["test_camera_freq"]
-    else:
-        test_camera_freq = 8
+    if "test_camera_freq" not in config:
+        if verbose:
+            print("WARNING: test_camera_freq not in config, setting to 8")
+        config["test_camera_freq"] = 8
     
-    if "train_test_overlap" in config:
-        train_test_overlap = config["train_test_overlap"]
-    else:
-        train_test_overlap = False
+    if "train_test_overlap" not in config:
+        if verbose:
+            print("WARNING: train_test_overlap not in config, setting to False")
+        config["train_test_overlap"] = False
         
-    if "rotate_scene_x_axis_deg" in config:
-        rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    else:
-        rotate_scene_x_axis_deg = 115
+    if "rotate_scene_x_axis_deg" not in config:
+        if verbose:
+            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 115")
+        config["rotate_scene_x_axis_deg"] = 115
     
-    if "scene_scale_mult" in config:
-        scene_scale_mult = config["scene_scale_mult"]
-    else:
-        scene_scale_mult = 0.4
+    if "scene_scale_mult" not in config:
+        if verbose:
+            print("WARNING: scene_scale_mult not in config, setting to 0.4")
+        config["scene_scale_mult"] = 0.4
     
     # TODO: implement subsample_factor
-    # if "subsample_factor" in config:
-    #     subsample_factor = config["subsample_factor"]
-    # else:
-    #     subsample_factor = 1
+    # if "subsample_factor" not in config:
+    #     config["subsample_factor"] = 1.0
+    
+    if verbose:
+        print("dtu config:")
+        for k, v in config.items():
+            print(f"\t{k}: {v}")
     
     # -------------------------------------------------------------------------
     
@@ -99,8 +103,10 @@ def load_dtu(
     # global transform
     global_transform = np.eye(4)
     # rotate
+    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
     # scale
+    scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
     
@@ -116,7 +122,7 @@ def load_dtu(
 
     # (optional) load mask images to cpu as numpy arrays
     masks = []
-    if load_mask:
+    if config["load_mask"]:
         masks_list = sorted(glob(os.path.join(scene_path, "mask/*.png")))
         pbar = tqdm(masks_list, desc="masks", ncols=100)
         for im_name in pbar:
@@ -150,7 +156,7 @@ def load_dtu(
         cam_imgs = imgs[idx][None, ...]
 
         # get mask (optional)
-        if load_mask and len(masks) > idx:
+        if config["load_mask"] and len(masks) > idx:
             cam_masks = masks[idx][None, ...]
         else:
             cam_masks = None
@@ -167,6 +173,8 @@ def load_dtu(
         cameras_all.append(camera)
 
     # split cameras into train and test
+    train_test_overlap = config["train_test_overlap"]
+    test_camera_freq = config["test_camera_freq"]
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []

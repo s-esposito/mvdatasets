@@ -51,23 +51,33 @@ datasets_path = "/home/stefano/Data"
 # dataset_name = "dtu"
 # scene_name = "dtu_scan83"
 # pc_path = "debug/meshes/dtu/dtu_scan83.ply"
+# config = {}
 
 # # test blender
 # dataset_name = "blender"
 # scene_name = "lego"
 # pc_path = "debug/point_clouds/blender/lego.ply"
+# config = {}
 
-# test blendernerf
-dataset_name = "blendernerf"
-scene_name = "plushy"
-pc_path = "debug/meshes/blendernerf/plushy.ply"
+# # test blendernerf
+# dataset_name = "blendernerf"
+# scene_name = "plushy"
+# pc_path = "debug/meshes/blendernerf/plushy.ply"
+# config = {
+#     "load_mask": 1,
+#     "scene_scale_mult": 0.4,
+#     "rotate_scene_x_axis_deg": -90,
+#     "sphere_radius": 0.6,
+#     "white_bg": 1,
+#     "test_skip": 10,
+#     "subsample_factor": 1.0
+# }
 
-# # test all
-# dataset_names = ["dtu", "blender", "blendernerf"]
-# scene_names = ["dtu_scan83", "lego"]
-# pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply", "debug/meshes/blendernerf/plushy.ply"]
-
-# for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
+# test dmsr
+dataset_name = "dmsr"
+scene_name = "dinning"
+pc_path = "/home/stefano/Data/dmsr/dinning/dinning.ply"
+config = {}
 
 # dataset loading
 mv_data = MVDataset(
@@ -75,7 +85,8 @@ mv_data = MVDataset(
     scene_name,
     datasets_path,
     point_clouds_paths=[pc_path],
-    splits=["train", "test"]
+    splits=["train", "test"],
+    config=config,
 )
 
 # Visualize cameras

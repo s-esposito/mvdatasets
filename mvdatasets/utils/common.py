@@ -5,7 +5,8 @@ def is_dataset_supported(dataset_name):
     datasets_supported = [
                             "dtu",
                             "blender",
-                            "blendernerf"
+                            "blendernerf",
+                            "dmsr"
                         ]
     dataset_name = dataset_name.lower()
     if dataset_name in datasets_supported:
