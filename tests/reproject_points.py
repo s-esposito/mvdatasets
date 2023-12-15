@@ -61,7 +61,8 @@ mv_data = MVDataset(
     scene_name,
     datasets_path,
     point_clouds_paths=[pc_path],
-    splits=["train", "test"]
+    splits=["train", "test"],
+    verbose=True
 )
 
 # random camera index

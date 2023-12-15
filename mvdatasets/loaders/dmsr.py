@@ -86,7 +86,6 @@ def load_dmsr(
     # rotate
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # rotation = rotation @ rot_y_3d(deg2rad(180))
     # scale
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
@@ -95,10 +94,6 @@ def load_dmsr(
     # local transform
     local_transform = np.eye(4)
     rotation = rot_x_3d(deg2rad(180))
-    # rotation = rotation @ rot_z_3d(deg2rad(180))
-    # rotation = rot_z_3d(deg2rad(90))
-    # rotation = rotation @ np.array([-1, 0, 0], [0, 1, 0], [0, 0, -1]])
-    # rotation = np.array([[0, -1, 0], [-1, 0, 0], [0, 0, -1]])
     local_transform[:3, :3] = rotation
     
     # cameras objects
@@ -120,9 +115,6 @@ def load_dmsr(
             camera_pose = frame["transform_matrix"]
             frames_list.append((img_path, camera_pose))
         frames_list.sort(key=lambda x: int(x[0].split('.')[0].split('_')[-1]))
-
-        for frame in frames_list:
-            print(frame[0])
         
         if split == 'test':
             # skip every test_skip images

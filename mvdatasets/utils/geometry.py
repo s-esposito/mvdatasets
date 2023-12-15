@@ -129,8 +129,6 @@ def augment_vectors(vectors):
             ], axis=-1)
     else:
         raise ValueError("vectors must be torch.tensor or np.ndarray")
-    
-    return None
 
 
 def perspective_projection(intrinsics, points_3d):

@@ -87,6 +87,7 @@ mv_data = MVDataset(
     point_clouds_paths=[pc_path],
     splits=["train", "test"],
     config=config,
+    verbose=True
 )
 
 # Visualize cameras
