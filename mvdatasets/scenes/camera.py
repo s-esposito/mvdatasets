@@ -57,6 +57,8 @@ class Camera:
             assert rgbs.ndim == 4 and rgbs.shape[-1] == 3
         if masks is not None:
             assert masks.ndim == 4 and masks.shape[-1] == 1
+        if depths is not None:
+            assert depths.ndim == 4 and depths.shape[-1] == 1
         
         self.camera_idx = camera_idx
         self.intrinsics = intrinsics

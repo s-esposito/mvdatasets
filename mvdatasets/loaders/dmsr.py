@@ -61,7 +61,7 @@ def load_dmsr(
     if "scene_scale_mult" not in config:
         if verbose:
             print("WARNING: scene_scale_mult not in config, setting to 0.25")
-        config["scene_scale_mult"] = 0.5
+        config["scene_scale_mult"] = 1.0
     
     # TODO: implement subsample_factor
     # if "subsample_factor" not in config:
@@ -70,7 +70,7 @@ def load_dmsr(
     if "test_skip" not in config:
         if verbose:
             print("WARNING: test_skip not in config, setting to 20")
-        config["test_skip"] = 10
+        config["test_skip"] = 1
         
     if verbose:
         print("load_blender config:")
@@ -138,6 +138,10 @@ def load_dmsr(
             # if subsample_factor != 1:
             #   subsample image
             
+            # im_name = im_name.replace('r', 'd')
+            # depth_pil = Image.open(os.path.join(scene_path, f"{split}", "depth", im_name))
+            # depth_np = image2numpy(depth_pil)[..., None]
+            
             # override H, W
             if height is None or width is None:
                 height, width = img_np.shape[:2]
@@ -147,6 +151,7 @@ def load_dmsr(
             
             # get images
             cam_imgs = img_np[None, ...]
+            # depth_imgs = depth_np[None, ...]
         
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
@@ -162,6 +167,7 @@ def load_dmsr(
                 global_transform=global_transform,
                 local_transform=local_transform,
                 rgbs=cam_imgs,
+                # depths=depth_imgs,
                 masks=None,  # dataset has no masks
                 camera_idx=idx,
             )
