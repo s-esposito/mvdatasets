@@ -35,7 +35,8 @@ class Camera:
         rgbs=None, masks=None, normals=None, depths=None,
         instance_masks=None, semantic_masks=None,
         global_transform=None, local_transform=None,
-        camera_idx=0
+        camera_idx=0,
+        width=None, height=None
     ):
         """Create a camera object, all parameters are np.ndarrays.
 
@@ -48,6 +49,9 @@ class Camera:
             semantic_masks (np.array, int): (T, H, W, 1) with values in [0, n_classes]
             intrinsics (np.array): (3, 3)
             pose (np.array): (4, 4)
+            camera_idx (int): camera index
+            width (int): image width, mandatory when camera has no images
+            height (int): image height, mandatory when camera has no images
         """
 
         # assert shapes are correct
@@ -94,6 +98,10 @@ class Camera:
             
         # frames dims
         self.height, self.width = self.get_screen_space_dims()
+        if self.height == 0 and self.width == 0:
+            assert height is not None and width is not None, "camera has no images, please provide height and width"
+            self.height = height
+            self.width = width
 
         # transforms
         if global_transform is not None:
