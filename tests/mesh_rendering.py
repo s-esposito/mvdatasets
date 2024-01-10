@@ -72,9 +72,13 @@ for split in splits:
     for camera in mv_data[split]:
         imgs = render_mesh(camera, triangle_mesh)
         depth = imgs["depth"]
-        save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
-        save_nr = format(camera.camera_idx, "04d")
-        np.save(os.path.join(save_path, f"d_{save_nr}"), depth)
+        plt.imshow(depth)
+        plt.show()
+        break
+    break
+        # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
+        # save_nr = format(camera.camera_idx, "04d")
+        # np.save(os.path.join(save_path, f"d_{save_nr}"), depth)
         # depth_pil = numpy2image(depth)
         # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
         # save_nr = format(camera.camera_idx, "04d")

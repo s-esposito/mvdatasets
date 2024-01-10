@@ -64,13 +64,13 @@ class MVDataset:
         print(f"scene: {scene_name}")
         print(f"loading {splits} splits")
         
-        global_transform = np.eye(4)
+        self.global_transform = np.eye(4)
         
         # STATIC SCENE DATASETS -----------------------------------------------
         
         # load dtu
         if self.dataset_name == "dtu":
-            cameras_splits, _ = load_dtu(
+            cameras_splits, self.global_transform = load_dtu(
                 data_path,
                 splits,
                 config,
@@ -79,7 +79,7 @@ class MVDataset:
 
         # load blender
         elif self.dataset_name == "blender":
-            cameras_splits, global_transform = load_blender(
+            cameras_splits, self.global_transform = load_blender(
                 data_path,
                 splits,
                 config,
@@ -88,7 +88,7 @@ class MVDataset:
         
         # load blendernerf
         elif self.dataset_name == "blendernerf":
-            cameras_splits, global_transform = load_blender(
+            cameras_splits, self.global_transform = load_blender(
                 data_path,
                 splits,
                 config,
@@ -97,7 +97,7 @@ class MVDataset:
             
         # load dmsr
         elif self.dataset_name == "dmsr":
-            cameras_splits, global_transform = load_dmsr(
+            cameras_splits, self.global_transform = load_dmsr(
                 data_path,
                 splits,
                 config,
@@ -136,7 +136,7 @@ class MVDataset:
             transformed_point_clouds = []
             for point_cloud in point_clouds:
                 transformed_point_clouds.append(
-                    linear_transformation_3d(point_cloud, global_transform)
+                    linear_transformation_3d(point_cloud, self.global_transform)
                 )
             self.point_clouds = transformed_point_clouds
             print(f"loaded {len(self.point_clouds)} point clouds")

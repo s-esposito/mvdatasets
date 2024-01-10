@@ -75,9 +75,9 @@ datasets_path = "/home/stefano/Data"
 
 # test dmsr
 dataset_name = "dmsr"
-scene_name = "office"
-pc_path = "/home/stefano/Data/dmsr/office/office.ply"
-config = {}
+scene_name = "dinning"
+pc_path = "/home/stefano/Data/dmsr/dinning/dinning.ply"
+config = {"test_skip": 20}
 
 # dataset loading
 mv_data = MVDataset(
@@ -90,33 +90,26 @@ mv_data = MVDataset(
     verbose=True
 )
 
-camera = mv_data["test"][0]
-depth = camera.get_depth()
-
-plt.imshow(depth, cmap="jet")
-plt.colorbar()
-plt.show()
-
-# # Visualize cameras
-# fig = plot_cameras(
-#     mv_data["train"],
-#     points=mv_data.point_clouds[0],
-#     azimuth_deg=20,
-#     elevation_deg=30,
-#     up="y",
-#     figsize=(15, 15),
-#     title="training cameras",
-# )
+# Visualize cameras
+fig = plot_cameras(
+    mv_data["train"],
+    points=mv_data.point_clouds[0],
+    azimuth_deg=20,
+    elevation_deg=30,
+    up="y",
+    figsize=(15, 15),
+    title="training cameras",
+)
 
 # plt.show()
-# plt.savefig(
-#     os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
-#     transparent=True,
-#     bbox_inches="tight",
-#     pad_inches=0,
-#     dpi=300
-# )
-# plt.close()
+plt.savefig(
+    os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
+    transparent=True,
+    bbox_inches="tight",
+    pad_inches=0,
+    dpi=300
+)
+plt.close()
 
 # Visualize cameras
 fig = plot_cameras(
@@ -129,12 +122,12 @@ fig = plot_cameras(
     title="test cameras",
 )
 
-plt.show()
-# plt.savefig(
-#     os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
-#     transparent=True,
-#     bbox_inches="tight",
-#     pad_inches=0,
-#     dpi=300
-# )
-# plt.close()
+# plt.show()
+plt.savefig(
+    os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
+    transparent=True,
+    bbox_inches="tight",
+    pad_inches=0,
+    dpi=300
+)
+plt.close()

@@ -60,7 +60,7 @@ def load_dmsr(
         
     if "scene_scale_mult" not in config:
         if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 0.25")
+            print("WARNING: scene_scale_mult not in config, setting to 1")
         config["scene_scale_mult"] = 1.0
     
     # TODO: implement subsample_factor
@@ -69,7 +69,7 @@ def load_dmsr(
         
     if "test_skip" not in config:
         if verbose:
-            print("WARNING: test_skip not in config, setting to 20")
+            print("WARNING: test_skip not in config, setting to 1")
         config["test_skip"] = 1
         
     if verbose:

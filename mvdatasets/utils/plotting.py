@@ -42,7 +42,7 @@ def plot_cameras(
     camera_centers = poses[:, :3, 3]
     camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
     scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
-    scale = scene_radius * 0.2
+    scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=figsize)
     
@@ -200,7 +200,7 @@ def plot_camera_rays(
         
     if "mask" not in vals:
         # set to ones
-        mask = np.ones((camera.height, camera.width, 1))
+        mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1)
     else:
         mask = vals["mask"]
     
@@ -218,7 +218,7 @@ def plot_camera_rays(
     # scene scale
     camera_distance_from_origin = np.linalg.norm(camera_center)
     scene_radius = max(camera_distance_from_origin * 0.75, 1.0)
-    scale = scene_radius * 0.2
+    scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection="3d")
@@ -238,52 +238,6 @@ def plot_camera_rays(
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
             ax.plot3D(*zip(s, e), color="black")
-    
-    # Draw image plane
-    
-    # image plane distance
-    image_plane_z = scale
-
-    # get image plane corner points in 3D
-    # from screen coordinates
-    eps = 1e-6
-    corner_points_2d_screen = np.array(
-                                    [
-                                        [0, 0],
-                                        [camera.height-eps, 0],
-                                        [0, camera.width-eps],
-                                        [camera.height-eps, camera.width-eps]
-                                    ]
-                                )
-    
-    _, corner_points_d = get_camera_rays_per_points_2d(
-        torch.from_numpy(pose).float(),
-        torch.from_numpy(camera.get_intrinsics_inv()).float(),
-        torch.from_numpy(corner_points_2d_screen).float()
-    )
-    corner_points_d = corner_points_d.cpu().numpy()
-
-    corner_points_3d_world = camera_center + corner_points_d * image_plane_z
-    
-    for i, j in combinations(range(4), 2):
-        if up == "z":
-            ax.plot3D(
-                        *zip(
-                            corner_points_3d_world[i],
-                            corner_points_3d_world[j]),
-                        color="black",
-                        linewidth=1.0,
-                        alpha=0.5
-                    )
-        else:
-            ax.plot3D(
-                        *zip(
-                            corner_points_3d_world[:, [0, 2, 1]][i],
-                            corner_points_3d_world[:, [0, 2, 1]][j]),
-                        color="black",
-                        linewidth=1.0,
-                        alpha=0.5
-                    )
             
     # Draw camera frame
     if up == "z":
@@ -375,6 +329,52 @@ def plot_camera_rays(
                 alpha=min(0.1, 0.25 * float(alpha)),
             )
 
+    # Draw image plane
+    
+    # image plane distance
+    image_plane_z = scale
+
+    # get image plane corner points in 3D
+    # from screen coordinates
+    eps = 1e-6
+    corner_points_2d_screen = np.array(
+                                    [
+                                        [0, 0],
+                                        [camera.height-eps, 0],
+                                        [0, camera.width-eps],
+                                        [camera.height-eps, camera.width-eps]
+                                    ]
+                                )
+    
+    _, corner_points_d = get_camera_rays_per_points_2d(
+        torch.from_numpy(pose).float(),
+        torch.from_numpy(camera.get_intrinsics_inv()).float(),
+        torch.from_numpy(corner_points_2d_screen).float()
+    )
+    corner_points_d = corner_points_d.cpu().numpy()
+
+    corner_points_3d_world = camera_center + corner_points_d * image_plane_z
+    
+    for i, j in combinations(range(4), 2):
+        if up == "z":
+            ax.plot3D(
+                        *zip(
+                            corner_points_3d_world[i],
+                            corner_points_3d_world[j]),
+                        color="black",
+                        linewidth=1.0,
+                        alpha=0.5
+                    )
+        else:
+            ax.plot3D(
+                        *zip(
+                            corner_points_3d_world[:, [0, 2, 1]][i],
+                            corner_points_3d_world[:, [0, 2, 1]][j]),
+                        color="black",
+                        linewidth=1.0,
+                        alpha=0.5
+                    )
+    
     lim = scene_radius
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
@@ -434,7 +434,7 @@ def plot_current_batch(
     # this has to be computer over all cameras, not just those selected in the batch
     max_camera_distance_from_origin = np.max(np.linalg.norm(camera_centers, axis=1))
     scene_radius = max(max_camera_distance_from_origin * 0.75, 1.0)
-    scale = scene_radius * 0.2
+    scale = scene_radius * 0.1
 
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)
