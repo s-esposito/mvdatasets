@@ -5,6 +5,7 @@ import numpy as np
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
 from mvdatasets.loaders.dmsr import load_dmsr
+from mvdatasets.loaders.llff import load_llff
 # from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
@@ -78,16 +79,13 @@ class MVDataset:
             )
 
         # load blender
-        elif self.dataset_name == "blender":
-            cameras_splits, self.global_transform = load_blender(
-                data_path,
-                splits,
-                config,
-                verbose=verbose
-            )
-        
         # load blendernerf
-        elif self.dataset_name == "blendernerf":
+        # load refnerf
+        elif (
+                self.dataset_name == "blender"
+                or self.dataset_name == "blendernerf"
+                or self.dataset_name == "refnerf"
+            ):
             cameras_splits, self.global_transform = load_blender(
                 data_path,
                 splits,
@@ -103,21 +101,23 @@ class MVDataset:
                 config,
                 verbose=verbose
             )
-            
-        # load refnerf
-        elif self.dataset_name == "refnerf":
-            cameras_splits, self.global_transform = load_blender(
-                data_path,
-                splits,
-                config,
-                verbose=verbose
-            )
         
         # TODO: load multiface
         
         # TODO: load bmvs
         
-        # TODO: load llff
+        # load llff
+        # load mipnerf360
+        elif (
+            self.dataset_name == "llff"
+            or self.dataset_name == "mipnerf360"
+        ):
+            cameras_splits, self.global_transform = load_llff(
+                data_path,
+                splits,
+                config,
+                verbose=verbose
+            )
         
         # TODO: load tanks_and_temples
         

@@ -7,7 +7,9 @@ def is_dataset_supported(dataset_name):
                             "blender",
                             "blendernerf",
                             "dmsr",
-                            "refnerf"
+                            "refnerf",
+                            "llff",
+                            "mipnerf360"
                         ]
     dataset_name = dataset_name.lower()
     if dataset_name in datasets_supported:
@@ -56,6 +58,18 @@ def get_dataset_test_preset(dataset_name):
     # test refnerf
     if dataset_name == "refnerf":
         scene_name = "car"
+        pc_paths = []
+        config = {}
+        
+    # test llff
+    if dataset_name == "llff":
+        scene_name = "fern"
+        pc_paths = []
+        config = {}
+    
+    # test mipnerf360
+    if dataset_name == "mipnerf360":
+        scene_name = "bicycle"
         pc_paths = []
         config = {}
     
