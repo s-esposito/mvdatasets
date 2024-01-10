@@ -12,94 +12,82 @@ from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import get_camera_rays
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
+from mvdatasets.utils.common import get_dataset_test_preset
 
-# Set a random seed for reproducibility
-seed = 42
-torch.manual_seed(seed)
+if __name__ == "__main__":
 
-# # Check if CUDA (GPU support) is available
-if torch.cuda.is_available():
-    device = "cuda"
-    torch.cuda.manual_seed(seed)  # Set a random seed for GPU
-else:
-    device = "cuda"
-torch.set_default_device(device)
+    # Set a random seed for reproducibility
+    seed = 42
+    torch.manual_seed(seed)
 
-# Set default tensor type
-torch.set_default_dtype(torch.float32)
+    # # Check if CUDA (GPU support) is available
+    if torch.cuda.is_available():
+        device = "cuda"
+        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
+    else:
+        device = "cuda"
+    torch.set_default_device(device)
 
-# Set profiler
-profiler = Profiler()  # nb: might slow down the code
+    # Set default tensor type
+    torch.set_default_dtype(torch.float32)
 
-# Set datasets path
-datasets_path = "/home/stefano/Data"
+    # Set profiler
+    profiler = Profiler()  # nb: might slow down the code
 
-# # test DTU
-# dataset_name = "dtu"
-# scene_name = "dtu_scan83"
-# pc_path = "debug/meshes/dtu/dtu_scan83.ply"
+    # Set datasets path
+    datasets_path = "/home/stefano/Data"
 
-# # test blender
-# dataset_name = "blender"
-# scene_name = "lego"
-# pc_path = "debug/point_clouds/blender/lego.ply"
+    # Get dataset test preset
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1]
+    else:
+        dataset_name = "dtu"
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
-# test blendernerf
-dataset_name = "blendernerf"
-scene_name = "plushy"
-pc_path = "debug/meshes/blendernerf/plushy.ply"
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        point_clouds_paths=pc_paths,
+        splits=["train", "test"]
+    )
 
-# # test all
-# dataset_names = ["dtu", "blender", "blendernerf"]
-# scene_names = ["dtu_scan83", "lego"]
-# pc_paths = ["debug/meshes/dtu/dtu_scan83.ply", "debug/point_clouds/blender/lego.ply", "debug/meshes/blendernerf/plushy.ply"]
+    # random camera index
+    rand_idx = 0 # torch.randint(0, len(mv_data["test"]), (1,)).item()
+    camera = deepcopy(mv_data["test"][rand_idx])
+    print(camera)
 
-# for dataset_name, scene_name, pc_path in zip(dataset_names, scene_names, pc_paths):
+    # resize camera's rgb modality
+    camera.resize(max_dim=100)
 
-# dataset loading
-mv_data = MVDataset(
-    dataset_name,
-    scene_name,
-    datasets_path,
-    point_clouds_paths=[pc_path],
-    splits=["train", "test"]
-)
+    # gen rays
+    rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=True)
+    fig = plot_points_2d_on_image(
+        camera,
+        points_2d[:, [1, 0]],
+        show_ticks=True,
+        figsize=(15, 15)
+    )
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_screen_space_sampling_jittered.png"),
+        transparent=True,
+        dpi=300
+    )
+    plt.close()
 
-# random camera index
-rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
-camera = deepcopy(mv_data["test"][rand_idx])
-print(camera)
+    # gen rays
+    rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=False)
 
-# resize camera's rgb modality
-camera.resize(max_dim=100)
-
-# gen rays
-rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=True)
-fig = plot_points_2d_on_image(
-    camera,
-    points_2d[:, [1, 0]],
-    show_ticks=True,
-    figsize=(15, 15)
-)
-plt.savefig(
-    os.path.join("imgs", f"{dataset_name}_screen_space_sampling_jittered.png"),
-    transparent=True,
-    dpi=300
-)
-plt.close()
-
-# gen rays
-rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=False)
-
-fig = plot_points_2d_on_image(
-    camera,
-    points_2d[:, [1, 0]],
-    show_ticks=True,
-    figsize=(15, 15)
-)
-plt.savefig(
-    os.path.join("imgs", f"{dataset_name}_screen_space_sampling.png"),
-    transparent=True,
-    dpi=300
-)
-plt.close()
+    fig = plot_points_2d_on_image(
+        camera,
+        points_2d[:, [1, 0]],
+        show_ticks=True,
+        figsize=(15, 15)
+    )
+    plt.savefig(
+        os.path.join("imgs", f"{dataset_name}_screen_space_sampling.png"),
+        transparent=True,
+        dpi=300
+    )
+    plt.close()

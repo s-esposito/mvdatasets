@@ -1,7 +1,6 @@
 .vscode
 *.pyo
 *.pyc
-debug
 plots
 build
 deps
@@ -11,3 +10,4 @@ src
 mvdatasets.egg-info
 dist
 cpp
+debug/particles

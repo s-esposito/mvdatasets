@@ -11,90 +11,69 @@ from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.rendering import render_mesh
 from mvdatasets.utils.images import numpy2image
+from mvdatasets.utils.common import get_dataset_test_preset
 
-# Set profiler
-profiler = Profiler()  # nb: might slow down the code
+if __name__ == "__main__":
 
-# Set datasets path
-datasets_path = "/home/stefano/Data"
+    # Set profiler
+    profiler = Profiler()  # nb: might slow down the code
 
-# # test DTU
-# dataset_name = "dtu"
-# scene_name = "dtu_scan83"
-# pc_path = "debug/meshes/dtu/dtu_scan83.ply"
-# config = {}
+    # Set datasets path
+    datasets_path = "/home/stefano/Data"
 
-# # test blender
-# dataset_name = "blender"
-# scene_name = "lego"
-# pc_path = "debug/point_clouds/blender/lego.ply"
-# config = {}
+    # Get dataset test preset
+    # if len(sys.argv) > 1:
+    #     dataset_name = sys.argv[1]
+    # else:
+    dataset_name = "dmsr"
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
-# # test blendernerf
-# dataset_name = "blendernerf"
-# scene_name = "plushy"
-# pc_path = "debug/meshes/blendernerf/plushy.ply"
-# config = {
-#     "load_mask": 1,
-#     "scene_scale_mult": 0.4,
-#     "rotate_scene_x_axis_deg": -90,
-#     "sphere_radius": 0.6,
-#     "white_bg": 1,
-#     "test_skip": 10,
-#     "subsample_factor": 1.0
-# }
+    # load gt mesh if exists
+    mesh_file_path = "/home/stefano/Data/dmsr/dinning/dinning.ply"
 
-# test dmsr
-dataset_name = "dmsr"
-scene_name = "dinning"
-config = {}
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        splits=["train", "test"],
+    )
 
-# load gt mesh if exists
-mesh_file_path = "/home/stefano/Data/dmsr/dinning/dinning.ply"
+    # load mesh
 
-# dataset loading
-mv_data = MVDataset(
-    dataset_name,
-    scene_name,
-    datasets_path,
-    splits=["train", "test"],
-)
+    triangle_mesh = o3d.io.read_triangle_mesh(mesh_file_path)
+    triangle_mesh.compute_vertex_normals()
 
-# load mesh
+    # render mesh
 
-triangle_mesh = o3d.io.read_triangle_mesh(mesh_file_path)
-triangle_mesh.compute_vertex_normals()
-
-# render mesh
-
-splits = ["test", "train"]
-for split in splits:
-    for camera in mv_data[split]:
-        imgs = render_mesh(camera, triangle_mesh)
-        depth = imgs["depth"]
-        plt.imshow(depth)
-        plt.show()
+    splits = ["test", "train"]
+    for split in splits:
+        for camera in mv_data[split]:
+            imgs = render_mesh(camera, triangle_mesh)
+            depth = imgs["depth"]
+            plt.imshow(depth)
+            plt.show()
+            break
         break
-    break
-        # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
-        # save_nr = format(camera.camera_idx, "04d")
-        # np.save(os.path.join(save_path, f"d_{save_nr}"), depth)
-        # depth_pil = numpy2image(depth)
-        # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
-        # save_nr = format(camera.camera_idx, "04d")
-        # depth_pil.save(f"d_{save_nr}.png")
-        
-        # plt.imshow(imgs["depth"])
-        # plt.colorbar()
-        # plt.show()
-        
-# camera = mv_data["test"][0]
+            # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
+            # save_nr = format(camera.camera_idx, "04d")
+            # np.save(os.path.join(save_path, f"d_{save_nr}"), depth)
+            # depth_pil = numpy2image(depth)
+            # save_path = os.path.join(datasets_path, dataset_name, scene_name, split, "depth")
+            # save_nr = format(camera.camera_idx, "04d")
+            # depth_pil.save(f"d_{save_nr}.png")
+            
+            # plt.imshow(imgs["depth"])
+            # plt.colorbar()
+            # plt.show()
+            
+    # camera = mv_data["test"][0]
 
-# imgs = render_mesh(camera, triangle_mesh)
+    # imgs = render_mesh(camera, triangle_mesh)
 
-# plt.imshow(imgs["depth"])
-# plt.colorbar()
+    # plt.imshow(imgs["depth"])
+    # plt.colorbar()
 
-# #  plt.show()
-# plt.savefig(os.path.join("imgs", f"{dataset_name}_mesh_depth.png"), transparent=True, dpi=300)
-# plt.close()
+    # #  plt.show()
+    # plt.savefig(os.path.join("imgs", f"{dataset_name}_mesh_depth.png"), transparent=True, dpi=300)
+    # plt.close()

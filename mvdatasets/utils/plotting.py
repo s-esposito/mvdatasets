@@ -34,14 +34,16 @@ def plot_cameras(
 
     # Get all camera poses
     poses = []
+    camera_idxs = []
     for camera in cameras:
         poses.append(camera.get_pose())
-    poses = np.stack(poses, 0)
+        camera_idxs.append(camera.camera_idx)
 
     # Get all camera centers
-    camera_centers = poses[:, :3, 3]
+    camera_centers = np.stack(poses, 0)[:, :3, 3]
     camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
     scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
+    # scene_radius = np.max(camera_distances_from_origin)
     scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=figsize)
@@ -50,7 +52,7 @@ def plot_cameras(
     if title is not None:
         ax.set_title(title)
 
-    # Cartesian axes
+    # cartesian axes
     ax.quiver(0, 0, 0, 1, 0, 0, length=scale, color="r")
     if up == "z":
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="g")  # matplotlib y
@@ -67,78 +69,61 @@ def plot_cameras(
         else:  # up = "y"
             ax.scatter(points[:, 0], points[:, 2], points[:, 1], s=0.1)
 
-    # Draw bounding cube
+    # draw bounding cube
     r = [-1, 1]
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
             ax.plot3D(*zip(s, e), color="black")
 
-    for i, pose in enumerate(poses):
-        if up == "z":
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 0],
-                pose[1, 0],
-                pose[2, 0],
-                length=scale,
-                color="r",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 1],
-                pose[1, 1],
-                pose[2, 1],
-                length=scale,
-                color="g",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 2],
-                pose[1, 2],
-                pose[2, 2],
-                length=scale,
-                color="b",
-            )
-            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(cameras[i].camera_idx))
-        else:  
-            # up = "y"
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 0],
-                pose[2, 0],
-                pose[1, 0],
-                length=scale,
-                color="r",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 1],
-                pose[2, 1],
-                pose[1, 1],
-                length=scale,
-                color="g",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 2],
-                pose[2, 2],
-                pose[1, 2],
-                length=scale,
-                color="b",
-            )
-            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(cameras[i].camera_idx))
+    for pose, camera_idx in zip(poses, camera_idxs):
+        
+        # get axis directions (normalized)
+        x_dir = pose[:3, 0]
+        x_dir /= np.linalg.norm(x_dir)
+        y_dir = pose[:3, 1]
+        y_dir /= np.linalg.norm(y_dir)
+        z_dir = pose[:3, 2]
+        z_dir /= np.linalg.norm(z_dir)
+        # frame center
+        pos = pose[:3, 3]
+        
+        # draw camera frame
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            x_dir[0],
+            x_dir[1] if up == "z" else x_dir[2],
+            x_dir[2] if up == "z" else x_dir[1],
+            length=scale,
+            color="r",
+        )
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            y_dir[0],
+            y_dir[1] if up == "z" else y_dir[2],
+            y_dir[2] if up == "z" else y_dir[1],
+            length=scale,
+            color="g",
+        )
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            z_dir[0],
+            z_dir[1] if up == "z" else z_dir[2],
+            z_dir[2] if up == "z" else z_dir[1],
+            length=scale,
+            color="b",
+        )
+        ax.text(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            str(camera_idx)
+        )
 
     lim = scene_radius
     ax.set_xlim([-lim, lim])
@@ -146,12 +131,8 @@ def plot_cameras(
     ax.set_zlim([-1, lim])
 
     ax.set_xlabel("X")
-    if up == "z":
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-    else:
-        ax.set_ylabel("Z")
-        ax.set_zlabel("Y")
+    ax.set_ylabel("Y") if up == "z" else ax.set_ylabel("Z")
+    ax.set_zlabel("Z") if up == "z" else ax.set_zlabel("Y")
 
     # axis equal
     ax.set_aspect("equal")
@@ -218,12 +199,13 @@ def plot_camera_rays(
     # scene scale
     camera_distance_from_origin = np.linalg.norm(camera_center)
     scene_radius = max(camera_distance_from_origin * 0.75, 1.0)
+    # scene_radius = camera_distance_from_origin
     scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection="3d")
 
-    # Cartesian axes
+    # cartesian axes
     ax.quiver(0, 0, 0, 1, 0, 0, length=scale, color="r")
     if up == "z":
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="g")  # matplotlib y
@@ -233,77 +215,59 @@ def plot_camera_rays(
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="b")  # matplotlib z
     ax.text(0, 0, 0, "w")
 
-    # Draw bounding cube
+    # draw bounding cube
     r = [-1, 1]
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
             ax.plot3D(*zip(s, e), color="black")
-            
-    # Draw camera frame
-    if up == "z":
-        ax.quiver(
-            pose[0, 3],
-            pose[1, 3],
-            pose[2, 3],
-            pose[0, 0],
-            pose[1, 0],
-            pose[2, 0],
-            length=scale,
-            color="r",
-        )
-        ax.quiver(
-            pose[0, 3],
-            pose[1, 3],
-            pose[2, 3],
-            pose[0, 1],
-            pose[1, 1],
-            pose[2, 1],
-            length=scale,
-            color="g",
-        )
-        ax.quiver(
-            pose[0, 3],
-            pose[1, 3],
-            pose[2, 3],
-            pose[0, 2],
-            pose[1, 2],
-            pose[2, 2],
-            length=scale,
-            color="b",
-        )
-        ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(camera.camera_idx))
-    else:  # up = "y"
-        ax.quiver(
-            pose[0, 3],  # x
-            pose[2, 3],  # z
-            pose[1, 3],  # y
-            pose[0, 0],  # dx
-            pose[2, 0],  # dz
-            pose[1, 0],  # dy
-            length=scale,
-            color="r",
-        )
-        ax.quiver(
-            pose[0, 3],
-            pose[2, 3],
-            pose[1, 3],
-            pose[0, 1],
-            pose[2, 1],
-            pose[1, 1],
-            length=scale,
-            color="g",
-        )
-        ax.quiver(
-            pose[0, 3],
-            pose[2, 3],
-            pose[1, 3],
-            pose[0, 2],
-            pose[2, 2],
-            pose[1, 2],
-            length=scale,
-            color="b",
-        )
-        ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(camera.camera_idx))
+    
+    # get axis directions (normalized) 
+    x_dir = pose[:3, 0]
+    x_dir /= np.linalg.norm(x_dir)
+    y_dir = pose[:3, 1]
+    y_dir /= np.linalg.norm(y_dir)
+    z_dir = pose[:3, 2]
+    z_dir /= np.linalg.norm(z_dir)
+    # frame center
+    pos = pose[:3, 3]
+    
+    # draw camera frame
+    ax.quiver(
+        pos[0],  # x
+        pos[1] if up == "z" else pos[2],  # y
+        pos[2] if up == "z" else pos[1],  # z
+        x_dir[0],
+        x_dir[1] if up == "z" else x_dir[2],
+        x_dir[2] if up == "z" else x_dir[1],
+        length=scale,
+        color="r",
+    )
+    ax.quiver(
+        pos[0],  # x
+        pos[1] if up == "z" else pos[2],  # y
+        pos[2] if up == "z" else pos[1],  # z
+        y_dir[0],
+        y_dir[1] if up == "z" else y_dir[2],
+        y_dir[2] if up == "z" else y_dir[1],
+        length=scale,
+        color="g",
+    )
+    ax.quiver(
+        pos[0],  # x
+        pos[1] if up == "z" else pos[2],  # y
+        pos[2] if up == "z" else pos[1],  # z
+        z_dir[0],
+        z_dir[1] if up == "z" else z_dir[2],
+        z_dir[2] if up == "z" else z_dir[1],
+        length=scale,
+        color="b",
+    )
+    ax.text(
+        pos[0],  # x
+        pos[1] if up == "z" else pos[2],  # y
+        pos[2] if up == "z" else pos[1],  # z
+        str(camera.camera_idx)
+    )
 
     # draw rays
     ray_lenght = scene_radius * 2
@@ -312,27 +276,18 @@ def plot_camera_rays(
         end_point = ray_o + ray_d * ray_lenght
 
         # plot line segment
-        if up == "z":
-            ax.plot(
-                [start_point[0], end_point[0]],
-                [start_point[1], end_point[1]],
-                [start_point[2], end_point[2]],
-                color=color,
-                alpha=min(0.1, 0.25 * float(alpha)),
-            )
-        else:
-            ax.plot(
-                [start_point[0], end_point[0]],
-                [start_point[2], end_point[2]],
-                [start_point[1], end_point[1]],
-                color=color,
-                alpha=min(0.1, 0.25 * float(alpha)),
-            )
+        ax.plot(
+            [start_point[0], end_point[0]],
+            [start_point[1], end_point[1]] if up == "z" else [start_point[2], end_point[2]],
+            [start_point[2], end_point[2]] if up == "z" else [start_point[1], end_point[1]],
+            color=color,
+            alpha=0.3 * min(0.1, float(alpha)),
+        )
 
-    # Draw image plane
+    # draw image plane
     
     # image plane distance
-    image_plane_z = scale
+    image_plane_z = 1.1 * scale
 
     # get image plane corner points in 3D
     # from screen coordinates
@@ -381,12 +336,8 @@ def plot_camera_rays(
     ax.set_zlim([-1, lim])
 
     ax.set_xlabel("X")
-    if up == "z":
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-    else:
-        ax.set_ylabel("Z")
-        ax.set_zlabel("Y")
+    ax.set_ylabel("Y") if up == "z" else ax.set_ylabel("Z")
+    ax.set_zlabel("Z") if up == "z" else ax.set_zlabel("Y")
 
     # axis equal
     ax.set_aspect("equal")
@@ -422,33 +373,27 @@ def plot_current_batch(
     rgb = rgb.cpu().numpy()
     mask = mask.cpu().numpy()
 
-    # get camera poses in this batch
-    poses = []
-    for camera in cameras:
-        poses.append(camera.get_pose())
-    poses = np.stack(poses, 0)
-
-    # get all camera centers
-    camera_centers = poses[:, :3, 3]
-    
-    # this has to be computer over all cameras, not just those selected in the batch
-    max_camera_distance_from_origin = np.max(np.linalg.norm(camera_centers, axis=1))
-    scene_radius = max(max_camera_distance_from_origin * 0.75, 1.0)
-    scale = scene_radius * 0.1
-
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)
     
-    # get all camera poses
+    # get all unique camera poses
     poses = []
     for idx in unique_cameras_idx:
         poses.append(cameras[idx].get_pose())
-    poses = np.stack(poses, 0)
+    
+    # get all camera centers
+    camera_centers = np.stack(poses, 0)[:, :3, 3]
+    
+    # this has to be computer over all cameras, not just those selected in the batch
+    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
+    scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
+    # scene_radius = np.max(camera_distances_from_origin)
+    scale = scene_radius * 0.1
 
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
 
-    # Cartesian axes
+    # cartesian axes
     ax.quiver(0, 0, 0, 1, 0, 0, length=scale, color="r")
     if up == "z":
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="g")  # matplotlib y
@@ -458,7 +403,7 @@ def plot_current_batch(
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="b")  # matplotlib z
     ax.text(0, 0, 0, "w")
 
-    # Draw bounding cube
+    # draw bounding cube
     r = [-1, 1]
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
@@ -466,96 +411,69 @@ def plot_current_batch(
 
     # get unique poses (not to draw multiple times the same camera frame)
     # poses = np.unique(poses, axis=0)
-    for i, pose in enumerate(poses):
-        idx = unique_cameras_idx[i]
-        if up == "z":
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 0],
-                pose[1, 0],
-                pose[2, 0],
-                length=scale,
-                color="r",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 1],
-                pose[1, 1],
-                pose[2, 1],
-                length=scale,
-                color="g",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[1, 3],
-                pose[2, 3],
-                pose[0, 2],
-                pose[1, 2],
-                pose[2, 2],
-                length=scale,
-                color="b",
-            )
-            ax.text(pose[0, 3], pose[1, 3], pose[2, 3], str(idx))
-        else:  # up = "y"
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 0],
-                pose[2, 0],
-                pose[1, 0],
-                length=scale,
-                color="r",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 1],
-                pose[2, 1],
-                pose[1, 1],
-                length=scale,
-                color="g",
-            )
-            ax.quiver(
-                pose[0, 3],
-                pose[2, 3],
-                pose[1, 3],
-                pose[0, 2],
-                pose[2, 2],
-                pose[1, 2],
-                length=scale,
-                color="b",
-            )
-            ax.text(pose[0, 3], pose[2, 3], pose[1, 3], str(idx))
+    for pose, camera_idx in zip(poses, unique_cameras_idx):
+        # get axis directions (normalized)
+        x_dir = pose[:3, 0]
+        x_dir /= np.linalg.norm(x_dir)
+        y_dir = pose[:3, 1]
+        y_dir /= np.linalg.norm(y_dir)
+        z_dir = pose[:3, 2]
+        z_dir /= np.linalg.norm(z_dir)
+        # frame center
+        pos = pose[:3, 3]
+        
+        # draw camera frame
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            x_dir[0],
+            x_dir[1] if up == "z" else x_dir[2],
+            x_dir[2] if up == "z" else x_dir[1],
+            length=scale,
+            color="r",
+        )
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            y_dir[0],
+            y_dir[1] if up == "z" else y_dir[2],
+            y_dir[2] if up == "z" else y_dir[1],
+            length=scale,
+            color="g",
+        )
+        ax.quiver(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            z_dir[0],
+            z_dir[1] if up == "z" else z_dir[2],
+            z_dir[2] if up == "z" else z_dir[1],
+            length=scale,
+            color="b",
+        )
+        ax.text(
+            pos[0],  # x
+            pos[1] if up == "z" else pos[2],  # y
+            pos[2] if up == "z" else pos[1],  # z
+            str(camera_idx)
+        )
 
-    # Draw rays
+    # draw rays
     ray_lenght = scene_radius * 2
     for ray_o, ray_d, color, alpha in zip(rays_o, rays_d, rgb, mask):
         start_point = ray_o
         end_point = ray_o + ray_d * ray_lenght
 
         # plot line segment
-        if up == "z":
-            ax.plot(
-                [start_point[0], end_point[0]],
-                [start_point[1], end_point[1]],
-                [start_point[2], end_point[2]],
-                color=color,
-                alpha=0.3 * min(0.1, float(alpha)),
-            )
-        else:
-            ax.plot(
-                [start_point[0], end_point[0]],
-                [start_point[2], end_point[2]],
-                [start_point[1], end_point[1]],
-                color=color,
-                alpha=0.3 * max(0.1, float(alpha)),
-            )
+        ax.plot(
+            [start_point[0], end_point[0]],
+            [start_point[1], end_point[1]] if up == "z" else [start_point[2], end_point[2]],
+            [start_point[2], end_point[2]] if up == "z" else [start_point[1], end_point[1]],
+            color=color,
+            alpha=0.3 * min(0.1, float(alpha)),
+        )
 
     lim = scene_radius
     ax.set_xlim([-lim, lim])
@@ -563,12 +481,8 @@ def plot_current_batch(
     ax.set_zlim([-1, lim])
 
     ax.set_xlabel("X")
-    if up == "z":
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-    else:
-        ax.set_ylabel("Z")
-        ax.set_zlabel("Y")
+    ax.set_ylabel("Y") if up == "z" else ax.set_ylabel("Z")
+    ax.set_zlabel("Z") if up == "z" else ax.set_zlabel("Y")
 
     # axis equal
     ax.set_aspect("equal")

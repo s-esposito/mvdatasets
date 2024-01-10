@@ -103,6 +103,15 @@ class MVDataset:
                 config,
                 verbose=verbose
             )
+            
+        # load refnerf
+        elif self.dataset_name == "refnerf":
+            cameras_splits, self.global_transform = load_blender(
+                data_path,
+                splits,
+                config,
+                verbose=verbose
+            )
         
         # TODO: load multiface
         
