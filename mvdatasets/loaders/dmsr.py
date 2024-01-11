@@ -55,12 +55,12 @@ def load_dmsr(
         
     if "rotate_scene_x_axis_deg" not in config:
         if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to -90")
-        config["rotate_scene_x_axis_deg"] = -90
+            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
+        config["rotate_scene_x_axis_deg"] = 0.0
         
     if "scene_scale_mult" not in config:
         if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 1")
+            print("WARNING: scene_scale_mult not in config, setting to 1.0")
         config["scene_scale_mult"] = 1.0
     
     # TODO: implement subsample_factor

@@ -65,26 +65,26 @@ if __name__ == "__main__":
     else:
         point_cloud = np.array([[0, 0, 0]])
 
-    # Visualize cameras
-    fig = plot_cameras(
-        mv_data["train"],
-        points=point_cloud,
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="y",
-        figsize=(15, 15),
-        title="training cameras",
-    )
+    # # Visualize cameras
+    # fig = plot_cameras(
+    #     mv_data["train"],
+    #     points=point_cloud,
+    #     azimuth_deg=20,
+    #     elevation_deg=30,
+    #     up="y",
+    #     figsize=(15, 15),
+    #     title="training cameras",
+    # )
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    # # plt.show()
+    # plt.savefig(
+    #     os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
+    #     transparent=True,
+    #     bbox_inches="tight",
+    #     pad_inches=0,
+    #     dpi=300
+    # )
+    # plt.close()
 
     # Visualize cameras
     fig = plot_cameras(
@@ -97,12 +97,12 @@ if __name__ == "__main__":
         title="test cameras",
     )
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    plt.show()
+    # plt.savefig(
+    #     os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
+    #     transparent=True,
+    #     bbox_inches="tight",
+    #     pad_inches=0,
+    #     dpi=300
+    # )
+    # plt.close()

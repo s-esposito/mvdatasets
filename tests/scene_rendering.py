@@ -67,9 +67,13 @@ if __name__ == "__main__":
             imgs = render_scene(camera, o3d_scene)
             geom_ids = imgs["geom_ids"]
             depth = imgs["depth"]
+            print("min depth", np.min(depth))
+            print("max depth", np.max(depth))
             # print(geom_ids.shape)
             # print(np.unique(geom_ids))
-            plt.imshow(geom_ids, vmax=nr_objects)
+            # plt.imshow(geom_ids, vmax=nr_objects)
+            plt.imshow(depth, cmap="jet")
+            plt.colorbar()
             plt.show()
             break
             # save_nr = format(camera.camera_idx, "04d")

@@ -52,8 +52,8 @@ def get_dataset_test_preset(dataset_name):
     # test dmsr
     if dataset_name == "dmsr":
         scene_name = "dinning"
-        pc_paths = ["/home/stefano/Data/dmsr/dinning/dinning.ply"]
-        config = {"test_skip": 20}
+        pc_paths = ["debug/meshes/dmsr/dinning.ply"]
+        config = {}
 
     # test refnerf
     if dataset_name == "refnerf":
@@ -64,13 +64,13 @@ def get_dataset_test_preset(dataset_name):
     # test llff
     if dataset_name == "llff":
         scene_name = "fern"
-        pc_paths = []
-        config = {}
+        pc_paths = ["debug/point_clouds/llff/fern.ply"]
+        config = {"subsample_factor": 1.0}
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
         scene_name = "bicycle"
-        pc_paths = []
-        config = {}
+        pc_paths = ["debug/point_clouds/mipnerf360/bicycle.ply"]
+        config = {"subsample_factor": 4.0}
     
     return scene_name, pc_paths, config

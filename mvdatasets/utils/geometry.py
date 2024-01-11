@@ -190,6 +190,23 @@ def project_points_3d_to_2d(camera, points_3d):
 
     return points_2d_s
 
+
+def camera_to_points_3d_distance(camera, points_3d):
+    
+    # get camera data
+    c2w = camera.get_pose()
+    
+    # get world to camera transformation
+    w2c = np.linalg.inv(c2w)
+
+    # transform points in world space to camera space
+    points_3d_c = linear_transformation_3d(points_3d, w2c)
+    
+    points_3d_norm = np.linalg.norm(points_3d_c, axis=-1)
+    
+    return points_3d_norm
+    
+
 ############################################
 # from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L523
 

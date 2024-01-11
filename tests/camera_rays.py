@@ -50,10 +50,16 @@ if __name__ == "__main__":
         dataset_name,
         scene_name,
         datasets_path,
+        point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
         verbose=True
     )
+
+    if len(mv_data.point_clouds) > 0:
+        point_cloud = mv_data.point_clouds[0]
+    else:
+        point_cloud = np.array([[0, 0, 0]])
 
     # random camera index
     rand_idx = 1  # torch.randint(0, len(mv_data["test"]), (1,)).item()
@@ -74,6 +80,7 @@ if __name__ == "__main__":
     fig = plot_camera_rays(
         camera,
         nr_rays=512,
+        points=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
         up="y",

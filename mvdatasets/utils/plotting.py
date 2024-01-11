@@ -142,7 +142,7 @@ def plot_cameras(
 
 
 def plot_camera_rays(
-    camera, nr_rays, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15)
+    camera, nr_rays, points=None, azimuth_deg=60, elevation_deg=30, up="z", figsize=(15, 15)
 ):
     """
     out:
@@ -214,6 +214,13 @@ def plot_camera_rays(
         ax.quiver(0, 0, 0, 0, 0, 1, length=scale, color="g")  # matplotlib y
         ax.quiver(0, 0, 0, 0, 1, 0, length=scale, color="b")  # matplotlib z
     ax.text(0, 0, 0, "w")
+    
+    # draw points
+    if points is not None:
+        if up == "z":
+            ax.scatter(points[:, 0], points[:, 1], points[:, 2], s=0.1)
+        else:  # up = "y"
+            ax.scatter(points[:, 0], points[:, 2], points[:, 1], s=0.1)
 
     # draw bounding cube
     r = [-1, 1]
@@ -492,7 +499,7 @@ def plot_current_batch(
 
 
 def plot_points_2d_on_image(
-    camera, points_2d, frame_idx=0, show_ticks=False, figsize=(15, 15)
+    camera, points_2d, points_norms=None, frame_idx=0, show_ticks=False, figsize=(15, 15)
 ):
     """
 
@@ -518,14 +525,32 @@ def plot_points_2d_on_image(
     plt.imshow(rgb, alpha=0.8, resample=True)
     
     # filter out points outside image range
-    points_2d = points_2d[points_2d[:, 0] >= 0]
-    points_2d = points_2d[points_2d[:, 1] >= 0]
-    points_2d = points_2d[points_2d[:, 0] < camera.width]
-    points_2d = points_2d[points_2d[:, 1] < camera.height]
+    points_mask = points_2d[:, 0] >= 0
+    points_mask *= points_2d[:, 1] >= 0
+    points_mask *= points_2d[:, 0] < camera.width
+    points_mask *= points_2d[:, 1] < camera.height
+    points_2d = points_2d[points_mask]
+    
+    if points_norms is not None:
+        points_norms = points_norms[points_mask]
+        print("min dist", np.min(points_norms))
+        print("max dist", np.max(points_norms))
+    
+    # points_2d = points_2d[points_2d[:, 0] >= 0]
+    # points_2d = points_2d[points_2d[:, 1] >= 0]
+    # points_2d = points_2d[points_2d[:, 0] < camera.width]
+    # points_2d = points_2d[points_2d[:, 1] < camera.height]
 
-    rgb = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
-    rgb[:, 0] /= camera.width
-    rgb[:, 1] /= camera.height
+    if points_norms is None:
+        rgb = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+        rgb[:, 0] /= camera.width
+        rgb[:, 1] /= camera.height
+    else:
+        # apply cmap to points norms
+        from matplotlib import cm
+        norm = plt.Normalize(vmin=np.min(points_norms), vmax=np.max(points_norms))
+        cmap = cm.get_cmap("jet")
+        rgb = cmap(norm(points_norms))
     points_2d -= 0.5  # to avoid imshow shift
     plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
@@ -540,6 +565,9 @@ def plot_points_2d_on_image(
         plt.yticks(np.arange(-0.5, camera.height, 20), labels=np.arange(0.0, camera.height+1, 20))
         plt.grid(which="minor", alpha=0.2)
         plt.grid(which="major", alpha=0.2)
+    
+    # if points_norms is not None:
+    #     plt.colorbar()
     
     plt.xlabel("x")
     plt.ylabel("y")

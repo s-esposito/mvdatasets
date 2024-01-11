@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.geometry import project_points_3d_to_2d
+from mvdatasets.utils.geometry import project_points_3d_to_2d, camera_to_points_3d_distance
 from mvdatasets.utils.common import get_dataset_test_preset
 
 if __name__ == "__main__":
@@ -53,11 +53,12 @@ if __name__ == "__main__":
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
+        config=config,
         verbose=True
     )
 
     # random camera index
-    rand_idx = 1  # torch.randint(0, len(mv_data["test"]), (1,)).item()
+    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
     print(camera)
 
@@ -68,7 +69,12 @@ if __name__ == "__main__":
         
     points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
 
-    fig = plot_points_2d_on_image(camera, points_2d)
+    # 3d points distance from camera center
+    camera_points_dists = camera_to_points_3d_distance(camera, point_cloud)
+    
+    print("camera_points_dist", camera_points_dists)
+    
+    fig = plot_points_2d_on_image(camera, points_2d, points_norms=camera_points_dists)
 
     # plt.show()
     plt.savefig(os.path.join("imgs", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
