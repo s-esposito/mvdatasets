@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     tensor_reel = TensorReel(mv_data["train"], device=device)
 
-    benchmark = True
+    benchmark = False
     batch_size = 512
     nr_iterations = 10
     cameras_idx = None
@@ -113,7 +113,7 @@ if __name__ == "__main__":
             )
 
             # plt.show()
-            frame_path = os.path.join("plots", f"{dataset_name}_static_scenes_batch_{i}.png")
+            frame_path = os.path.join("plots", f"{dataset_name}_batch_{i}.png")
             plt.savefig(
                 frame_path,
                 bbox_inches="tight",

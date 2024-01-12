@@ -1,11 +1,10 @@
-import numpy
+import numpy as np
 import PIL
 import os
 import sys
 import time
 import torch
 from copy import deepcopy
-import numpy as np
 import matplotlib.pyplot as plt
 import open3d as o3d
 from tqdm import tqdm

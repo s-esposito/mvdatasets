@@ -181,7 +181,7 @@ def plot_camera_rays(
         
     if "mask" not in vals:
         # set to ones
-        mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1)
+        mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
     else:
         mask = vals["mask"]
     
@@ -288,7 +288,7 @@ def plot_camera_rays(
             [start_point[1], end_point[1]] if up == "z" else [start_point[2], end_point[2]],
             [start_point[2], end_point[2]] if up == "z" else [start_point[1], end_point[1]],
             color=color,
-            alpha=0.3 * min(0.1, float(alpha)),
+            alpha=0.3 * float(alpha),
         )
 
     # draw image plane
@@ -387,7 +387,7 @@ def plot_current_batch(
         mask = mask.cpu().numpy()
     else:
         # if mask is not given, set to ones
-        mask = np.ones((rays_o.shape[0], 1))
+        mask = np.ones((rays_o.shape[0], 1)) * 0.5
 
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)
@@ -488,7 +488,7 @@ def plot_current_batch(
             [start_point[1], end_point[1]] if up == "z" else [start_point[2], end_point[2]],
             [start_point[2], end_point[2]] if up == "z" else [start_point[1], end_point[1]],
             color=color,
-            alpha=0.3 * min(0.1, float(alpha)),
+            alpha=0.3 * float(alpha),
         )
 
     lim = scene_radius
@@ -563,9 +563,6 @@ def plot_points_2d_on_image(
     points_2d -= 0.5  # to avoid imshow shift
     plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
-    
-    print("camera.width", camera.width)
-    print("camera.height", camera.height)
     
     if show_ticks:
         plt.xticks(np.arange(-0.5, camera.width, 1), minor=True)

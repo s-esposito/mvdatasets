@@ -206,6 +206,37 @@ def camera_to_points_3d_distance(camera, points_3d):
     
     return points_3d_norm
     
+    
+def look_at(eye, center, up):
+    """Compute camera pose from look at vectors
+    args:
+        eye (np.ndarray) : (3,) camera position
+        center (np.ndarray) : (3,) point to look at
+        up (np.ndarray) : (3,) up vector
+    out:
+        pose (np.ndarray) : (4, 4) camera pose
+    """
+    
+    assert eye.shape == (3,)
+    assert center.shape == (3,)
+    assert up.shape == (3,)
+    
+    # get camera frame
+    z = eye - center
+    z = z / np.linalg.norm(z)
+    x = np.cross(up, z)
+    x = x / np.linalg.norm(x)
+    y = np.cross(z, x)
+    y = y / np.linalg.norm(y)
+    
+    # get rotation matrix
+    rotation = np.eye(3)
+    rotation[:3, 0] = x
+    rotation[:3, 1] = y
+    rotation[:3, 2] = z
+    
+    return rotation
+
 
 ############################################
 # from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L523
