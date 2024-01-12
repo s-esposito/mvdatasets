@@ -9,7 +9,7 @@ from mvdatasets.utils.raycasting import (
 
 
 class TensorReel:
-    def __init__(self, cameras_list, device="cuda"):
+    def __init__(self, cameras_list, width=None, height=None, device="cuda"):
         """Create a tensor_reel object, containing all data
         stored contiguosly in tensors.
         
@@ -126,8 +126,13 @@ class TensorReel:
                 self.semantic_masks = self.semantic_masks.to(device)
 
         self.device = device
-        self.height = self.rgbs.shape[2]
-        self.width = self.rgbs.shape[3]
+        if self.rgbs is not None:
+            self.height = self.rgbs.shape[2]
+            self.width = self.rgbs.shape[3]
+        else:
+            assert height is not None and width is not None, "height and width must be specified if cameras have not rgbs"
+            self.height = height
+            self.width = width
 
     @torch.no_grad()
     def get_next_batch(
@@ -143,8 +148,11 @@ class TensorReel:
             camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
         # random int in range [0, nr_frames_in_sequence-1] with repetitions
-        nr_frames_in_sequence = self.rgbs.shape[1]
         if frame_idx is None:
+            if self.rgbs is not None:
+                nr_frames_in_sequence = self.rgbs.shape[1]
+            else: 
+                nr_frames_in_sequence = 1
             frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
         else:
             frame_idx = (torch.ones(batch_size) * frame_idx).int()

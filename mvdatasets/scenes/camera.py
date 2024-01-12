@@ -31,7 +31,7 @@ class Camera:
     """
 
     def __init__(
-        self, intrinsics, pose, 
+        self, intrinsics, pose,
         rgbs=None, masks=None, normals=None, depths=None,
         instance_masks=None, semantic_masks=None,
         global_transform=None, local_transform=None,
@@ -272,6 +272,18 @@ class Camera:
         """returns camera pose in world space"""
         pose = self.global_transform @ self.pose @ self.local_transform
         return pose
+    
+    def get_rotation(self):
+        """returns camera rotation in world space"""
+        pose = self.get_pose()
+        rotation = pose[:3, :3]
+        return rotation
+    
+    def get_center(self):
+        """returns camera center in world space"""
+        pose = self.get_pose()
+        center = pose[:3, 3]
+        return center
 
     def concat_global_transform(self, global_transform):
         # apply global_transform

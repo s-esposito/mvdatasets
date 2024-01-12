@@ -66,6 +66,7 @@ class MVDataset:
         print(f"loading {splits} splits")
         
         self.global_transform = np.eye(4)
+        self.cameras_on_hemisphere = False
         
         # STATIC SCENE DATASETS -----------------------------------------------
         
@@ -92,6 +93,7 @@ class MVDataset:
                 config,
                 verbose=verbose
             )
+            self.cameras_on_hemisphere = True
             
         # load dmsr
         elif self.dataset_name == "dmsr":
@@ -210,7 +212,6 @@ class MVDataset:
 
     def __getitem__(self, split):
         return self.data[split]
-
 
 # from nerfstudio
 

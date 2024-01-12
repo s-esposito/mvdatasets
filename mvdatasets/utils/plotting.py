@@ -358,8 +358,8 @@ def plot_current_batch(
     cameras_idx,
     rays_o,
     rays_d,
-    rgb,
-    mask,
+    rgb=None,
+    mask=None,
     azimuth_deg=60,
     elevation_deg=30,
     up="z",
@@ -377,8 +377,17 @@ def plot_current_batch(
     cameras_idx = cameras_idx.cpu().numpy()
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
-    rgb = rgb.cpu().numpy()
-    mask = mask.cpu().numpy()
+    if rgb is not None:
+        rgb = rgb.cpu().numpy()
+    else:
+        # if rgb is not given, color rays blue
+        rgb = np.zeros((rays_o.shape[0], 3))
+        rgb[:, 2] = 1.0
+    if mask is not None:
+        mask = mask.cpu().numpy()
+    else:
+        # if mask is not given, set to ones
+        mask = np.ones((rays_o.shape[0], 1))
 
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)

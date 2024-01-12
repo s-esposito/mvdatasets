@@ -16,8 +16,6 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.common import get_dataset_test_preset
 
 if __name__ == "__main__":
-
-    benchmark = False
     
     # Set a random seed for reproducibility
     seed = 42
@@ -55,12 +53,12 @@ if __name__ == "__main__":
         splits=["train", "test"]
     )
 
-    batch_size = 512
-
     # TensorReel (~1300 it/s), camera's data in concatenated in big tensors on GPU
 
     tensor_reel = TensorReel(mv_data["train"], device=device)
 
+    benchmark = True
+    batch_size = 512
     nr_iterations = 10
     cameras_idx = None
     frame_idx = None
