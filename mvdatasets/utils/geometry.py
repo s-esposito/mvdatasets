@@ -93,7 +93,7 @@ def pose_global_rotation(pose, rotation):
     return rotation_transform @ pose
 
 
-def linear_transformation_3d(points_3d, transform):
+def apply_transformation_3d(points_3d, transform):
     """apply linear transformation to points
     args:
         points_3d (N, 3)
@@ -183,7 +183,7 @@ def project_points_3d_to_2d(camera, points_3d):
     w2c = np.linalg.inv(c2w)
 
     # transform points in world space to camera space
-    points_3d_c = linear_transformation_3d(points_3d, w2c)
+    points_3d_c = apply_transformation_3d(points_3d, w2c)
 
     # convert homogeneous coordinates to 2d coordinates
     points_2d_s = perspective_projection(intrinsics, points_3d_c)
@@ -200,7 +200,7 @@ def camera_to_points_3d_distance(camera, points_3d):
     w2c = np.linalg.inv(c2w)
 
     # transform points in world space to camera space
-    points_3d_c = linear_transformation_3d(points_3d, w2c)
+    points_3d_c = apply_transformation_3d(points_3d, w2c)
     
     points_3d_norm = np.linalg.norm(points_3d_c, axis=-1)
     

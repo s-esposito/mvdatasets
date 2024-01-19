@@ -13,7 +13,7 @@ import struct
 # from datasets.loaders.pac_nerf import load_particles_pacnerf
 from mvdatasets.utils.plotting import plot_cameras
 from mvdatasets.utils.geometry import (
-    linear_transformation_3d,
+    apply_transformation_3d,
     rot_x_3d,
     rot_y_3d,
     rot_z_3d,
@@ -69,7 +69,7 @@ training_data = MVDataset(
 
 fig = plot_cameras(
     training_data.cameras,
-    points=training_data.point_clouds[0],
+    points_3d=training_data.point_clouds[0],
     azimuth_deg=20,
     elevation_deg=30,
     up="y",

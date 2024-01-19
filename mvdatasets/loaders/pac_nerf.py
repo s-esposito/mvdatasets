@@ -27,7 +27,7 @@ from mvdatasets.scenes.camera import Camera
 #     axis_rot = rot_x_3d(-np.pi / 2)
 #     axis_transform = np.eye(4)
 #     axis_transform[:3, :3] = axis_rot
-#     points_3d = linear_transformation_3d(points_3d, axis_transform)
+#     points_3d = apply_transformation_3d(points_3d, axis_transform)
 
 #     return points_3d
 

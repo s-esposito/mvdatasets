@@ -20,7 +20,8 @@ if __name__ == "__main__":
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
-
+    np.random.seed(seed)
+    
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
         device = "cuda"
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     fig = plot_camera_rays(
         camera,
         nr_rays=512,
-        points=point_cloud,
+        points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
         up="y",

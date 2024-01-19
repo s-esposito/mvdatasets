@@ -15,7 +15,7 @@ def sample_cameras_on_hemisphere(
     # # elevation_deg = np.linspace(0, 45, nr_cameras, endpoint=False)
     azimuth_deg = np.random.uniform(0, 360, nr_cameras)
     elevation_deg = np.random.uniform(-90, 90, nr_cameras)
-    print("ele", elevation_deg)
+    # print("ele", elevation_deg)
     azimuth_rad = deg2rad(azimuth_deg)
     elevation_rad = deg2rad(elevation_deg)
     x = np.cos(azimuth_rad) * np.cos(elevation_rad) * radius

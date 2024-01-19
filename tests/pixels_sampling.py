@@ -19,6 +19,7 @@ if __name__ == "__main__":
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
+    np.random.seed(seed)
 
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():

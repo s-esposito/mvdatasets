@@ -9,7 +9,7 @@ from mvdatasets.loaders.llff import load_llff
 # from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
-from mvdatasets.utils.geometry import linear_transformation_3d
+from mvdatasets.utils.geometry import apply_transformation_3d
 # from mvdatasets.utils.bounding_primitives import Sphere, AABB
 
 
@@ -147,7 +147,7 @@ class MVDataset:
             transformed_point_clouds = []
             for point_cloud in point_clouds:
                 transformed_point_clouds.append(
-                    linear_transformation_3d(point_cloud, self.global_transform)
+                    apply_transformation_3d(point_cloud, self.global_transform)
                 )
             self.point_clouds = transformed_point_clouds
             print(f"loaded {len(self.point_clouds)} point clouds")
