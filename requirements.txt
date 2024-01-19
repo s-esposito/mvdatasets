@@ -53,7 +53,6 @@ opencv-python==4.8.1.78
 packaging==23.2
 pandas==2.0.3
 parso==0.8.3
-permutohedral-encoding @ file:///home/stefano/Codebase/permutohedral_encoding
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==10.1.0
