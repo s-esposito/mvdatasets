@@ -38,7 +38,14 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
 
 class BoundingBox:
     
-    def __init__(self, pose=np.eye(4), sizes=None, father_bb=None):
+    def __init__(
+            self,
+            pose=np.eye(4),
+            sizes=None,
+            father_bb=None,
+            label=None,
+            color=None
+        ):
         # pose in father bounding box space
         # or world space if father_bb is None
         self.pose = pose
@@ -49,6 +56,10 @@ class BoundingBox:
             self.sizes = sizes
         else:
             self.sizes = self.father_bb.sizes
+        
+        # mostly useful for visualization
+        self.label = label
+        self.color = color  # matplotlib color
     
     def get_pose(self):
         pose = deepcopy(self.pose)

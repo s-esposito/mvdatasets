@@ -6,7 +6,7 @@ from mvdatasets.utils.geometry import look_at, deg2rad
 
 def sample_cameras_on_hemisphere(
         intrinsics, width, height,
-        radius=1, nr_cameras=10,
+        radius=1.0, nr_cameras=10,
         up=np.array([0, 1, 0]),
         center=np.array([0, 0, 0])
     ):
