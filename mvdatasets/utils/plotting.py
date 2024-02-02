@@ -154,7 +154,7 @@ def _plot_frame(ax, pose, idx=0, up="z", scale=1.0):
         length=scale,
         color="b",
     )
-    eps = 0.1 * scale
+    eps = 0.2 * scale
     ax.text(
         pos[0] + eps,  # x
         pos[1] + eps if up == "z" else pos[2] + eps,  # y
@@ -167,7 +167,7 @@ def _plot_cartesian_axis(ax, up="z", scale=1.0):
     _plot_frame(ax, np.eye(4), idx="w", up=up, scale=scale)
 
 
-def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0):
+def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0, draw_frame=False):
     if bb is None:
         return
     
@@ -199,6 +199,12 @@ def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0):
     else:
         color = "black"
     
+    # visualize min, max vertices
+    min_vertex = vertices[0]
+    max_vertex = vertices[7]
+    ax.scatter(min_vertex[0], min_vertex[1], min_vertex[2], s=scale, color=color, marker="o")
+    ax.scatter(max_vertex[0], max_vertex[1], max_vertex[2], s=scale, color=color, marker="o")
+    
     # plot line segments
     for pair in vertices_pairs:
         ax.plot3D(
@@ -207,26 +213,27 @@ def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0):
                 pair[1] if up == "z" else pair[1][[0, 2, 1]]
             ),
             color=color,
-            linewidth=1.0,
-            alpha=0.5
+            linewidth=bb.line_width,
+            alpha=0.2
         )
     
     if bb.label is not None:
         label = bb.label
     else:
         label = idx
-        
+    
     # draw bb frame
-    _plot_frame(ax, pose, idx=label, up=up, scale=scale)
+    if draw_frame:
+        _plot_frame(ax, pose, idx=label, up=up, scale=scale)
 
 
-def _plot_bounding_boxes(ax, bounding_boxes, up="z", scale=1.0):
+def _plot_bounding_boxes(ax, bounding_boxes, up="z", scale=1.0, draw_frame=False):
     if bounding_boxes is None:
         return
     
     # draw bounding boxes
     for i, bb in enumerate(bounding_boxes):
-        _plot_bounding_box(ax, bb, idx=i, up=up, scale=scale)
+        _plot_bounding_box(ax, bb, idx=i, up=up, scale=scale, draw_frame=draw_frame)
 
 
 def _plot_image_plane(ax, camera, up="z", scale=1.0):
@@ -413,6 +420,7 @@ def plot_bounding_boxes(
     radius=1,
     up="z",
     draw_origin=True,
+    draw_frame=False,
     figsize=(15, 15),
     title=None
 ):
@@ -447,7 +455,13 @@ def plot_bounding_boxes(
         _plot_cartesian_axis(ax, up=up, scale=scale)
     
     # plot bounding boxes (if given)
-    _plot_bounding_boxes(ax, bounding_boxes, up=up, scale=scale)
+    _plot_bounding_boxes(
+        ax,
+        bounding_boxes,
+        up=up,
+        scale=scale,
+        draw_frame=draw_frame
+    )
 
     return fig
 

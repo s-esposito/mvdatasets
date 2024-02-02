@@ -13,7 +13,8 @@ import imageio
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.utils.plotting import plot_camera_rays
+from mvdatasets.utils.plotting import plot_camera_rays, plot_bounding_boxes
+from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.common import get_dataset_test_preset
 from mvdatasets.utils.tensor_reel import TensorReel
@@ -41,6 +42,12 @@ if __name__ == "__main__":
     # Set default tensor type
     torch.set_default_dtype(torch.float32)
 
+    # Set profiler
+    profiler = Profiler()  # nb: might slow down the code
+    
+    # Set datasets path
+    datasets_path = "/home/stefano/Data"
+    
     # Get dataset test preset
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
@@ -75,22 +82,9 @@ if __name__ == "__main__":
     
     bb_pose = np.eye(4)
     bb_pose[:3, 3] = np.array([0.0, 0.0, 0.0])
-    # bb_scale = np.array([1.0, 1.0, 1.0])
-    # bb_pose[:3, :3] = rot_y_3d(deg2rad(45)) @ rot_x_3d(deg2rad(45))
     bb = BoundingBox(
         pose=bb_pose,
         sizes=np.array([0.6, 0.4, 0.2]),
-    )
-    bounding_boxes.append(bb)
-    
-    bb_pose = np.eye(4)
-    bb_pose[:3, 3] = np.array([0.5, 0.0, -0.5])
-    bb_scale = np.array([1.0, 1.0, 1.0])
-    bb_pose[:3, :3] = rot_y_3d(deg2rad(45)) @ rot_x_3d(deg2rad(45))
-    bb_pose[:3, :3] *= bb_scale
-    bb = BoundingBox(
-        pose=bb_pose,
-        father_bb=bounding_boxes[0],
     )
     bounding_boxes.append(bb)
     
@@ -116,44 +110,40 @@ if __name__ == "__main__":
     )
     bounding_boxes.append(bb)
     
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([0.2, 0.5, -0.5])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_x_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     pose=bb_pose,
-    #     sizes=np.array([0.5, 0.4, 0.3]),
-    # )
-    # bounding_boxes.append(bb)
+    bb_pose = np.eye(4)
+    bb_center = np.array([0.2, 0.5, -0.5])
+    bb_pose[:3, 3] = bb_center
+    bb_pose[:3, :3] = rot_x_3d(deg2rad(30))
+    bb = BoundingBox(
+        pose=bb_pose,
+        sizes=np.array([0.5, 0.4, 0.3]),
+    )
+    bounding_boxes.append(bb)
     
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([-0.2, -0.5, 0.5])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_y_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     father_bb=bounding_boxes[0],  # parent bounding box
-    #     pose=bb_pose,
-    #     sizes=np.array([0.3, 0.4, 0.2]),
-    # )
-    # bounding_boxes.append(bb)
+    bb_pose = np.eye(4)
+    bb_center = np.array([-0.2, -0.5, 0.5])
+    bb_pose[:3, 3] = bb_center
+    bb_pose[:3, :3] = rot_y_3d(deg2rad(30))
+    bb = BoundingBox(
+        father_bb=bounding_boxes[0],  # parent bounding box
+        pose=bb_pose,
+        sizes=np.array([0.3, 0.4, 0.2]),
+    )
+    bounding_boxes.append(bb)
     
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([0.2, 0.1, 0.6])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_z_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     father_bb=bounding_boxes[0],  # parent bounding box
-    #     pose=bb_pose,
-    #     sizes=np.array([0.5, 0.1, 0.4]),
-    # )
-    # bounding_boxes.append(bb)
+    bb_pose = np.eye(4)
+    bb_center = np.array([0.2, 0.1, 0.6])
+    bb_pose[:3, 3] = bb_center
+    bb_pose[:3, :3] = rot_z_3d(deg2rad(30))
+    bb = BoundingBox(
+        father_bb=bounding_boxes[0],  # parent bounding box
+        pose=bb_pose,
+        sizes=np.array([0.5, 0.1, 0.4]),
+    )
+    bounding_boxes.append(bb)
     
     # shoot rays from camera and intersect with boxes
     rays_o, rays_d, points_2d = get_camera_rays(camera, device="cuda")
-    # rays_o = rays_o.cpu().numpy()
-    # rays_d = rays_d.cpu().numpy()
-    # print("rays_o.shape", rays_o.shape)
-    # print("rays_d.shape", rays_d.shape)
     
     intersections = []
     for i, bb in enumerate(bounding_boxes):
@@ -214,18 +204,41 @@ if __name__ == "__main__":
         bounding_boxes=bounding_boxes,
         azimuth_deg=20,
         elevation_deg=30,
+        radius=camera_radius,
         up="y",
+        draw_bounding_cube=False,
         figsize=(15, 15),
-        title="camera and bounding boxes",
+        title="camera, rays and bounding boxes intersection",
     )
-
-    plt.show()
+    # plt.show()
     
-    # plt.savefig(
-    #     os.path.join("imgs", f"{dataset_name}_sampled_cameras.png"),
-    #     transparent=True,
-    #     bbox_inches="tight",
-    #     pad_inches=0,
-    #     dpi=300
-    # )
-    # plt.close()
+    plt.savefig(
+        os.path.join("imgs", f"camera_rays_bbs_intersections.png"),
+        transparent=False,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
+    plt.close()
+    
+    fig = plot_bounding_boxes(
+        bounding_boxes=bounding_boxes,
+        azimuth_deg=230,
+        elevation_deg=60,
+        radius=1.0,
+        up="z",
+        figsize=(15, 15),
+        draw_origin=False,
+        draw_frame=False,
+        title="",
+    )
+    # plt.show()
+    
+    plt.savefig(
+        os.path.join("imgs", f"bbs.png"),
+        transparent=False,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
+    plt.close()

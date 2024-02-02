@@ -41,11 +41,23 @@ class BoundingBox:
     def __init__(
             self,
             pose=np.eye(4),
-            sizes=None,
+            sizes=np.array([1, 1, 1]),
             father_bb=None,
             label=None,
-            color=None
+            color=None,
+            line_width=1.0,
         ):
+        """Bounding box class.
+
+        Args:
+            pose (np.ndarray, optional): Defaults to np.eye(4).
+            sizes (np.ndarray, optional): Defaults to np.array([1, 1, 1]).
+            father_bb (BoundingBox, optional): Defaults to None.
+            label (str, optional): Defaults to None.
+            color (str, optional): Defaults to None.
+            line_width (float, optional): Defaults to 1.0.
+        """
+        
         # pose in father bounding box space
         # or world space if father_bb is None
         self.pose = pose
@@ -60,6 +72,7 @@ class BoundingBox:
         # mostly useful for visualization
         self.label = label
         self.color = color  # matplotlib color
+        self.line_width = line_width
     
     def get_pose(self):
         pose = deepcopy(self.pose)
