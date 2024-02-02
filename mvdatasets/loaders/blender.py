@@ -43,8 +43,8 @@ def load_blender(
         
     if "rotate_scene_x_axis_deg" not in config:
         if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to -90")
-        config["rotate_scene_x_axis_deg"] = -90
+            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
+        config["rotate_scene_x_axis_deg"] = 0.0
         
     if "scene_scale_mult" not in config:
         if verbose:
@@ -86,7 +86,7 @@ def load_blender(
     
     # local transform
     local_transform = np.eye(4)
-    rotation = rot_x_3d(deg2rad(180))
+    rotation = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
     local_transform[:3, :3] = rotation
     
     # cameras objects

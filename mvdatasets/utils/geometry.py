@@ -181,7 +181,7 @@ def project_points_3d_to_2d(camera, points_3d):
 
     # get world to camera transformation
     w2c = np.linalg.inv(c2w)
-
+    
     # transform points in world space to camera space
     points_3d_c = apply_transformation_3d(points_3d, w2c)
 

@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 gt_mask,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
-                up="y",
+                up="z",
                 figsize=(15, 15),
             )
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     #         mask,
     #         azimuth_deg=60,
     #         elevation_deg=30,
-    #         up="y",
+    #         up="z",
     #         figsize=(15, 15),
     #     )
 

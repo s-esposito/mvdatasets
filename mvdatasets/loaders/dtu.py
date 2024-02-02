@@ -78,8 +78,8 @@ def load_dtu(
         
     if "rotate_scene_x_axis_deg" not in config:
         if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 115")
-        config["rotate_scene_x_axis_deg"] = 115
+            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 205")
+        config["rotate_scene_x_axis_deg"] = 205
     
     if "scene_scale_mult" not in config:
         if verbose:
@@ -109,6 +109,11 @@ def load_dtu(
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
+    
+    # local transform
+    local_transform = np.eye(4)
+    rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    local_transform[:3, :3] = rotation
     
     # load images to cpu as numpy arrays
     imgs = []
@@ -165,6 +170,7 @@ def load_dtu(
             intrinsics=intrinsics,
             pose=pose,
             global_transform=global_transform,
+            local_transform=local_transform,
             rgbs=cam_imgs,
             masks=cam_masks,
             camera_idx=idx,

@@ -84,7 +84,7 @@ if __name__ == "__main__":
         points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
-        up="y",
+        up="z",
         figsize=(15, 15)
     )
 

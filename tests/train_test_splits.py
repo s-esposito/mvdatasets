@@ -71,7 +71,7 @@ if __name__ == "__main__":
         points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
-        up="y",
+        up="z",
         figsize=(15, 15),
         title="training cameras",
     )
@@ -92,12 +92,12 @@ if __name__ == "__main__":
         points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
-        up="y",
+        up="z",
         figsize=(15, 15),
         title="test cameras",
     )
 
-    # plt.show()
+    plt.show()
     plt.savefig(
         os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
         transparent=True,

@@ -47,8 +47,8 @@ class Camera:
             depths (np.array, float): (T, H, W, 1) with values in [0, 1]
             instance_masks (np.array, int): (T, H, W, 1) with values in [0, n_instances]
             semantic_masks (np.array, int): (T, H, W, 1) with values in [0, n_classes]
-            intrinsics (np.array): (3, 3)
-            pose (np.array): (4, 4)
+            intrinsics (np.array): (3, 3) camera intrinsics
+            pose (np.array): (4, 4) camera extrinsics
             camera_idx (int): camera index
             width (int): image width, mandatory when camera has no images
             height (int): image height, mandatory when camera has no images

@@ -239,19 +239,15 @@ def _plot_bounding_boxes(ax, bounding_boxes, up="z", scale=1.0, draw_frame=False
 def _plot_image_plane(ax, camera, up="z", scale=1.0):
     if camera is None:
         return
-    
-    # image plane distance
-    image_plane_z = 1.1 * scale
 
     # get image plane corner points in 3D
     # from screen coordinates
-    eps = 1e-6
     corner_points_2d_screen = np.array(
                                     [
                                         [0, 0],
-                                        [camera.height-eps, 0],
-                                        [0, camera.width-eps],
-                                        [camera.height-eps, camera.width-eps]
+                                        [camera.height, 0],
+                                        [0, camera.width],
+                                        [camera.height, camera.width]
                                     ]
                                 )
     
@@ -262,7 +258,7 @@ def _plot_image_plane(ax, camera, up="z", scale=1.0):
     )
     corner_points_d = corner_points_d.cpu().numpy()
 
-    corner_points_3d_world = camera.get_center() + corner_points_d * image_plane_z
+    corner_points_3d_world = camera.get_center() + corner_points_d * scale
     
     for i, j in combinations(range(4), 2):
         if up == "z":
@@ -283,6 +279,42 @@ def _plot_image_plane(ax, camera, up="z", scale=1.0):
                         linewidth=1.0,
                         alpha=0.5
                     )
+
+
+def _plot_frustum(ax, camera, up="z", scale=1.0):
+    if camera is None:
+        return
+
+    # get image plane corner points in 3D
+    # from screen coordinates
+    image_plane_vertices_2d = np.array(
+                                    [
+                                        [0, 0],
+                                        [camera.height, 0],
+                                        [0, camera.width],
+                                        [camera.height, camera.width]
+                                    ]
+                                )
+    
+    rays_o, rays_d = get_camera_rays_per_points_2d(
+        torch.from_numpy(camera.get_pose()).float(),
+        torch.from_numpy(camera.get_intrinsics_inv()).float(),
+        torch.from_numpy(image_plane_vertices_2d).float()
+    )
+    rays_o = rays_o.cpu().numpy()
+    rays_d = rays_d.cpu().numpy()
+
+    _plot_rays(
+        ax,
+        rays_o,
+        rays_d,
+        ray_lenght=3.0,  # TODO: proportinal to scene radius
+        rgb=np.zeros((rays_o.shape[0], 3)),
+        up=up,
+        scale=scale
+    )
+    
+    _plot_image_plane(ax, camera, up=up, scale=scale)
 
 
 def _plot_camera_frame(ax, pose, idx=0, up="z", scale=1.0):
@@ -338,12 +370,20 @@ def _plot_camera_frame(ax, pose, idx=0, up="z", scale=1.0):
     )
 
 
-def _plot_camera_frames(ax, poses, camera_idxs, up="z", scale=1.0):
-    if poses is None or camera_idxs is None:
+def _plot_cameras(ax, cameras, up="z", scale=1.0, draw_image_planes=False, draw_frustum=True):
+    if len(cameras) == 0:
         return
     # draw camera frames
-    for pose, camera_idx in zip(poses, camera_idxs):
+    for camera in cameras:
+        pose = camera.get_pose()
+        camera_idx = camera.camera_idx
         _plot_camera_frame(ax, pose, idx=camera_idx, up=up, scale=scale)
+        # if draw_image_planes:
+        #     # draw image plane
+        #     _plot_image_plane(ax, camera, up=up, scale=scale)
+        if draw_frustum:
+            # draw frustum
+            _plot_frustum(ax, camera, up=up, scale=scale)
 
 
 def plot_cameras(
@@ -356,6 +396,7 @@ def plot_cameras(
     up="z",
     draw_origin=True,
     draw_bounding_cube=True,
+    draw_image_planes=False,
     figsize=(15, 15),
     title=None
 ):
@@ -369,10 +410,10 @@ def plot_cameras(
 
     # get all camera poses
     poses = []
-    camera_idxs = []
+    # camera_idxs = []
     for camera in cameras:
         poses.append(camera.get_pose())
-        camera_idxs.append(camera.camera_idx)
+        # camera_idxs.append(camera.camera_idx)
 
     # scene radius and scale
     if radius is None:
@@ -405,7 +446,13 @@ def plot_cameras(
         _plot_bounding_cube(ax, up=up, scale=scale)
 
     # draw camera frames
-    _plot_camera_frames(ax, poses, camera_idxs, up=up, scale=scale)
+    _plot_cameras(
+        ax,
+        cameras,
+        up=up,
+        scale=scale,
+        draw_image_planes=draw_image_planes
+    )
     
     # plot bounding boxes (if given)
     _plot_bounding_boxes(ax, bounding_boxes, up=up, scale=scale)
@@ -563,9 +610,6 @@ def plot_camera_rays(
         up=up,
         scale=scale
     )
-
-    # draw image plane
-    _plot_image_plane(ax, camera, up=up, scale=scale)
     
     # plot bounding boxes (if given)
     _plot_bounding_boxes(ax, bounding_boxes, up=up, scale=scale)
@@ -649,7 +693,7 @@ def plot_current_batch(
         _plot_bounding_cube(ax, up=up, scale=scale)
 
     # plot unique camera poses
-    _plot_camera_frames(ax, poses, unique_cameras_idx, up=up, scale=scale)
+    _plot_cameras(ax, poses, unique_cameras_idx, up=up, scale=scale)
 
     # draw rays
     _plot_rays(

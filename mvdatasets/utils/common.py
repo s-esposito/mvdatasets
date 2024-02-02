@@ -42,8 +42,6 @@ def get_dataset_test_preset(dataset_name):
         config = {
             "load_mask": 1,
             "scene_scale_mult": 0.4,
-            "rotate_scene_x_axis_deg": -90,
-            "sphere_radius": 0.6,
             "white_bg": 1,
             "test_skip": 10,
             "subsample_factor": 1.0
@@ -53,24 +51,36 @@ def get_dataset_test_preset(dataset_name):
     if dataset_name == "dmsr":
         scene_name = "dinning"
         pc_paths = ["debug/meshes/dmsr/dinning.ply"]
-        config = {}
+        config = {
+            "test_skip": 10,
+            "scene_scale_mult": 0.4
+        }
 
     # test refnerf
     if dataset_name == "refnerf":
         scene_name = "car"
         pc_paths = []
-        config = {}
+        config = {
+            "test_skip": 10,
+        }
         
     # test llff
     if dataset_name == "llff":
         scene_name = "fern"
         pc_paths = ["debug/point_clouds/llff/fern.ply"]
-        config = {"subsample_factor": 1.0}
+        config = {
+            "subsample_factor": 1.0,
+            "scene_scale_mult": 0.03,
+            "rotate_scene_x_axis_deg": 90.0
+        }
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
         scene_name = "bicycle"
         pc_paths = ["debug/point_clouds/mipnerf360/bicycle.ply"]
-        config = {"subsample_factor": 4.0}
+        config = {
+            "subsample_factor": 4.0,
+            "scene_scale_mult": 0.03,
+        }
     
     return scene_name, pc_paths, config

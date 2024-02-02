@@ -1,6 +1,8 @@
 import torch
+import os
 import numpy as np
 from copy import deepcopy
+import open3d as o3d
 
 from mvdatasets.utils.geometry import apply_transformation_3d
 
@@ -136,3 +138,36 @@ class BoundingBox:
         p_far = apply_transformation_3d(p_far, pose)
         
         return is_hit, t_near, t_far, p_near, p_far
+    
+    def save_as_mesh(self, dir_path, name):
+        
+        # TODO: fix vertices order to have consistent normals
+        
+        # bbox vertices
+        vertices = self.get_vertices()
+        
+        # define faces of the box
+        faces = [
+            [0, 4, 5],
+            [0, 1, 5],
+            [4, 6, 7],
+            [4, 5, 7],
+            [0, 2, 6],
+            [0, 4, 6],
+            [1, 3, 7],
+            [1, 5, 7],
+            [0, 1, 3],
+            [0, 2, 3],
+            [2, 3, 7],
+            [2, 6, 7]
+        ]
+        
+        # create Open3D mesh
+        mesh = o3d.geometry.TriangleMesh()
+        mesh.vertices = o3d.utility.Vector3dVector(vertices)
+        mesh.triangles = o3d.utility.Vector3iVector(faces)
+        
+        # save mesh path
+        o3d.io.write_triangle_mesh(os.path.join(dir_path, f"{name}.ply"), mesh)
+        
+        return mesh

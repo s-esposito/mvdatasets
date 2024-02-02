@@ -72,7 +72,7 @@ fig = plot_cameras(
     points_3d=training_data.point_clouds[0],
     azimuth_deg=20,
     elevation_deg=30,
-    up="y",
+    up="z",
     figsize=(15, 15),
 )
 

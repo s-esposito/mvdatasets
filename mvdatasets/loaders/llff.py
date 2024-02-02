@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from mvdatasets.utils.images import image2numpy
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.geometry import qvec2rotmat
+from mvdatasets.utils.geometry import qvec2rotmat, rot_x_3d, deg2rad
 
 
 def read_points3D(reconstruction):
@@ -75,6 +75,11 @@ def load_llff(
 
     # CONFIG -----------------------------------------------------------------
         
+    if "rotate_scene_x_axis_deg" not in config:
+        if verbose:
+            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
+        config["rotate_scene_x_axis_deg"] = 0.0
+    
     if "test_camera_freq" not in config:
         if verbose:
             print("WARNING: test_camera_freq not in config, setting to 8")
@@ -105,7 +110,8 @@ def load_llff(
     # global transform
     global_transform = np.eye(4)
     # rotate
-    rotation = np.eye(3)
+    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
     # scale
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
@@ -137,7 +143,7 @@ def load_llff(
         
     # local transform
     local_transform = np.eye(4)
-    local_transform[:3, :3] = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]])
+    # local_transform[:3, :3] = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]])
     
     # read images and construct cameras
     cameras_all = []
