@@ -14,6 +14,10 @@ from mvdatasets.utils.geometry import (
     pose_local_rotation,
     pose_global_rotation,
 )
+from mvdatasets.utils.images import (
+    image_uint8_to_float32,
+    image_float32_to_uint8
+)
 
 
 def load_blender(
@@ -41,6 +45,11 @@ def load_blender(
             print("WARNING: load_mask not in config, setting to True")
         config["load_mask"] = True
         
+    if "use_binary_mask" not in config:
+        if verbose:
+            print("WARNING: use_binary_mask not in config, setting to True")
+        config["use_binary_mask"] = True
+        
     if "rotate_scene_x_axis_deg" not in config:
         if verbose:
             print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
@@ -51,9 +60,10 @@ def load_blender(
             print("WARNING: scene_scale_mult not in config, setting to 0.25")
         config["scene_scale_mult"] = 0.25
     
-    # TODO: implement subsample_factor
-    # if "subsample_factor" not in config:
-    #     config["subsample_factor"] = 1.0
+    if "subsample_factor" not in config:
+        if verbose:
+            print("WARNING: subsample_factor not in config, setting to 1")
+        config["subsample_factor"] = 1
     
     if "white_bg" not in config:
         if verbose:
@@ -105,7 +115,10 @@ def load_blender(
         frames_list = []
         
         for frame in metas["frames"]:
-            img_path = frame["file_path"].split('/')[-1] + '.png'
+            img_path = frame["file_path"].split('/')[-1]
+            # check if file format is in the path
+            if not img_path.endswith('.png'):
+                img_path += '.png'
             camera_pose = frame["transform_matrix"]
             frames_list.append((img_path, camera_pose))
         frames_list.sort(key=lambda x: int(x[0].split('.')[0].split('_')[-1]))
@@ -123,9 +136,10 @@ def load_blender(
             # camera_pose = frame[1]
             # load PIL image
             img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
-            img_np = image2numpy(img_pil)
+            img_np = image2numpy(img_pil, use_uint8=True)
+            
             # TODO: subsample image
-            # if subsample_factor != 1:
+            # if subsample_factor > 1:
             #   subsample image
             
             # override H, W
@@ -136,12 +150,22 @@ def load_blender(
                 # use alpha channel as mask
                 # (nb: this is only resonable for synthetic data)
                 mask_np = img_np[..., -1, None]
+                if config["use_binary_mask"]:
+                    mask_np = mask_np > 0
+                    mask_np = mask_np.astype(np.uint8) * 255
             else:
                 mask_np = None
             
             # apply white background, else black
             if config["white_bg"]:
-                img_np = img_np[..., :3] * img_np[..., -1:] + (1.0 - img_np[..., -1:])
+                if img_np.dtype == np.uint8:
+                    # values in [0, 255], cast to [0, 1], run operation, cast back
+                    img_np = image_uint8_to_float32(img_np)
+                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
+                    img_np = image_float32_to_uint8(img_np)
+                else:
+                    # values in [0, 1]
+                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
             else:
                 img_np = img_np[..., :3]
             
@@ -175,6 +199,7 @@ def load_blender(
                 rgbs=cam_imgs,
                 masks=cam_masks,
                 camera_idx=idx,
+                subsample_factor=int(config["subsample_factor"]),
             )
 
             cameras_splits[split].append(camera)

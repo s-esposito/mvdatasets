@@ -63,6 +63,10 @@ if __name__ == "__main__":
         verbose=True
     )
 
+    # only available for object centric datasets
+    if not mv_data.cameras_on_hemisphere:
+        exit(0)
+
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
     else:
@@ -95,7 +99,7 @@ if __name__ == "__main__":
 
     # plt.show()
     plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_sampled_cameras.png"),
+        os.path.join("plots", f"{dataset_name}_sampled_cameras.png"),
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,

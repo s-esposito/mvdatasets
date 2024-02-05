@@ -97,8 +97,8 @@ def load_llff(
 
     if "subsample_factor" not in config:
         if verbose:
-            print("WARNING: subsample_factor not in config, setting to 1.0")
-        config["subsample_factor"] = 1.0
+            print("WARNING: subsample_factor not in config, setting to 1")
+        config["subsample_factor"] = 1
         
     if verbose:
         print("load_llff config:")
@@ -135,7 +135,7 @@ def load_llff(
     
     images_path = os.path.join(scene_path, "images")
     
-    if config["subsample_factor"] > 1.0:
+    if config["subsample_factor"] > 1:
         subsample_factor = int(config["subsample_factor"])
         images_path += f"_{subsample_factor}"
     else:
@@ -153,18 +153,15 @@ def load_llff(
         
         # load PIL image
         img_pil = Image.open(os.path.join(images_path, im_name))
-        img_np = image2numpy(img_pil)
+        img_np = image2numpy(img_pil, use_uint8=True)
         
         # params
         intrinsics = intrinsics_all[im_name]
-        # print(subsample_factor)
-        # print(intrinsics)
         # update intrinsics after rescaling
-        # intrinsics[0, 0] *= 1/subsample_factor
-        # intrinsics[1, 1] *= 1/subsample_factor
-        intrinsics[0, 2] /= subsample_factor
-        intrinsics[1, 2] /= subsample_factor
-        # print(intrinsics)
+        intrinsics[0, 0] *= 1/subsample_factor
+        intrinsics[1, 1] *= 1/subsample_factor
+        intrinsics[0, 2] *= 1/subsample_factor
+        intrinsics[1, 2] *= 1/subsample_factor
         
         pose = extrinsics_all[im_name]
         cam_imgs = img_np[None, ...]

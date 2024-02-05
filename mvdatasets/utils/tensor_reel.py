@@ -1,9 +1,10 @@
 import torch
+from tqdm import tqdm
 
 from mvdatasets.utils.raycasting import (
     get_random_pixels,
     get_cameras_rays_per_points_2d,
-    get_cameras_frames_per_points_2d,
+    get_tensor_reel_frames_per_points_2d,
     get_points_2d_from_pixels
 )
 
@@ -38,31 +39,32 @@ class TensorReel:
         intrinsics_inv = []
 
         # collect data from all cameras
-        for camera in cameras_list:
+        pbar = tqdm(cameras_list, desc="tensor reel", ncols=100)
+        for camera in pbar:
             
             # rgbs
             if camera.has_rgbs():
-                rgbs.append(torch.from_numpy(camera.get_rgbs()).float())
+                rgbs.append(torch.from_numpy(camera.get_rgbs()))
             
             # masks
             if camera.has_masks():
-                masks.append(torch.from_numpy(camera.get_masks()).float())
+                masks.append(torch.from_numpy(camera.get_masks()))
             
             # normals
             if camera.has_normals():
-                normals.append(torch.from_numpy(camera.get_normals()).float())
+                normals.append(torch.from_numpy(camera.get_normals()))
             
             # depths
             if camera.has_depths():
-                depths.append(torch.from_numpy(camera.get_depths()).float())
+                depths.append(torch.from_numpy(camera.get_depths()))
             
             # instance_masks
             if camera.has_instance_masks():
-                instance_masks.append(torch.from_numpy(camera.get_instance_masks()).float())
+                instance_masks.append(torch.from_numpy(camera.get_instance_masks()))
             
             # semantic_masks
             if camera.has_semantic_masks():
-                semantic_masks.append(torch.from_numpy(camera.get_semantic_masks()).float())
+                semantic_masks.append(torch.from_numpy(camera.get_semantic_masks()))
             
             # camera params
             poses.append(torch.from_numpy(camera.get_pose()).float())
@@ -110,6 +112,7 @@ class TensorReel:
 
         # move tensors to desired device
         if device != "cpu":
+            print("moving tensor reel to device")
             self.intrinsics_inv = self.intrinsics_inv.to(device)
             self.poses = self.poses.to(device)
             if self.rgbs is not None:
@@ -124,6 +127,8 @@ class TensorReel:
                 self.instance_masks = self.instance_masks.to(device)
             if self.semantic_masks is not None:
                 self.semantic_masks = self.semantic_masks.to(device)
+        else:
+            print("tensor reel on cpu")
 
         self.device = device
         if self.rgbs is not None:
@@ -136,8 +141,12 @@ class TensorReel:
 
     @torch.no_grad()
     def get_next_batch(
-        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False
+        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False, nr_rays_per_pixel=1
     ):
+        assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
+        assert batch_size % nr_rays_per_pixel == 0, "batch_size must be a multiple of nr_rays_per_pixel"
+        assert nr_rays_per_pixel == 1 or (nr_rays_per_pixel > 1 and jitter_pixels == True), "jitter_pixels must be True if nr_rays_per_pixel > 1"
+        
         # random int in range [0, nr_cameras-1] with repetitions
         nr_cameras = self.poses.shape[0]  # alway sample from all cameras
         if cameras_idx is None:
@@ -147,20 +156,24 @@ class TensorReel:
             sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
             camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
+        # TODO: improve
         # random int in range [0, nr_frames_in_sequence-1] with repetitions
         if frame_idx is None:
-            if self.rgbs is not None:
-                nr_frames_in_sequence = self.rgbs.shape[1]
-            else: 
-                nr_frames_in_sequence = 1
-            frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
+            # if self.rgbs is not None:
+            #     nr_frames_in_sequence = self.rgbs.shape[1]
+            # else: 
+            #     nr_frames_in_sequence = 1
+            # frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
+            frame_idx = torch.zeros(batch_size).int()
         else:
             frame_idx = (torch.ones(batch_size) * frame_idx).int()
 
         # get random pixels
         pixels = get_random_pixels(
-            self.height, self.width, batch_size, device=self.device
+            self.height, self.width, int(batch_size / nr_rays_per_pixel), device=self.device
         )
+        # repeat pixels nr_rays_per_pixel times
+        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
         
         # get 2d points on the image plane
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
@@ -173,7 +186,7 @@ class TensorReel:
         )
         
         # get ground truth rgbs values at pixels
-        vals = get_cameras_frames_per_points_2d(
+        vals = get_tensor_reel_frames_per_points_2d(
             points_2d=points_2d,
             camera_idx=camera_idx,
             frame_idx=frame_idx,
@@ -182,3 +195,22 @@ class TensorReel:
         )
 
         return camera_idx, rays_o, rays_d, vals, frame_idx
+    
+    def __str__(self) -> str:
+        string = "\nTensorReel\n"
+        string += f"device: {self.device}\n"
+        string += f"poses: {self.poses.shape}, {self.poses.dtype}\n"
+        string += f"intrinsics_inv: {self.intrinsics_inv.shape}, {self.intrinsics_inv.dtype}\n"
+        if self.rgbs is not None:
+            string += f"rgbs: {self.rgbs.shape}, {self.rgbs.dtype}\n"
+        if self.masks is not None:
+            string += f"masks: {self.masks.shape}, {self.masks.dtype}\n"
+        if self.normals is not None:
+            string += f"normals: {self.normals.shape}, {self.normals.dtype}\n"
+        if self.depths is not None:
+            string += f"depths: {self.depths.shape}, {self.depths.dtype}\n"
+        if self.instance_masks is not None:
+            string += f"instance_masks: {self.instance_masks.shape}, {self.instance_masks.dtype}\n"
+        if self.semantic_masks is not None:
+            string += f"semantic_masks: {self.semantic_masks.shape}, {self.semantic_masks.dtype}\n"
+        return string

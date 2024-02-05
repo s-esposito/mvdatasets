@@ -51,12 +51,16 @@ if __name__ == "__main__":
         dataset_name,
         scene_name,
         datasets_path,
-        splits=["train", "test"]
+        point_clouds_paths=pc_paths,
+        splits=["train", "test"],
+        config=config,
+        verbose=True
     )
 
     # TensorReel (~1300 it/s), camera's data in concatenated in big tensors on GPU
 
     tensor_reel = TensorReel(mv_data["train"], device=device)
+    print(tensor_reel)
 
     benchmark = False
     batch_size = 512
@@ -82,7 +86,11 @@ if __name__ == "__main__":
             vals,
             frame_idx,
         ) = tensor_reel.get_next_batch(
-            batch_size=batch_size, cameras_idx=cameras_idx, frame_idx=frame_idx
+            batch_size=batch_size,
+            cameras_idx=cameras_idx,
+            frame_idx=frame_idx,
+            jitter_pixels=True,
+            nr_rays_per_pixel=1
         )
 
         if profiler is not None:
@@ -91,14 +99,18 @@ if __name__ == "__main__":
         if not benchmark:
         
             gt_rgb = vals["rgb"]
-            gt_mask = vals["mask"]
+            if "mask" in vals:
+                gt_mask = vals["mask"]
+            else:
+                gt_mask = None
 
-            print("camera_idx", camera_idx.shape, camera_idx.device)
-            print("rays_o", rays_o.shape, rays_o.device)
-            print("rays_d", rays_d.shape, rays_d.device)
-            print("gt_rgb", gt_rgb.shape, gt_rgb.device)
-            print("gt_mask", gt_mask.shape, gt_mask.device)
-            print("frame_idx", frame_idx.shape, frame_idx.device)
+            print("camera_idx", camera_idx.shape, camera_idx.device, camera_idx.dtype)
+            print("rays_o", rays_o.shape, rays_o.device, rays_o.dtype)
+            print("rays_d", rays_d.shape, rays_d.device, rays_d.dtype)
+            print("gt_rgb", gt_rgb.shape, gt_rgb.device, gt_rgb.dtype)
+            if gt_mask is not None:
+                print("gt_mask", gt_mask.shape, gt_mask.device, gt_mask.dtype)
+            print("frame_idx", frame_idx.shape, frame_idx.device, frame_idx.dtype)
             
             fig = plot_current_batch(
                 mv_data["train"],

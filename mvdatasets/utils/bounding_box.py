@@ -139,27 +139,25 @@ class BoundingBox:
         
         return is_hit, t_near, t_far, p_near, p_far
     
-    def save_as_mesh(self, dir_path, name):
-        
-        # TODO: fix vertices order to have consistent normals
+    def save_as_ply(self, dir_path, name):
         
         # bbox vertices
         vertices = self.get_vertices()
         
-        # define faces of the box
+        # # define faces of the box
         faces = [
             [0, 4, 5],
-            [0, 1, 5],
+            [0, 5, 1],
             [4, 6, 7],
-            [4, 5, 7],
-            [0, 2, 6],
-            [0, 4, 6],
-            [1, 3, 7],
-            [1, 5, 7],
-            [0, 1, 3],
-            [0, 2, 3],
+            [4, 7, 5],
+            [2, 0, 1],
+            [2, 1, 3],
             [2, 3, 7],
-            [2, 6, 7]
+            [2, 7, 6],
+            [1, 5, 7],
+            [1, 7, 3],
+            [2, 6, 4],
+            [2, 4, 0]
         ]
         
         # create Open3D mesh

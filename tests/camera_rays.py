@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
-from mvdatasets.utils.plotting import plot_camera_rays
+from mvdatasets.utils.plotting import plot_cameras
 from mvdatasets.utils.raycasting import get_camera_rays, get_camera_frames
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
@@ -63,12 +63,18 @@ if __name__ == "__main__":
         point_cloud = np.array([[0, 0, 0]])
 
     # random camera index
-    rand_idx = 1  # torch.randint(0, len(mv_data["test"]), (1,)).item()
+    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
-    print(camera)
 
-    # resize camera's rgb modality
-    camera.resize(max_dim=100)
+    # resize camera
+    taget_dim = 100
+    min_dim = min(camera.width, camera.height)
+    print("min_dim", min_dim)
+    subsample_factor = min_dim // taget_dim
+    print("subsample_factor", subsample_factor)
+    camera.resize(subsample_factor=subsample_factor)
+
+    print(camera)
 
     # gen rays
     rays_o, rays_d, points_2d = get_camera_rays(camera)
@@ -77,20 +83,23 @@ if __name__ == "__main__":
     for key, val in vals.items():
         print(key, val.shape, val.device)
 
-    # visualize camera
-    fig = plot_camera_rays(
-        camera,
-        nr_rays=512,
+    # Visualize cameras
+    fig = plot_cameras(
+        [mv_data["test"][0]],
         points_3d=point_cloud,
+        nr_rays=512,
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
-        figsize=(15, 15)
+        draw_image_planes=True,
+        draw_cameras_frustums=False,
+        figsize=(15, 15),
+        title=f"test camera {0} rays",
     )
 
     # plt.show()
     plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_camera_rays.png"),
+        os.path.join("plots", f"{dataset_name}_camera_rays.png"),
         bbox_inches="tight",
         pad_inches=0,
         dpi=300,

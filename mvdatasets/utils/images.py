@@ -3,12 +3,48 @@ import numpy as np
 import torch
 
 
-def image2numpy(pil_image, use_lower_left_origin=False):
-    """Convert a PIL Image to a numpy array with values in 0 and 1."""
+def image_uint8_to_float32(tensor):
+    """converts uint8 tensor to float32"""    
+    if torch.is_tensor(tensor):
+        if tensor.dtype == torch.float32:
+            return tensor
+        return tensor.type(torch.float32) / 255.0
+    elif isinstance(tensor, np.ndarray):
+        if tensor.dtype == np.float32:
+            return tensor
+        return tensor.astype(np.float32) / 255.0
+    raise ValueError("tensor must be torch.tensor or np.ndarray")
+
+
+def image_float32_to_uint8(tensor):
+    """converts float32 tensor to uint8"""
+    if torch.is_tensor(tensor):
+        if tensor.dtype == torch.uint8:
+            return tensor
+        return (tensor * 255).type(torch.uint8)
+    elif isinstance(tensor, np.ndarray):
+        if tensor.dtype == np.uint8:
+            return tensor
+        return (tensor * 255).astype(np.uint8)
+    raise ValueError("tensor must be torch.tensor or np.ndarray")
+
+
+def image2numpy(pil_image, use_lower_left_origin=False, use_uint8=True):
+    """
+    Convert a PIL Image to a numpy array.
+    If use_uint8 is False, the values are in [0, 1] and the dtype is float32.
+    If use_uint8 is True, the values are in [0, 255] and the dtype is uint8.
+    """
     if use_lower_left_origin:
         # flip vertically
         pil_image = pil_image.transpose(Image.FLIP_TOP_BOTTOM)
-    return np.array(pil_image) / 255
+    if use_uint8:
+        # use int8
+        img = np.array(pil_image, dtype=np.uint8)
+    else:
+        # (default) use float32
+        img = np.array(pil_image, dtype=np.float32) / 255.0
+    return img
 
 
 def numpy2image(np_image, use_lower_left_origin=False):

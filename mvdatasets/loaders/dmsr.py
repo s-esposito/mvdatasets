@@ -63,9 +63,10 @@ def load_dmsr(
             print("WARNING: scene_scale_mult not in config, setting to 1.0")
         config["scene_scale_mult"] = 1.0
     
-    # TODO: implement subsample_factor
-    # if "subsample_factor" not in config:
-    #     config["subsample_factor"] = 1.0
+    if "subsample_factor" not in config:
+        if verbose:
+            print("WARNING: subsample_factor not in config, setting to 1")
+        config["subsample_factor"] = 1
         
     if "test_skip" not in config:
         if verbose:
@@ -129,7 +130,7 @@ def load_dmsr(
             # camera_pose = frame[1]
             # load PIL image
             img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
-            img_np = image2numpy(img_pil)
+            img_np = image2numpy(img_pil, use_uint8=True)
             
             # remove alpha (it is always 1)
             img_np = img_np[:, :, :3]
@@ -170,6 +171,7 @@ def load_dmsr(
                 # depths=depth_imgs,
                 masks=None,  # dataset has no masks
                 camera_idx=idx,
+                subsample_factor=int(config["subsample_factor"]),
             )
 
             cameras_splits[split].append(camera)

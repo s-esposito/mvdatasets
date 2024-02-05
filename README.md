@@ -39,10 +39,9 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 ### Train and test splits
 
 <p float="left">
-  <img src="imgs/blender_training_cameras.png" width="400" />
-  <img src="imgs/blender_test_cameras.png" width="400" />
+  <img src="plots/blender_training_cameras.png" width="400" />
+  <img src="plots/blender_test_cameras.png" width="400" />
 </p>
-
 
 <!--
 TODO: update 
@@ -64,72 +63,11 @@ conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
 
 # 2) install library
-python setup.py sdist
-pip install dist/mvdatasets-0.2.tar.gz 
+python setup.py develop # (preferred)
 # or
-python setup.py develop
+python setup.py sdist
+pip install dist/mvdatasets-0.3.tar.gz 
 ```
-
-<!-- 
-TODO: (optional: install PyTorch from source with CXX11_ABI=1) 
-
-
-```bash
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
-```
-
-Get the PyTorch Source
-
-```bash
-git clone --recursive https://github.com/pytorch/pytorch
-cd pytorch
-```
-
-Install PyTorch
-
-On Linux
-
-Install [ccache](https://github.com/ccache/ccache/blob/master/doc/INSTALL.md) (optional)
-```bash
-# download bin and add it to path or compile source and install
-```
-
-Prepare conda env
-```bash
-conda install -c conda-forge cusparselt
-conda install -c anaconda cudnn
-```
-
-If you would like to compile PyTorch with new C++ ABI enabled, then first run this [commands](https://discuss.pytorch.org/t/how-to-specify-glibcxx-use-cxx11-abi-1-when-building-pytorch-from-source/102899):
-
-```bash
-export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}
-export TORCH_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=1"
-python setup.py develop
-```
-
-Invoke CMake to Build C++ Code:
-
-First, make sure you invoke CMake to build your C++ code and create the shared library (e.g., .so file on Unix systems). From your project directory, run:
-
-
-```bash
-mkdir build
-cd build
-cmake ..
-make
-```
-This step will generate the shared library containing your C++ functions.
-
-Run install:
-
-After you have successfully built the C++ code using CMake, you can install the Python package using python setup.py install. This step will package the compiled C++ library along with the Python interface code and install it as a Python package.
-
-```bash
-python setup.py develop 
-```
--->
 
 ## Testing
 

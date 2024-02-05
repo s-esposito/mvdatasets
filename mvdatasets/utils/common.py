@@ -1,7 +1,4 @@
 def is_dataset_supported(dataset_name):
-    # TODO: add more datasets
-    # # llff, tanks_and_temples, ...
-    # pac_nerf currently not supported as major changes are needed
     datasets_supported = [
                             "dtu",
                             "blender",
@@ -9,7 +6,8 @@ def is_dataset_supported(dataset_name):
                             "dmsr",
                             "refnerf",
                             "llff",
-                            "mipnerf360"
+                            "mipnerf360",
+                            "shelly"
                         ]
     dataset_name = dataset_name.lower()
     if dataset_name in datasets_supported:
@@ -33,7 +31,22 @@ def get_dataset_test_preset(dataset_name):
     if dataset_name == "blender":
         scene_name = "lego"
         pc_paths = ["debug/point_clouds/blender/lego.ply"]
-        config = {}
+        config = {
+            "load_mask": 1,
+            "white_bg": 1,
+        }
+        
+    # test shelly
+    if dataset_name == "shelly":
+        scene_name = "khady"
+        pc_paths = []
+        config = {
+            "load_mask": 1,
+            "test_skip": 4,
+            "white_bg": 1,
+            "scene_scale_mult": 0.25,
+            "subsample_factor": 1
+        }
 
     # test blendernerf
     if dataset_name == "blendernerf":
@@ -44,7 +57,7 @@ def get_dataset_test_preset(dataset_name):
             "scene_scale_mult": 0.4,
             "white_bg": 1,
             "test_skip": 10,
-            "subsample_factor": 1.0
+            "subsample_factor": 1
         }
 
     # test dmsr
@@ -52,8 +65,8 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "dinning"
         pc_paths = ["debug/meshes/dmsr/dinning.ply"]
         config = {
-            "test_skip": 10,
-            "scene_scale_mult": 0.4
+            "test_skip": 5,
+            "scene_scale_mult": 0.12
         }
 
     # test refnerf
@@ -69,7 +82,7 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "fern"
         pc_paths = ["debug/point_clouds/llff/fern.ply"]
         config = {
-            "subsample_factor": 1.0,
+            "subsample_factor": 1,
             "scene_scale_mult": 0.03,
             "rotate_scene_x_axis_deg": 90.0
         }
@@ -79,7 +92,7 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "bicycle"
         pc_paths = ["debug/point_clouds/mipnerf360/bicycle.ply"]
         config = {
-            "subsample_factor": 4.0,
+            "subsample_factor": 4,
             "scene_scale_mult": 0.03,
         }
     

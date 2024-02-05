@@ -19,8 +19,6 @@ class MVDataset:
     All data is stored in CPU memory.
     """
 
-    # self.cameras = []
-
     def __init__(
         self,
         dataset_name,
@@ -29,7 +27,6 @@ class MVDataset:
         splits=["train", "test"],  # ["train", "test"]
         point_clouds_paths=[],
         config={},  # if not specified, use default config
-        # load_mask=True,
         # meshes_paths=[],
         # auto_orient_method="none",  # "up", "none"
         # auto_center_method="none",  # "poses", "focus", "none"
@@ -82,10 +79,12 @@ class MVDataset:
         # load blender
         # load blendernerf
         # load refnerf
+        # load shelly
         elif (
                 self.dataset_name == "blender"
                 or self.dataset_name == "blendernerf"
                 or self.dataset_name == "refnerf"
+                or self.dataset_name == "shelly"
             ):
             cameras_splits, self.global_transform = load_blender(
                 data_path,
@@ -162,12 +161,12 @@ class MVDataset:
         # else:
         #     self.meshes = []
         
-        def get_poses_all(cameras):
-            poses = []
-            for camera in cameras:
-                poses.append(camera.get_pose())
-            poses = torch.stack(poses, 0)
-            return poses
+        # def get_poses_all(cameras):
+        #     poses = []
+        #     for camera in cameras:
+        #         poses.append(camera.get_pose())
+        #     poses = torch.stack(poses, 0)
+        #     return poses
 
         # # align and center poses
         cameras_all = []
@@ -210,6 +209,14 @@ class MVDataset:
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
 
+    def has_masks(self):
+        for split, cameras in self.data.items():
+            for camera in cameras:
+                # assumption: if one camera has masks, all cameras have masks
+                if camera.has_masks():
+                    return True
+        return False
+    
     def __getitem__(self, split):
         return self.data[split]
 

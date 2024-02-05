@@ -19,6 +19,8 @@ from mvdatasets.utils.raycasting import (
 # def f(azimuth_deg=5):
 #     plot_fn(..., azimuth_deg=azimuth_deg, ...)
 
+def _scene_radius_to_scale(scene_radius):
+    return scene_radius * 0.1
 
 def _scene_radius(poses):
     """
@@ -33,15 +35,16 @@ def _scene_radius(poses):
     # get all camera centers
     camera_centers = np.stack(poses, 0)[:, :3, 3]
     camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
-    scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
+    scene_radius = np.max(camera_distances_from_origin)
+    # scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
     return scene_radius
 
 
-def _plot_3d_init(ax, scene_radius=1, elevation_deg=60, azimuth_deg=30, up="z"):
+def _draw_3d_init(ax, scene_radius=1, elevation_deg=60, azimuth_deg=30, up="z"):
     lim = scene_radius
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
-    ax.set_zlim([-1, lim])
+    ax.set_zlim([max(-1, -lim), lim])
 
     ax.set_xlabel("X")
     ax.set_ylabel("Y") if up == "z" else ax.set_ylabel("Z")
@@ -52,7 +55,7 @@ def _plot_3d_init(ax, scene_radius=1, elevation_deg=60, azimuth_deg=30, up="z"):
     ax.view_init(elevation_deg, azimuth_deg)
 
 
-def _plot_bounding_cube(ax, side_lenght=1, up="z", scale=1.0):
+def _draw_bounding_cube(ax, side_lenght=1, up="z", scene_radius=1.0):
     # draw bounding cube
     r = [-1, 1]
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
@@ -60,7 +63,7 @@ def _plot_bounding_cube(ax, side_lenght=1, up="z", scale=1.0):
             ax.plot3D(*zip(s, e), color="black")
 
 
-def _plot_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_lenght=1, up="z", scale=1.0):
+def _draw_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_lenght=None, up="z", scene_radius=1.0):
     if rays_o is None or rays_d is None:
         return
     
@@ -74,6 +77,9 @@ def _plot_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_le
                 rgb = rgb[idx]
             if mask is not None:
                 mask = mask[idx]
+    
+    if ray_lenght is None:
+        ray_lenght = 2 * scene_radius
     
     # draw rays
     for i, (ray_o, ray_d) in enumerate(zip(rays_o, rays_d)):
@@ -91,7 +97,7 @@ def _plot_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_le
         )
 
 
-def _plot_point_cloud(ax, points_3d, max_nr_points=None, up="z", scale=1.0):
+def _draw_point_cloud(ax, points_3d, max_nr_points=None, up="z", scene_radius=1.0):
     if points_3d is None:
         return
     
@@ -100,7 +106,9 @@ def _plot_point_cloud(ax, points_3d, max_nr_points=None, up="z", scale=1.0):
         if max_nr_points < points_3d.shape[0]:
             idx = np.random.permutation(points_3d.shape[0])[:max_nr_points]
             points_3d = points_3d[idx]
-        
+    
+    scale = _scene_radius_to_scale(scene_radius)
+    
     # draw points
     if up == "z":
         ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*5)
@@ -108,9 +116,11 @@ def _plot_point_cloud(ax, points_3d, max_nr_points=None, up="z", scale=1.0):
         ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*5)
 
 
-def _plot_frame(ax, pose, idx=0, up="z", scale=1.0):
+def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     if pose is None:
         return
+    
+    scale = _scene_radius_to_scale(scene_radius)
 
     # get axis directions (normalized)
     x_dir = pose[:3, 0]
@@ -163,11 +173,11 @@ def _plot_frame(ax, pose, idx=0, up="z", scale=1.0):
     )
 
 
-def _plot_cartesian_axis(ax, up="z", scale=1.0):
-    _plot_frame(ax, np.eye(4), idx="w", up=up, scale=scale)
+def _draw_cartesian_axis(ax, up="z", scene_radius=1.0):
+    _draw_frame(ax, np.eye(4), idx="w", up=up, scene_radius=scene_radius)
 
 
-def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0, draw_frame=False):
+def _draw_bounding_box(ax, bb, idx=0, up="z", scene_radius=1.0, draw_frame=False):
     if bb is None:
         return
     
@@ -202,8 +212,8 @@ def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0, draw_frame=False):
     # visualize min, max vertices
     min_vertex = vertices[0]
     max_vertex = vertices[7]
-    ax.scatter(min_vertex[0], min_vertex[1], min_vertex[2], s=scale, color=color, marker="o")
-    ax.scatter(max_vertex[0], max_vertex[1], max_vertex[2], s=scale, color=color, marker="o")
+    ax.scatter(min_vertex[0], min_vertex[1], min_vertex[2], s=50, color=color, marker="o")
+    ax.scatter(max_vertex[0], max_vertex[1], max_vertex[2], s=50, color=color, marker="o")
     
     # plot line segments
     for pair in vertices_pairs:
@@ -224,21 +234,23 @@ def _plot_bounding_box(ax, bb, idx=0, up="z", scale=1.0, draw_frame=False):
     
     # draw bb frame
     if draw_frame:
-        _plot_frame(ax, pose, idx=label, up=up, scale=scale)
+        _draw_frame(ax, pose, idx=label, up=up, scene_radius=scene_radius)
 
 
-def _plot_bounding_boxes(ax, bounding_boxes, up="z", scale=1.0, draw_frame=False):
+def _draw_bounding_boxes(ax, bounding_boxes, up="z", scene_radius=1.0, draw_frame=False):
     if bounding_boxes is None:
         return
     
     # draw bounding boxes
     for i, bb in enumerate(bounding_boxes):
-        _plot_bounding_box(ax, bb, idx=i, up=up, scale=scale, draw_frame=draw_frame)
+        _draw_bounding_box(ax, bb, idx=i, up=up, scene_radius=scene_radius, draw_frame=draw_frame)
 
 
-def _plot_image_plane(ax, camera, up="z", scale=1.0):
+def _draw_image_plane(ax, camera, up="z", scene_radius=1.0):
     if camera is None:
         return
+
+    scale = _scene_radius_to_scale(scene_radius)
 
     # get image plane corner points in 3D
     # from screen coordinates
@@ -281,7 +293,7 @@ def _plot_image_plane(ax, camera, up="z", scale=1.0):
                     )
 
 
-def _plot_frustum(ax, camera, up="z", scale=1.0):
+def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
     if camera is None:
         return
 
@@ -304,22 +316,21 @@ def _plot_frustum(ax, camera, up="z", scale=1.0):
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
 
-    _plot_rays(
+    _draw_rays(
         ax,
         rays_o,
         rays_d,
-        ray_lenght=3.0,  # TODO: proportinal to scene radius
         rgb=np.zeros((rays_o.shape[0], 3)),
         up=up,
-        scale=scale
+        scene_radius=scene_radius
     )
-    
-    _plot_image_plane(ax, camera, up=up, scale=scale)
 
 
-def _plot_camera_frame(ax, pose, idx=0, up="z", scale=1.0):
+def _draw_camera_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     if pose is None:
         return
+    
+    scale = _scene_radius_to_scale(scene_radius)
     
     # get axis directions (normalized)
     x_dir = pose[:3, 0]
@@ -370,33 +381,43 @@ def _plot_camera_frame(ax, pose, idx=0, up="z", scale=1.0):
     )
 
 
-def _plot_cameras(ax, cameras, up="z", scale=1.0, draw_image_planes=False, draw_frustum=True):
+def _draw_cameras(
+    ax,
+    cameras,
+    nr_rays=0,
+    up="z",
+    scene_radius=1.0,
+    draw_image_planes=True,
+    draw_cameras_frustums=True
+):
     if len(cameras) == 0:
         return
     # draw camera frames
     for camera in cameras:
         pose = camera.get_pose()
         camera_idx = camera.camera_idx
-        _plot_camera_frame(ax, pose, idx=camera_idx, up=up, scale=scale)
-        # if draw_image_planes:
-        #     # draw image plane
-        #     _plot_image_plane(ax, camera, up=up, scale=scale)
-        if draw_frustum:
-            # draw frustum
-            _plot_frustum(ax, camera, up=up, scale=scale)
+        _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
+        if draw_image_planes:
+            _draw_image_plane(ax, camera, up=up, scene_radius=scene_radius)
+        if draw_cameras_frustums:
+            _draw_frustum(ax, camera, up=up, scene_radius=scene_radius)
+        if nr_rays // len(cameras) > 0:
+            _draw_camera_rays(ax, camera, nr_rays=nr_rays // len(cameras), up=up, scene_radius=scene_radius)
 
 
 def plot_cameras(
     cameras,
     points_3d=None,
     bounding_boxes=[],
+    nr_rays=0,
     azimuth_deg=60,
     elevation_deg=30,
     radius=None,
     up="z",
     draw_origin=True,
     draw_bounding_cube=True,
-    draw_image_planes=False,
+    draw_image_planes=True,
+    draw_cameras_frustums=False,
     figsize=(15, 15),
     title=None
 ):
@@ -420,14 +441,14 @@ def plot_cameras(
         scene_radius = _scene_radius(poses)
     else:
         scene_radius = radius
-    scale = scene_radius * 0.1
+    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
     if title is not None:
         ax.set_title(title)
-    _plot_3d_init(
+    _draw_3d_init(
         ax,
         scene_radius=scene_radius,
         up=up,
@@ -436,32 +457,35 @@ def plot_cameras(
     )
 
     if draw_origin:
-        _plot_cartesian_axis(ax, up=up, scale=scale)
+        _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
 
     # draw points
-    _plot_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scale=scale)
+    _draw_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scene_radius=scene_radius)
 
     # draw bounding cube
     if draw_bounding_cube:
-        _plot_bounding_cube(ax, up=up, scale=scale)
+        _draw_bounding_cube(ax, up=up, scene_radius=scene_radius)
 
     # draw camera frames
-    _plot_cameras(
+    _draw_cameras(
         ax,
         cameras,
+        nr_rays=nr_rays,
         up=up,
-        scale=scale,
-        draw_image_planes=draw_image_planes
+        scene_radius=scene_radius,
+        draw_image_planes=draw_image_planes,
+        draw_cameras_frustums=draw_cameras_frustums
     )
     
     # plot bounding boxes (if given)
-    _plot_bounding_boxes(ax, bounding_boxes, up=up, scale=scale)
+    _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
 
     return fig
 
 
 def plot_bounding_boxes(
     bounding_boxes=[],
+    points_3d=None,
     azimuth_deg=60,
     elevation_deg=30,
     radius=1,
@@ -482,14 +506,14 @@ def plot_bounding_boxes(
     # scene radius and scale
     # TODO: get scale from bounding boxes
     scene_radius = radius
-    scale = scene_radius * 0.1
+    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
     if title is not None:
         ax.set_title(title)
-    _plot_3d_init(
+    _draw_3d_init(
         ax,
         scene_radius=scene_radius,
         up=up,
@@ -499,61 +523,36 @@ def plot_bounding_boxes(
 
     # draw world origin
     if draw_origin:
-        _plot_cartesian_axis(ax, up=up, scale=scale)
+        _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
     
     # plot bounding boxes (if given)
-    _plot_bounding_boxes(
+    _draw_bounding_boxes(
         ax,
         bounding_boxes,
         up=up,
-        scale=scale,
+        scene_radius=scene_radius,
         draw_frame=draw_frame
     )
+    
+    # draw points
+    _draw_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scene_radius=scene_radius)
 
     return fig
 
 
-def plot_camera_rays(
+def _draw_camera_rays(
+    ax,
     camera,
     nr_rays,
-    points_3d=None,
-    bounding_boxes=[],
-    azimuth_deg=60,
-    elevation_deg=30,
-    radius=None,
+    frame_idx=0,
     up="z",
-    draw_origin=True,
-    draw_bounding_cube=True,
-    figsize=(15, 15),
-    title=None
+    scene_radius=1.0,
 ):
-    """
-    out:
-        matplotlib figure
-    """
-
-    if not (up == "z" or up == "y"):
-        raise ValueError("up must be either 'y' or 'z'")
-
-    # Get all camera poses
-    pose = camera.get_pose()
-    
-    # scene radius and scale
-    if radius is None:
-        scene_radius = _scene_radius([pose])
-    else:
-        scene_radius = radius
-    scale = scene_radius * 0.1
-
     rays_o, rays_d, points_2d = get_camera_rays(camera, device="cpu")
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     
-    # get frames
-    rgb = camera.get_rgb()
-    mask = camera.get_mask()
-    
-    if rgb is None:
+    if not camera.has_rgbs():
         # color rays with their uv coordinates
         xy = points_2d[:, [1, 0]]
         z = np.zeros((xy.shape[0], 1))
@@ -561,60 +560,30 @@ def plot_camera_rays(
         rgb[:, 0] /= np.max(rgb[:, 0])
         rgb[:, 1] /= np.max(rgb[:, 1])
     else:
+        # use frame rgb
+        rgb = camera.get_rgb(frame_idx=frame_idx)
         vals = get_camera_frames_per_points_2d(points_2d, rgb=rgb)
         rgb = vals["rgb"]
         
-    if mask is None:
+    if not camera.has_masks():
         # set to ones
         mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
     else:
+        mask = camera.get_mask(frame_idx=frame_idx)
         vals = get_camera_frames_per_points_2d(points_2d, mask=mask)
         mask = vals["mask"]
 
-    # init figure
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(111, projection="3d")
-    if title is not None:
-        ax.set_title(title)
-    _plot_3d_init(
-        ax,
-        scene_radius=scene_radius,
-        up=up,
-        elevation_deg=elevation_deg,
-        azimuth_deg=azimuth_deg
-    )
-
-    # draw world origin
-    if draw_origin:
-        _plot_cartesian_axis(ax, up=up, scale=scale)
-    
-    # draw points
-    _plot_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scale=scale)
-
-    # draw bounding cube
-    if draw_bounding_cube:
-        _plot_bounding_cube(ax, up=up, scale=scale)
-    
-    # draw camera frame
-    _plot_camera_frame(ax, pose, camera.camera_idx, up=up, scale=scale)
-
     # draw rays
-    _plot_rays(
+    _draw_rays(
         ax,
         rays_o,
         rays_d,
         rgb=rgb,
         mask=mask,
         max_nr_rays=nr_rays,
-        ray_lenght=scene_radius * 2,
         up=up,
-        scale=scale
+        scene_radius=scene_radius
     )
-    
-    # plot bounding boxes (if given)
-    _plot_bounding_boxes(ax, bounding_boxes, up=up, scale=scale)
-
-    return fig
 
 
 def plot_current_batch(
@@ -654,7 +623,7 @@ def plot_current_batch(
     if mask is not None:
         mask = mask.cpu().numpy()
     else:
-        # if mask is not given, set to ones
+        # if mask is not given, set to 0.5
         mask = np.ones((rays_o.shape[0], 1)) * 0.5
 
     # get unique camera idxs
@@ -670,14 +639,14 @@ def plot_current_batch(
         scene_radius = _scene_radius(poses)
     else:
         scene_radius = radius
-    scale = scene_radius * 0.1
+    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
     if title is not None:
         ax.set_title(title)
-    _plot_3d_init(
+    _draw_3d_init(
         ax,
         scene_radius=scene_radius,
         up=up,
@@ -686,26 +655,26 @@ def plot_current_batch(
     )
 
     if draw_origin:
-        _plot_cartesian_axis(ax, up=up, scale=scale)
+        _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
 
     # draw bounding cube
     if draw_bounding_cube:
-        _plot_bounding_cube(ax, up=up, scale=scale)
+        _draw_bounding_cube(ax, up=up, scene_radius=scene_radius)
 
     # plot unique camera poses
-    _plot_cameras(ax, poses, unique_cameras_idx, up=up, scale=scale)
-
+    for pose, camera_idx in zip(poses, unique_cameras_idx):
+        _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
+    
     # draw rays
-    _plot_rays(
+    _draw_rays(
         ax,
         rays_o,
         rays_d,
         rgb=rgb,
         mask=mask,
         max_nr_rays=None,
-        ray_lenght=scene_radius * 2,
         up=up,
-        scale=scale
+        scene_radius=scene_radius
     )
 
     return fig
@@ -733,10 +702,10 @@ def plot_points_2d_on_image(
     if not camera.has_rgbs():
         raise ValueError("camera has no rgb modality")
     
-    rgb = camera.get_rgb(frame_idx=frame_idx)
+    rgb = camera.get_rgb(frame_idx=frame_idx) / 255.0
     mask = None
     if camera.has_masks():
-        mask = camera.get_mask(frame_idx=frame_idx)
+        mask = camera.get_mask(frame_idx=frame_idx) / 255.0
         rgb = rgb * np.clip(mask + 0.2, 0, 1)
     print("rgb", rgb.shape)
     

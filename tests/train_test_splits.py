@@ -72,13 +72,15 @@ if __name__ == "__main__":
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
+        draw_image_planes=True,
+        draw_cameras_frustums=False,
         figsize=(15, 15),
         title="training cameras",
     )
 
     # plt.show()
     plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_training_cameras.png"),
+        os.path.join("plots", f"{dataset_name}_training_cameras.png"),
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,
@@ -93,16 +95,21 @@ if __name__ == "__main__":
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
+        draw_bounding_cube=False,
+        draw_image_planes=True,
+        draw_cameras_frustums=False,
         figsize=(15, 15),
         title="test cameras",
     )
 
-    plt.show()
+    # plt.show()
     plt.savefig(
-        os.path.join("imgs", f"{dataset_name}_test_cameras.png"),
+        os.path.join("plots", f"{dataset_name}_test_cameras.png"),
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,
         dpi=300
     )
     plt.close()
+    
+    print("done")

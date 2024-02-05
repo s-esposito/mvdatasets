@@ -1,27 +1,6 @@
 import numpy as np
 import cv2 as cv
 
-# def decompose_projection_matrix(P):
-#     """
-#     Decompose a projection matrix into K, R, t such that P = K[R|t].
-#     Args:
-#         P (np.ndarray): 3x4 projection matrix.
-#     Returns:
-#         K (np.ndarray): 3x3 intrinsic matrix.
-#         R (np.ndarray): 3x3 rotation matrix.
-#         t (np.ndarray): 3x1 translation vector.
-#     """
-#     M = P[0:3, 0:3]
-#     Q = np.eye(3)[::-1]
-#     P_b = Q @ M @ M.T @ Q
-#     K_h = Q @ np.linalg.cholesky(P_b) @ Q
-#     K = K_h / K_h[2, 2]
-#     A = np.linalg.inv(K) @ M
-#     el = (1 / np.linalg.det(A)) ** (1 / 3)
-#     R = el * A
-#     t = el * np.linalg.inv(K) @ P[0:3, 3]
-#     return K, R, t
-
 
 class Camera:
     """Camera class.
@@ -36,22 +15,24 @@ class Camera:
         instance_masks=None, semantic_masks=None,
         global_transform=None, local_transform=None,
         camera_idx=0,
-        width=None, height=None
+        width=None, height=None,
+        subsample_factor=1
     ):
         """Create a camera object, all parameters are np.ndarrays.
 
         Args:
-            rgbs (np.array, float): (T, H, W, 3) with values in [0, 1]
-            masks (np.array, float): (T, H, W, 1) with values in [0, 1]
-            normals (np.array, float): (T, H, W, 3) with values in [0, 1]
-            depths (np.array, float): (T, H, W, 1) with values in [0, 1]
-            instance_masks (np.array, int): (T, H, W, 1) with values in [0, n_instances]
-            semantic_masks (np.array, int): (T, H, W, 1) with values in [0, n_classes]
+            rgbs (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 1]
+            masks (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 1]
+            normals (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 1]
+            depths (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 1]
+            instance_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_instances]
+            semantic_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_classes]
             intrinsics (np.array): (3, 3) camera intrinsics
             pose (np.array): (4, 4) camera extrinsics
             camera_idx (int): camera index
             width (int): image width, mandatory when camera has no images
             height (int): image height, mandatory when camera has no images
+            subsample_factor (int): subsample factor for images
         """
 
         # assert shapes are correct
@@ -113,6 +94,11 @@ class Camera:
             self.local_transform = local_transform
         else:
             self.local_transform = np.eye(4)
+            
+        # subsample 
+        if subsample_factor > 1:
+            self.resize(subsample_factor)
+            
 
     def has_modality(self, modality_name):
         """check if modality_name exists in frames"""
@@ -159,27 +145,22 @@ class Camera:
 
         return frame
     
-    def resize(self, max_dim, verbose=False):
-        """make frames smaller by iteratively scaling dimensions by 0.5
-        until we reach a certain size.
-
+    def resize(self, subsample_factor, verbose=False):
+        """make frames smaller by scaling them by scale factor (inplace operation)
         Args:
-            modality_name (str): modality name
-            max_dim (int): target max dimension (width or height)
+            subsample_factor (float): inverse of scale factor
+            verbose (bool): print info
         """
-        
-        scale_factor = 1
         old_height, old_width = self.height, self.width
-        while min(self.width, self.height) > max_dim:
-            for modality_name in self.modalities.keys():
-                self.subsample_modality(modality_name, scale=0.5)
-            scale_factor *= 0.5
-            self.height, self.width = self.get_screen_space_dims()
+        scale = 1/subsample_factor
+        for modality_name in self.modalities.keys():
+            self.subsample_modality(modality_name, scale=scale)
+        self.height, self.width = self.get_screen_space_dims()
         # scale intrinsics accordingly
-        self.scale_intrinsics(scale_factor)
+        self.scale_intrinsics(scale)
         if verbose:
             print(f"camera image plane resized from {old_height}, {old_width} to {self.height}, {self.width}")
-                    
+    
     def scale_intrinsics(self, scale):
         """scales the intrinsics matrix"""
         self.intrinsics[0, 0] *= scale
@@ -202,11 +183,13 @@ class Camera:
     
     def get_rgbs(self):
         """return, if exists, all camera frames"""
-        return self.get_modality_frames("rgb")
+        img = self.get_modality_frames("rgb")
+        return img
 
     def get_rgb(self, frame_idx=0):
         """returns, if exists, image at frame_idx"""
-        return self.get_modality_frame("rgb", frame_idx=frame_idx)
+        img = self.get_modality_frame("rgb", frame_idx=frame_idx)
+        return img 
 
     def has_masks(self):
         """check if masks exists"""
@@ -214,11 +197,13 @@ class Camera:
     
     def get_masks(self):
         """return, if exists, all camera masks, else None"""
-        return self.get_modality_frames("mask")
+        img = self.get_modality_frames("mask")
+        return img
 
     def get_mask(self, frame_idx=0):
         """return, if exists, a mask at frame_idx, else None"""
-        return self.get_modality_frame("mask", frame_idx=frame_idx)
+        img = self.get_modality_frame("mask", frame_idx=frame_idx)
+        return img
     
     def has_normals(self):
         """check if normals exists"""
@@ -226,11 +211,13 @@ class Camera:
     
     def get_normals(self):
         """return, if exists, all camera normal maps, else None"""
-        return self.get_modality_frames("normal")
+        img = self.get_modality_frames("normal")
+        return img
     
     def get_normal(self, frame_idx=0):
         """return, if exists, the normal map at frame_idx, else None"""
-        return self.get_modality_frame("normal", frame_idx=frame_idx)
+        img = self.get_modality_frame("normal", frame_idx=frame_idx)
+        return img
     
     def has_depths(self):
         """check if depths exists"""
@@ -238,11 +225,13 @@ class Camera:
     
     def get_depths(self):
         """return, if exists, all camera depth maps, else None"""
-        return self.get_modality_frames("depth")
+        img = self.get_modality_frames("depth")
+        return img
     
     def get_depth(self, frame_idx=0):
         """return, if exists, the depth map at frame_idx, else None"""
-        return self.get_modality_frame("depth", frame_idx=frame_idx)
+        img = self.get_modality_frame("depth", frame_idx=frame_idx)
+        return img
     
     def has_instance_masks(self):
         """check if instance_masks exists"""
@@ -309,16 +298,16 @@ class Camera:
     def __str__(self):
         """print camera information"""
         string = ""
-        string += "intrinsics:\n"
+        string += f"intrinsics ({self.intrinsics.dtype}):\n"
         string += str(self.intrinsics) + "\n"
-        string += "pose:\n"
+        string += f"pose ({self.pose.dtype}):\n"
         string += str(self.pose) + "\n"
-        string += "global_transform:\n"
+        string += f"global_transform ({self.global_transform.dtype}):\n"
         string += str(self.global_transform) + "\n"
-        string += "local_transform:\n"
+        string += f"local_transform ({self.local_transform.dtype}):\n"
         string += str(self.local_transform) + "\n"
         for modality_name, modality_frames in self.modalities.items():
-            string += modality_name + ":\n"
+            string += modality_name + f" ({modality_frames.dtype}):\n"
             string += str(modality_frames.shape) + "\n"
 
         return string

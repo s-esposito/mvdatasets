@@ -86,9 +86,10 @@ def load_dtu(
             print("WARNING: scene_scale_mult not in config, setting to 0.4")
         config["scene_scale_mult"] = 0.4
     
-    # TODO: implement subsample_factor
-    # if "subsample_factor" not in config:
-    #     config["subsample_factor"] = 1.0
+    if "subsample_factor" not in config:
+        if verbose:
+            print("WARNING: subsample_factor not in config, setting to 1")
+        config["subsample_factor"] = 1
     
     if verbose:
         print("dtu config:")
@@ -122,7 +123,7 @@ def load_dtu(
     for im_name in pbar:
         # load PIL image
         img_pil = Image.open(im_name)
-        img_np = image2numpy(img_pil)
+        img_np = image2numpy(img_pil, use_uint8=True)
         imgs.append(img_np)
 
     # (optional) load mask images to cpu as numpy arrays
@@ -133,7 +134,7 @@ def load_dtu(
         for im_name in pbar:
             # load PIL image
             mask_pil = Image.open(im_name)
-            mask_np = image2numpy(mask_pil)
+            mask_np = image2numpy(mask_pil, use_uint8=True)
             mask_np = mask_np[:, :, 0, None]
             masks.append(mask_np)
     
@@ -174,6 +175,7 @@ def load_dtu(
             rgbs=cam_imgs,
             masks=cam_masks,
             camera_idx=idx,
+            subsample_factor=int(config["subsample_factor"]),
         )
 
         cameras_all.append(camera)

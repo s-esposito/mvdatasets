@@ -3,6 +3,7 @@ import numpy as np
 import torch.nn.functional as F
 
 from mvdatasets.utils.geometry import inv_perspective_projection, augment_vectors
+from mvdatasets.utils.images import image_uint8_to_float32
 
 
 def get_pixels(height, width, device="cpu"):
@@ -70,7 +71,7 @@ def get_pixels_centers(pixels):
     return points_2d
 
 
-def jitter_points(points, std=0.12):
+def jitter_points(points, std=0.16):
     """apply noise to points
 
     Args:
@@ -85,13 +86,37 @@ def jitter_points(points, std=0.12):
     offsets = torch.normal(
         mean=0.0, std=std, size=jittered_points.shape, device=points.device
     )
-    # clamp offsets to [-0.45, 0.45]
-    offsets = torch.clamp(offsets, -0.45, 0.45)
+    # clamp offsets to [-0.5 + eps, 0.5 - eps]
+    eps = 1e-4
+    offsets = torch.clamp(offsets, -0.5 + eps, 0.5 - eps)
     # uniformlu sampled offsets
     # offsets = torch.rand_like(jittered_points, device=jittered_points.device) - 0.5
     jittered_points += offsets
 
     return jittered_points
+
+
+# def jitter_points(points):
+#     """apply noise to points
+
+#     Args:
+#         points (torch.tensor): (N, 2) list of pixels centers (in screen space)
+#     Out:
+#         jittered_pixels (torch.tensor): (N, 2) list of pixels
+#     """
+
+#     # if pixels are int, convert to float:
+#     jittered_points = points
+#     # uniformlu sampled offsets
+#     eps = 1e-4
+#     offsets = torch.rand_like(jittered_points, device=jittered_points.device) - 0.5
+#     offsets = torch.clamp(offsets, -0.5 + eps, 0.5 - eps)
+#     # if offsets.min() < -0.5 or offsets.max() > 0.5:
+#     #     print(offsets.min(), offsets.max())
+#     #     exit()
+#     jittered_points += offsets
+    
+#     return jittered_points
 
 
 def get_points_2d_from_pixels(pixels, jitter_pixels, height, width):
@@ -192,13 +217,13 @@ def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
 
     args:
         points_2d (torch.tensor, float or int): (N, 2) with values in [0, height-1], [0, width-1]
-        rgb (torch.tensor): (height, width, 3)
-        mask (torch.tensor, optional): (height, width, 1), default is None
+        rgb (torch.tensor, optional, uint8): (height, width, 3)
+        mask (torch.tensor, optional, uint8): (height, width, 1), default is None
         
     out:
         vals (dict):
-            rgb_vals (optional, torch.tensor): (N, 3)
-            mask_vals (optional, torch.tensor): (N, 1)
+            rgb_vals (optional, torch.tensor, float): (N, 3)
+            mask_vals (optional, torch.tensor, float): (N, 1)
     """
 
     assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
@@ -212,19 +237,22 @@ def get_camera_frames_per_points_2d(points_2d, rgb=None, mask=None):
     # rgb
     if rgb is not None:
         rgb_vals = rgb[y, x]
+        rgb_vals = image_uint8_to_float32(rgb_vals)
         vals["rgb"] = rgb_vals
+    else:
+        rgb_vals = None
+        # print("rgb_vals", rgb_vals.shape, rgb_vals.dtype)
         
     # mask
     mask_vals = None
     if mask is not None:
         mask_vals = mask[y, x]
+        mask_vals = image_uint8_to_float32(mask_vals)
         vals["mask"] = mask_vals
-        
+    else:
+        mask_vals = None
+
     # TODO: get other frame modalities
-    
-    # TODO: bilinear interpolation
-    # if points_2d.dtype == torch.float32:
-        # ...
     
     assert rgb_vals is None or rgb_vals.shape[1] == 3, "rgb must be (N, 3)"
     assert mask_vals is None or mask_vals.shape[1] == 1, "mask_vals must be (N, 1)"
@@ -259,19 +287,19 @@ def get_camera_frames(camera, points_2d=None, frame_idx=0, device="cpu", jitter_
         pixels = pixels.reshape(-1, 2)
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, camera.height, camera.width)
 
-    # rgb
+    # rgb (uint8)
     rgb = None
     if camera.has_rgbs():
         rgb = torch.from_numpy(
                 camera.get_rgb(frame_idx=frame_idx)
-            ).float().to(device)
+            ).to(device)
     
-    # mask
+    # mask (uint8)
     mask = None
     if camera.has_masks():
         mask = torch.from_numpy(
                 camera.get_mask(frame_idx=frame_idx)
-            ).float().to(device)
+            ).to(device)
         
     # TODO: get other frames
 
@@ -371,7 +399,7 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     return rays_o, rays_d
 
 
-def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None, masks=None):
+def get_tensor_reel_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None, masks=None):
     """given a list of 2d points on the image plane and a list of rgbs,
     return rgb and mask values at pixels
 
@@ -380,14 +408,12 @@ def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None
                                             Values in [0, height-1], [0, width-1].
         camera_idx (int): camera index
         frame_idx (int): frame index.
-        rgbs (optional, torch.tensor): (N, T, H, W, 3) in [0, 1] or None
-        masks (optional, torch.tensor): (N, T, H, W, 1) in [0, 1] or None
-        
-
+        rgbs (optional, torch.tensor, uint8): (N, T, H, W, 3) in [0, 1] or None
+        masks (optional, torch.tensor, uint8): (N, T, H, W, 1) in [0, 1] or None
     out:
         vals (dict):
-            rgb_vals (optional, torch.tensor): (N, 3)
-            mask_vals (optional, torch.tensor): (N, 1)
+            rgb_vals (optional, torch.tensor, float32): (N, 3)
+            mask_vals (optional, torch.tensor, float32): (N, 1)
     """
 
     assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
@@ -402,19 +428,17 @@ def get_cameras_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None
     rgb_vals = None
     if rgbs is not None:
         rgb_vals = rgbs[camera_idx, frame_idx, y, x]
+        rgb_vals = image_uint8_to_float32(rgb_vals)
         vals["rgb"] = rgb_vals
     
     # mask
     mask_vals = None
     if masks is not None:
         mask_vals = masks[camera_idx, frame_idx, y, x]
+        mask_vals = image_uint8_to_float32(mask_vals)
         vals["mask"] = mask_vals
         
     # TODO: get other frame modalities
-    
-    # TODO: bilinear interpolation
-    # if points_2d.dtype == torch.float32:
-        # ...
         
     assert rgb_vals is None or rgb_vals.shape[1] == 3, "rgb must be (N, 3)"
     assert mask_vals is None or mask_vals.shape[1] == 1, "mask_vals must be (N, 1)"

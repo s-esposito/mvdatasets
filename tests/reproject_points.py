@@ -66,7 +66,8 @@ if __name__ == "__main__":
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
     else:
-        point_cloud = np.array([[0, 0, 0]])
+        # dataset has not debug point cloud
+        exit(0)
         
     points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
 
@@ -78,5 +79,5 @@ if __name__ == "__main__":
     fig = plot_points_2d_on_image(camera, points_2d, points_norms=camera_points_dists)
 
     # plt.show()
-    plt.savefig(os.path.join("imgs", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
+    plt.savefig(os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
     plt.close()
