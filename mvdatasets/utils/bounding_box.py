@@ -22,6 +22,7 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
     vmin = torch.tensor(aabb_min, dtype=rays_o.dtype, device=rays_o.device)
     vmax = torch.tensor(aabb_max, dtype=rays_o.dtype, device=rays_o.device)
     
+    # general case: camera eye outside bb
     t_min = (vmin - rays_o) / rays_d
     t_max = (vmax - rays_o) / rays_d
     t1 = torch.min(t_min, t_max)
@@ -29,8 +30,13 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
     t_near = torch.max(torch.max(t1[:, 0], t1[:, 1]), t1[:, 2])
     t_far = torch.min(torch.min(t2[:, 0], t2[:, 1]), t2[:, 2])
     
-    is_hit = t_far > 0.0
-    is_hit = is_hit * (t_near < t_far)
+    t_near[t_near < 0] = 0.0
+    is_hit = t_near <= t_far
+    
+    # special case: camera eye inside bb
+    is_inside = (rays_o >= vmin).all(dim=1) & (rays_o <= vmax).all(dim=1)
+    is_hit[is_inside] = True
+    t_near[is_inside] = 0.0
     
     t_near[~is_hit] = 0.0
     t_far[~is_hit] = 0.0
@@ -43,7 +49,7 @@ class BoundingBox:
     def __init__(
             self,
             pose=np.eye(4),
-            sizes=np.array([1, 1, 1]),
+            local_scale=np.array([1, 1, 1]),
             father_bb=None,
             label=None,
             color=None,
@@ -53,12 +59,14 @@ class BoundingBox:
 
         Args:
             pose (np.ndarray, optional): Defaults to np.eye(4).
-            sizes (np.ndarray, optional): Defaults to np.array([1, 1, 1]).
+            local_scale (np.ndarray, optional): Defaults to np.array([1, 1, 1]).
             father_bb (BoundingBox, optional): Defaults to None.
             label (str, optional): Defaults to None.
             color (str, optional): Defaults to None.
             line_width (float, optional): Defaults to 1.0.
         """
+        
+        assert local_scale.shape == (3,)
         
         # pose in father bounding box space
         # or world space if father_bb is None
@@ -66,10 +74,10 @@ class BoundingBox:
         # reference to father bounding box
         self.father_bb = father_bb
         if self.father_bb is None:
-            assert sizes is not None
-            self.sizes = sizes
+            assert local_scale is not None
+            self.local_scale = local_scale
         else:
-            self.sizes = self.father_bb.sizes
+            self.local_scale = self.father_bb.local_scale
         
         # mostly useful for visualization
         self.label = label
@@ -100,7 +108,7 @@ class BoundingBox:
         ])
         
         # vertices in bounding box space
-        vertices = center + offsets * self.sizes / 2
+        vertices = center + offsets * self.local_scale / 2
         
         # conver to world space
         pose = self.get_pose()
@@ -125,8 +133,8 @@ class BoundingBox:
         rays_d = (inv_pose[:3, :3] @ rays_d.T).T
         
         # compute intersections in bounding box space
-        aabb_min = np.array([-1, -1, -1]) * self.sizes / 2
-        aabb_max = np.array([1, 1, 1]) * self.sizes / 2
+        aabb_min = np.array([-1, -1, -1]) * self.local_scale / 2
+        aabb_max = np.array([1, 1, 1]) * self.local_scale / 2
         is_hit, t_near, t_far = _intersect_aabb(
             rays_o, rays_d, aabb_min, aabb_max
         )
