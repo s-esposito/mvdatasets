@@ -707,7 +707,7 @@ def plot_points_2d_on_image(
     if camera.has_masks():
         mask = camera.get_mask(frame_idx=frame_idx) / 255.0
         rgb = rgb * np.clip(mask + 0.2, 0, 1)
-    print("rgb", rgb.shape)
+    # print("rgb", rgb.shape)
     
     # init figure
     fig = plt.figure(figsize=figsize)

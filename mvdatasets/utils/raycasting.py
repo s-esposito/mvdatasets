@@ -29,31 +29,58 @@ def get_random_pixels(height, width, nr_pixels, device="cpu"):
     out:
         pixels (torch.tensor, int): (N, 2) with values in [0, width-1], [0, height-1]
     """
-    # sample nr_pixels random pixels
-    pixels = torch.rand(nr_pixels, 2, device=device)
-    pixels[:, 0] *= height
-    pixels[:, 1] *= width
-    pixels = pixels.int()
+    
+    # sample nr_pixels randon values in [0, (height * width) - 1] without replacement
+    probabilities = torch.ones(height * width, device=device)
+    pixels = get_random_pixels_from_error_map(probabilities, height, width, nr_pixels, device=device)
+    
+    # # sample nr_pixels random pixels
+    # pixels = torch.rand(nr_pixels, 2, device=device)
+    # pixels[:, 0] *= height
+    # pixels[:, 1] *= width
+    # pixels = pixels.int()
 
     return pixels
 
-# TODO: implement sampling from error map
-# def get_pixels_sampled_from_error_map(error_map, height, width, nr_pixels, device="cpu"):
-#     """given a number of pixels and an error map, sample pixels with error map as probability
 
-#     Args:
-#         error_map (torch.tensor): (height, width, 1) with values in [0, 1]
-#         height (int): frame height
-#         width (int): frame width
-#         nr_pixels (int): number of pixels to sample
-#         device (str, optional): Defaults to "cpu".
-#     """
+def get_random_pixels_from_error_map(error_map, height, width, nr_pixels, device="cpu"):
+        """given a number of pixels and an error map, sample pixels with error map as probability
 
-#     # TODO: use error map as probability to sample pixels
+        Args:
+            error_map (torch.tensor): (height, width, 1) with values in [0, 1]
+            height (int): frame height
+            width (int): frame width
+            nr_pixels (int): number of pixels to sample
+            device (str, optional): Defaults to "cpu".
+        """
+
+        # check device
+        if error_map.device != device:
+            error_map = error_map.to(device)
+
+        # convert error map to probabilities
+        probabilities = error_map.view(-1)
+        
+        # normaliza probabilities to ensure they sum up to 1
+        probabilities = probabilities / probabilities.sum()
+        
+        # sample pixel indices based on probabilities
+        pixels_1d = torch.multinomial(probabilities, nr_pixels, replacement=False)
+        
+        # convert 1d indices to 2d indices
+        pixels = torch.stack([
+            pixels_1d // width,
+            pixels_1d % width
+        ], dim=1)
+        
+        pixels = pixels.int()
+        
+        # assert pixels[:, 0].min() >= 0
+        # assert pixels[:, 0].max() < height
+        # assert pixels[:, 1].min() >= 0
+        # assert pixels[:, 1].max() < width
     
-#     pixels = None
-    
-#     return pixels
+        return pixels
 
 
 def get_pixels_centers(pixels):

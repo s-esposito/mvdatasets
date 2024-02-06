@@ -54,7 +54,7 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = ["debug/meshes/blendernerf/plushy.ply"]
         config = {
             "load_mask": 1,
-            "scene_scale_mult": 0.4,
+            "scene_scale_mult": 0.25,
             "white_bg": 1,
             "test_skip": 10,
             "subsample_factor": 1

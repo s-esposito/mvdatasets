@@ -29,7 +29,7 @@ def image_float32_to_uint8(tensor):
     raise ValueError("tensor must be torch.tensor or np.ndarray")
 
 
-def image2numpy(pil_image, use_lower_left_origin=False, use_uint8=True):
+def image2numpy(pil_image, use_lower_left_origin=False, use_uint8=False):
     """
     Convert a PIL Image to a numpy array.
     If use_uint8 is False, the values are in [0, 1] and the dtype is float32.
