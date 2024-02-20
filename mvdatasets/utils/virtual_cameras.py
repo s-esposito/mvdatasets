@@ -21,9 +21,9 @@ def sample_cameras_on_hemisphere(
     x = np.cos(azimuth_rad) * np.cos(elevation_rad) * radius
     y = np.sin(elevation_rad) * radius # y is up
     z = np.sin(azimuth_rad) * np.cos(elevation_rad) * radius
-    x = np.array(x)
-    y = np.array(y)
-    z = np.array(z)
+    # x = np.array(x)
+    # y = np.array(y)
+    # z = np.array(z)
     cameras_centers = np.column_stack((x, y, z))
     
     # points = np.random.uniform(-1, 1, (nr_cameras, 3))

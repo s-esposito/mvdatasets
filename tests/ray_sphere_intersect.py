@@ -43,16 +43,6 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
     
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
-    
-    # Get dataset test preset
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
-    
     width = 800
     height = 800
     vfov = 90.0
@@ -80,8 +70,17 @@ if __name__ == "__main__":
 
     sphere = BoundingSphere(
         pose=np.eye(4),
+        local_scale=np.array([0.4, 0.4, 0.4]),
+        device=device
     )
     bounding_spheres.append(sphere)
+    
+    # points = sphere.get_random_points_inside(1000)
+    # # get points norm
+    # points_norm = torch.norm(points, dim=1)
+    # print("min norm", torch.min(points_norm))
+    # print("max norm", torch.max(points_norm))
+    # print("points", points)
     
     # shoot rays from camera and intersect with boxes
     rays_o, rays_d, points_2d = get_camera_rays(camera, device="cuda")

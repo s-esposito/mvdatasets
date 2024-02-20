@@ -19,12 +19,12 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
         t_far (torch.tensor): (N,)
     """
     
-    vmin = torch.tensor(aabb_min, dtype=rays_o.dtype, device=rays_o.device)
-    vmax = torch.tensor(aabb_max, dtype=rays_o.dtype, device=rays_o.device)
+    if rays_o.device != aabb_min.device:
+        raise ValueError("rays and bounding box must be on the same device")
     
     # general case: camera eye outside bb
-    t_min = (vmin - rays_o) / rays_d
-    t_max = (vmax - rays_o) / rays_d
+    t_min = (aabb_min - rays_o) / rays_d
+    t_max = (aabb_max - rays_o) / rays_d
     t1 = torch.min(t_min, t_max)
     t2 = torch.max(t_min, t_max)
     t_near = torch.max(torch.max(t1[:, 0], t1[:, 1]), t1[:, 2])
@@ -34,7 +34,7 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
     is_hit = t_near <= t_far
     
     # special case: camera eye inside bb
-    is_inside = (rays_o >= vmin).all(dim=1) & (rays_o <= vmax).all(dim=1)
+    is_inside = (rays_o >= aabb_min).all(dim=1) & (rays_o <= aabb_max).all(dim=1)
     is_hit[is_inside] = True
     t_near[is_inside] = 0.0
     
@@ -54,8 +54,9 @@ class BoundingBox:
             label=None,
             color=None,
             line_width=1.0,
+            device="cpu"
         ):
-        """Bounding box class.
+        """Bounding Box class.
 
         Args:
             pose (np.ndarray, optional): Defaults to np.eye(4).
@@ -64,20 +65,29 @@ class BoundingBox:
             label (str, optional): Defaults to None.
             color (str, optional): Defaults to None.
             line_width (float, optional): Defaults to 1.0.
+            device (str, optional): Defaults to "cpu".
         """
         
         assert local_scale.shape == (3,)
         
         # pose in father bounding box space
         # or world space if father_bb is None
-        self.pose = pose
+        self.pose = torch.tensor(pose, dtype=torch.float32, device=device)
+        
         # reference to father bounding box
         self.father_bb = father_bb
-        if self.father_bb is None:
-            assert local_scale is not None
-            self.local_scale = local_scale
-        else:
-            self.local_scale = self.father_bb.local_scale
+        if father_bb is not None:
+            if self.father_bb.device != device:
+                raise ValueError("father and child and bounding boxes must be on the same device")
+        
+        # if self.father_bb is None:
+        self.local_scale = torch.tensor(local_scale, dtype=torch.float32, device=device)
+        # else:
+        # inherit local scale from father bounding box
+        # self.local_scale = self.father_bb.local_scale
+            
+        self.device = device
+        self.identity = torch.eye(4, dtype=torch.float32, device=device)
         
         # mostly useful for visualization
         self.label = label
@@ -92,11 +102,18 @@ class BoundingBox:
             father_bb = father_bb.father_bb
         return pose
     
-    def get_vertices(self):
+    def get_radius(self):
+        return (torch.max(self.local_scale) / 2.0).item()
+    
+    def get_center(self):
+        pose = self.get_pose()
+        return pose[:3, 3]
+    
+    def get_vertices(self, in_world_space=True):
         
         # offsets
-        center = np.array([0, 0, 0])
-        offsets = np.array([
+        center = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device)
+        offsets = torch.tensor([
             [-1, -1, -1],
             [-1, -1, 1],
             [-1, 1, -1],
@@ -105,14 +122,15 @@ class BoundingBox:
             [1, -1, 1],
             [1, 1, -1],
             [1, 1, 1]
-        ])
+        ], dtype=torch.float32, device=self.device)
         
         # vertices in bounding box space
         vertices = center + offsets * self.local_scale / 2
         
         # conver to world space
         pose = self.get_pose()
-        vertices = apply_transformation_3d(vertices, pose)
+        if in_world_space:
+            vertices = apply_transformation_3d(vertices, pose)
         
         return vertices
     
@@ -122,38 +140,82 @@ class BoundingBox:
             rays in world space
             rays_o (torch.tensor): (N, 3)
             rays_d (torch.tensor): (N, 3)
+        Out:
+            is_hit (torch.tensor): (N,)
+            t_near (torch.tensor): (N,)
+            t_far (torch.tensor): (N,)
+            p_near (torch.tensor): (N, 3)
+            p_far (torch.tensor): (N, 3)
         """
         
-        # convert rays to bounding box space
         pose = self.get_pose()
-        pose = torch.tensor(pose, dtype=rays_o.dtype, device=rays_o.device)
-        inv_pose = torch.linalg.inv(pose)
-                
-        rays_o = apply_transformation_3d(rays_o, inv_pose)
-        rays_d = (inv_pose[:3, :3] @ rays_d.T).T
         
+        if self.pose.device != rays_o.device:
+            raise ValueError("rays and bounding box must be on the same device")
+        
+        if (pose != self.identity).any():
+            # convert rays to bounding box space
+            inv_pose = torch.linalg.inv(pose)
+            rays_o = apply_transformation_3d(rays_o, inv_pose)
+            rays_d = (inv_pose[:3, :3] @ rays_d.T).T
+            
         # compute intersections in bounding box space
-        aabb_min = np.array([-1, -1, -1]) * self.local_scale / 2
-        aabb_max = np.array([1, 1, 1]) * self.local_scale / 2
+        aabb_min = -1 * self.local_scale / 2
+        aabb_max = self.local_scale / 2
         is_hit, t_near, t_far = _intersect_aabb(
             rays_o, rays_d, aabb_min, aabb_max
         )
         p_near = rays_o + rays_d * t_near[:, None]
         p_far = rays_o + rays_d * t_far[:, None]
         
-        # convert intersections to world space
-        p_near = apply_transformation_3d(p_near, pose)
-        p_far = apply_transformation_3d(p_far, pose)
+        if (pose != self.identity).any():
+            # convert intersections to world space
+            p_near = apply_transformation_3d(p_near, pose)
+            p_far = apply_transformation_3d(p_far, pose)
         
         return is_hit, t_near, t_far, p_near, p_far
+    
+    def get_random_points_inside(self, nr_points):
+        # points in local space
+        eps = 1e-6
+        points = torch.rand((nr_points, 3), dtype=torch.float32, device=self.device)
+        points = points * (self.local_scale - eps) - (self.local_scale / 2)
+        
+        # convert to world space
+        pose = self.get_pose()
+        points = apply_transformation_3d(points, pose)
+        return points
+    
+    def check_points_inside(self, points):
+        # TODO: test
+        
+        pose = self.get_pose()
+        
+        if (pose != self.identity).any():
+            # convert rays to bounding box space
+            inv_pose = torch.linalg.inv(pose)
+            points_ = apply_transformation_3d(points, inv_pose)
+        else:
+            points_ = points
+        
+        vertices = self.get_vertices(self, in_world_space=False)
+        vmin = vertices[0]
+        vmax = vertices[7]
+        
+        cond_1 = (points_ > vmin).all(dim=1)
+        cond_2 = (points_ < vmax).all(dim=1)
+        is_inside = torch.logical_and(cond_1, cond_2)
+        
+        return is_inside
     
     def save_as_ply(self, dir_path, name):
         
         # bbox vertices
         vertices = self.get_vertices()
+        vertices = vertices.cpu().numpy()
         
         # # define faces of the box
-        faces = [
+        faces = np.array([
             [0, 4, 5],
             [0, 5, 1],
             [4, 6, 7],
@@ -166,7 +228,7 @@ class BoundingBox:
             [1, 7, 3],
             [2, 6, 4],
             [2, 4, 0]
-        ]
+        ])
         
         # create Open3D mesh
         mesh = o3d.geometry.TriangleMesh()

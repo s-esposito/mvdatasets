@@ -90,7 +90,8 @@ if __name__ == "__main__":
             cameras_idx=cameras_idx,
             frame_idx=frame_idx,
             jitter_pixels=True,
-            nr_rays_per_pixel=1
+            nr_rays_per_pixel=1,
+            masked_sampling=True
         )
 
         if profiler is not None:

@@ -21,10 +21,10 @@ class Camera:
         """Create a camera object, all parameters are np.ndarrays.
 
         Args:
-            rgbs (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 1]
-            masks (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 1]
-            normals (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 1]
-            depths (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 1]
+            rgbs (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 255] or [0, 1]
+            masks (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 255] or [0, 1]
+            normals (np.array, uint8 or float32): (T, H, W, 3) with values in [0, 255] or [0, 1]
+            depths (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 255] or [0, 1]
             instance_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_instances]
             semantic_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_classes]
             intrinsics (np.array): (3, 3) camera intrinsics

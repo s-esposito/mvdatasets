@@ -199,9 +199,12 @@ def _draw_bounding_box(ax, bb, idx=0, up="z", scene_radius=1.0, draw_frame=False
     
     # get bb pose
     pose = bb.get_pose()
+    pose = pose.cpu().numpy()
     
     # get vertices and pairs of vertices for plotting
     vertices = bb.get_vertices()
+    vertices = vertices.cpu().numpy()
+    
     vertices_pairs = vertices[segments_indices]
     
     if bb.color is not None:

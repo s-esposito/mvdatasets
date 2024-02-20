@@ -5,12 +5,13 @@ from mvdatasets.utils.raycasting import (
     get_random_pixels,
     get_cameras_rays_per_points_2d,
     get_tensor_reel_frames_per_points_2d,
-    get_points_2d_from_pixels
+    get_points_2d_from_pixels,
+    get_random_pixels_from_error_map
 )
 
 
 class TensorReel:
-    def __init__(self, cameras_list, width=None, height=None, device="cuda"):
+    def __init__(self, cameras_list, width=None, height=None, device="cuda", verbose=False):
         """Create a tensor_reel object, containing all data
         stored contiguosly in tensors.
         
@@ -39,7 +40,10 @@ class TensorReel:
         intrinsics_inv = []
 
         # collect data from all cameras
-        pbar = tqdm(cameras_list, desc="tensor reel", ncols=100)
+        if verbose:
+            pbar = tqdm(cameras_list, desc="tensor reel", ncols=100)
+        else:
+            pbar = cameras_list
         for camera in pbar:
             
             # rgbs
@@ -112,7 +116,8 @@ class TensorReel:
 
         # move tensors to desired device
         if device != "cpu":
-            print("moving tensor reel to device")
+            if verbose:
+                print("moving tensor reel to device")
             self.intrinsics_inv = self.intrinsics_inv.to(device)
             self.poses = self.poses.to(device)
             if self.rgbs is not None:
@@ -128,7 +133,8 @@ class TensorReel:
             if self.semantic_masks is not None:
                 self.semantic_masks = self.semantic_masks.to(device)
         else:
-            print("tensor reel on cpu")
+            if verbose:
+                print("tensor reel on cpu")
 
         self.device = device
         if self.rgbs is not None:
@@ -141,7 +147,7 @@ class TensorReel:
 
     @torch.no_grad()
     def get_next_batch(
-        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False, nr_rays_per_pixel=1
+        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False, nr_rays_per_pixel=1, masked_sampling=False
     ):
         assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
         assert batch_size % nr_rays_per_pixel == 0, "batch_size must be a multiple of nr_rays_per_pixel"
@@ -168,6 +174,49 @@ class TensorReel:
         else:
             frame_idx = (torch.ones(batch_size) * frame_idx).int()
 
+        
+        # if masked_sampling:
+        #     # TODO: test if correct and performance drop
+
+        #     for idx in camera_idx:
+                
+                
+                
+        #         nr_rays = int((batch_size / len(camera_idx)) / nr_rays_per_pixel)
+        #         print("nr rays per camera", nr_rays)
+                
+        #         pixels = get_random_pixels_from_error_map(
+        #             self.masks[idx], self.height, self.width, nr_rays, device=self.device
+        #         )
+        #         print("pixels.shape", pixels.shape)
+                
+        #         # repeat pixels nr_rays_per_pixel times
+        #         pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
+        #         print("pixels.shape", pixels.shape)
+                
+        #         # get 2d points on the image plane
+        #         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
+        #         print("points_2d.shape", points_2d.shape)
+                
+        #         # get a ray for each pixel in corresponding camera frame
+        #         rays_o, rays_d = get_cameras_rays_per_points_2d(
+        #             c2w_all=self.poses[idx].repeat(nr_rays),
+        #             intrinsics_inv_all=self.intrinsics_inv[idx].repeat(nr_rays),
+        #             points_2d_screen=points_2d
+        #         )
+                
+                
+        #         # get ground truth rgbs values at pixels
+        #         vals = get_tensor_reel_frames_per_points_2d(
+        #             points_2d=points_2d,
+        #             camera_idx=idx,
+        #             frame_idx=frame_idx,
+        #             rgbs=self.rgbs,
+        #             masks=self.masks
+        #         )
+            
+        # else:
+        
         # get random pixels
         pixels = get_random_pixels(
             self.height, self.width, int(batch_size / nr_rays_per_pixel), device=self.device

@@ -17,6 +17,8 @@ from mvdatasets.utils.plotting import plot_cameras
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.utils.bounding_box import BoundingBox
+
 
 if __name__ == "__main__":
 
@@ -64,11 +66,24 @@ if __name__ == "__main__":
         point_cloud = mv_data.point_clouds[0]
     else:
         point_cloud = np.array([[0, 0, 0]])
+        
+    # create bounding boxes
+    bounding_boxes = []
+    
+    scene_radius = 0.5
+    bb = BoundingBox(
+        pose=np.eye(4),
+        local_scale=np.array([scene_radius*2, scene_radius*2, scene_radius*2]),
+        line_width=2.0,
+        device=device
+    )
+    bounding_boxes.append(bb)
 
     # Visualize cameras
     fig = plot_cameras(
         mv_data["train"],
         points_3d=point_cloud,
+        bounding_boxes=bounding_boxes,
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
@@ -92,10 +107,11 @@ if __name__ == "__main__":
     fig = plot_cameras(
         mv_data["test"],
         points_3d=point_cloud,
+        bounding_boxes=bounding_boxes,
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
-        draw_bounding_cube=False,
+        draw_bounding_cube=True,
         draw_image_planes=True,
         draw_cameras_frustums=False,
         figsize=(15, 15),
