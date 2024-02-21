@@ -37,7 +37,7 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 
 <p float="left">
   <img src="imgs/blender_training_cameras.png" width="400" />
-  <img src="imgs/blender_point_cloud_projection.png" width="400" />
+  <img src="imgs/blender_test_cameras.png" width="400" />
 </p>
 
 <!--
