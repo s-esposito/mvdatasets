@@ -36,8 +36,8 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 ### Train and test splits
 
 <p float="left">
-  <img src="plots/blender_training_cameras.png" width="400" />
-  <img src="plots/blender_point_cloud_projection.png" width="400" />
+  <img src="imgs/blender_training_cameras.png" width="400" />
+  <img src="imgs/blender_point_cloud_projection.png" width="400" />
 </p>
 
 <!--
