@@ -84,7 +84,8 @@ class BoundingSphere:
             label=None,
             color=None,
             line_width=1.0,
-            device="cpu"
+            device="cpu",
+            verbose=True
         ):
         """Bounding Sphere class.
 
@@ -108,6 +109,9 @@ class BoundingSphere:
         self.label = label
         self.color = color  # matplotlib color
         self.line_width = line_width
+        
+        if verbose:
+            print(f"Created sphere with local scale {self.local_scale}")
         
     def get_pose(self):
         return self.pose

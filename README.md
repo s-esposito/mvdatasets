@@ -63,7 +63,7 @@ conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=
 python setup.py develop # (preferred)
 # or
 python setup.py sdist
-pip install dist/mvdatasets-0.3.tar.gz 
+pip install dist/mvdatasets-0.4.tar.gz 
 ```
 
 ## Testing

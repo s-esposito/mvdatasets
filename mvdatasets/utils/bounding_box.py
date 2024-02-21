@@ -54,7 +54,8 @@ class BoundingBox:
             label=None,
             color=None,
             line_width=1.0,
-            device="cpu"
+            device="cpu",
+            verbose=True
         ):
         """Bounding Box class.
 
@@ -93,6 +94,9 @@ class BoundingBox:
         self.label = label
         self.color = color  # matplotlib color
         self.line_width = line_width
+        
+        if verbose:
+            print(f"Created bounding box with local scale {self.local_scale}")
     
     def get_pose(self):
         pose = deepcopy(self.pose)

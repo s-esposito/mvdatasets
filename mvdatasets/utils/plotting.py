@@ -585,6 +585,7 @@ def plot_current_batch(
     rays_d,
     rgb=None,
     mask=None,
+    bounding_boxes=[],
     azimuth_deg=60,
     elevation_deg=30,
     scene_radius=1.0,
@@ -661,6 +662,9 @@ def plot_current_batch(
         up=up,
         scene_radius=scene_radius
     )
+    
+    # plot bounding boxes (if given)
+    _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
 
     return fig
 

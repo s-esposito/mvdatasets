@@ -14,6 +14,8 @@ from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.utils.bounding_box import BoundingBox
+
 
 if __name__ == "__main__":
     
@@ -56,6 +58,17 @@ if __name__ == "__main__":
         config=config,
         verbose=True
     )
+    
+    # create bounding boxes
+    bounding_boxes = []
+    
+    bb = BoundingBox(
+        pose=np.eye(4),
+        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
+        line_width=2.0,
+        device=device
+    )
+    bounding_boxes.append(bb)
 
     # TensorReel (~1300 it/s), camera's data in concatenated in big tensors on GPU
 
@@ -118,8 +131,9 @@ if __name__ == "__main__":
                 camera_idx,
                 rays_o,
                 rays_d,
-                gt_rgb,
-                gt_mask,
+                rgb=gt_rgb,
+                mask=gt_mask,
+                bounding_boxes=bounding_boxes,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
                 scene_radius=mv_data.max_camera_distance,
@@ -145,33 +159,3 @@ if __name__ == "__main__":
             
     if profiler is not None:
         profiler.print_avg_times()
-
-    # # make webm video
-    # video_path = os.path.join("plots", "test.webm")
-    # writer = imageio.get_writer(video_path, fps=30, codec="libvpx-vp9")
-    # for frame_path in frames_paths:
-    #     im = imageio.imread(frame_path)
-    #     writer.append_data(im)
-    #     os.remove(frame_path)
-
-    # for i in tqdm(range(nr_iterations)):
-    #     profiler.start("get_next_batch")
-    #     idx, rays_o, rays_d, rgb, mask = get_next_batch(data_loader)
-    #     profiler.end("get_next_batch")
-
-    #     fig = plot_current_batch(
-    #         dataset_train.cameras,
-    #         idx,
-    #         rays_o,
-    #         rays_d,
-    #         rgb,
-    #         mask,
-    #         azimuth_deg=60,
-    #         elevation_deg=30,
-    #         up="z",
-    #         figsize=(15, 15),
-    #     )
-
-    #     # plt.show()
-    #     plt.savefig(f"test_static_scenes_batch_{i}.png", bbox_inches="tight", pad_inches=0, dpi=300)
-

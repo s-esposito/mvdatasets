@@ -20,6 +20,8 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.common import get_dataset_test_preset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
+from mvdatasets.utils.bounding_box import BoundingBox
+
 
 if __name__ == "__main__":
 
@@ -63,6 +65,17 @@ if __name__ == "__main__":
         verbose=True
     )
 
+    # create bounding boxes
+    bounding_boxes = []
+    
+    bb = BoundingBox(
+        pose=np.eye(4),
+        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
+        line_width=2.0,
+        device=device
+    )
+    bounding_boxes.append(bb)
+    
     # only available for object centric datasets
     if not mv_data.cameras_on_hemisphere:
         exit(0)
@@ -151,6 +164,9 @@ if __name__ == "__main__":
                 camera_idx,
                 rays_o,
                 rays_d,
+                rgb=None,
+                mask=None,
+                bounding_boxes=bounding_boxes,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
                 scene_radius=mv_data.max_camera_distance,
