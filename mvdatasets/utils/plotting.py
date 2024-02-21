@@ -41,7 +41,10 @@ def _scene_radius(poses):
 
 
 def _draw_3d_init(ax, scene_radius=1, elevation_deg=60, azimuth_deg=30, up="z"):
-    lim = scene_radius
+    if scene_radius < 1.0:
+        lim = 1.0
+    else:
+        lim = scene_radius
     ax.set_xlim([-lim, lim])
     ax.set_ylim([-lim, lim])
     ax.set_zlim([max(-1, -lim), lim])
@@ -415,7 +418,7 @@ def plot_cameras(
     nr_rays=0,
     azimuth_deg=60,
     elevation_deg=30,
-    radius=None,
+    scene_radius=1.0,
     up="z",
     draw_origin=True,
     draw_bounding_cube=True,
@@ -434,17 +437,8 @@ def plot_cameras(
 
     # get all camera poses
     poses = []
-    # camera_idxs = []
     for camera in cameras:
         poses.append(camera.get_pose())
-        # camera_idxs.append(camera.camera_idx)
-
-    # scene radius and scale
-    if radius is None:
-        scene_radius = _scene_radius(poses)
-    else:
-        scene_radius = radius
-    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)
@@ -491,7 +485,7 @@ def plot_bounding_boxes(
     points_3d=None,
     azimuth_deg=60,
     elevation_deg=30,
-    radius=1,
+    scene_radius=1.0,
     up="z",
     draw_origin=True,
     draw_frame=False,
@@ -505,11 +499,6 @@ def plot_bounding_boxes(
 
     if not (up == "z" or up == "y"):
         raise ValueError("up must be either 'y' or 'z'")
-
-    # scene radius and scale
-    # TODO: get scale from bounding boxes
-    scene_radius = radius
-    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)
@@ -598,7 +587,7 @@ def plot_current_batch(
     mask=None,
     azimuth_deg=60,
     elevation_deg=30,
-    radius=None,
+    scene_radius=1.0,
     up="z",
     draw_origin=True,
     draw_bounding_cube=True,
@@ -636,13 +625,6 @@ def plot_current_batch(
     poses = []
     for idx in unique_cameras_idx:
         poses.append(cameras[idx].get_pose())
-    
-    # get all camera centers
-    if radius is None:
-        scene_radius = _scene_radius(poses)
-    else:
-        scene_radius = radius
-    print("scene_radius", scene_radius)
 
     # init figure
     fig = plt.figure(figsize=figsize)

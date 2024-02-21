@@ -25,7 +25,7 @@ def get_dataset_test_preset(dataset_name):
     # test DTU
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
-        pc_paths = ["debug/meshes/dtu/dtu_scan83.ply"]
+        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {}
 
     # test blender
@@ -33,41 +33,32 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "lego"
         pc_paths = ["debug/point_clouds/blender/lego.ply"]
         config = {
-            "load_mask": 1,
-            "white_bg": 1,
+            "test_skip": 20
         }
         
     # test shelly
     if dataset_name == "shelly":
         scene_name = "khady"
-        pc_paths = []
+        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
-            "load_mask": 1,
             "test_skip": 4,
-            "white_bg": 1,
-            "scene_scale_mult": 0.25,
-            "subsample_factor": 1
+            "scene_radius": 1.2
         }
 
     # test blendernerf
     if dataset_name == "blendernerf":
         scene_name = "plushy"
-        pc_paths = ["debug/meshes/blendernerf/plushy.ply"]
+        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
-            "load_mask": 1,
-            "scene_scale_mult": 0.25,
-            "white_bg": 1,
-            "test_skip": 10,
-            "subsample_factor": 1
+            "test_skip": 10
         }
 
     # test dmsr
     if dataset_name == "dmsr":
         scene_name = "dinning"
-        pc_paths = ["debug/meshes/dmsr/dinning.ply"]
+        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
-            "test_skip": 5,
-            "scene_scale_mult": 0.12
+            "test_skip": 5
         }
 
     # test refnerf
@@ -78,14 +69,18 @@ def get_dataset_test_preset(dataset_name):
             "test_skip": 10,
         }
         
+    # test ingp
+    if dataset_name == "ingp":
+        scene_name = "fox"
+        pc_paths = []
+        config = {}
+        
     # test llff
     if dataset_name == "llff":
         scene_name = "fern"
         pc_paths = ["debug/point_clouds/llff/fern.ply"]
         config = {
-            "subsample_factor": 1,
             "scene_scale_mult": 0.03,
-            "rotate_scene_x_axis_deg": 90.0
         }
     
     # test mipnerf360

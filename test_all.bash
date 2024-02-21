@@ -1,6 +1,7 @@
 #! /bin/bash
 
 DATASETS=(
+    "ingp"
     "dtu"
     "blender"
     "blendernerf"

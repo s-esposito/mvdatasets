@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mvdatasets",
-    version="0.3",
+    version="0.4",
     description="common multi-view datasets loaders",
     url="https://github.com/s-esposito/mv_datasets",
     author="Stefano Esposito",

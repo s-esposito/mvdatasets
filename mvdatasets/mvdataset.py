@@ -1,17 +1,40 @@
-import os
-import torch
 from rich import print
+import os
 import numpy as np
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
 from mvdatasets.loaders.ingp import load_ingp
 from mvdatasets.loaders.dmsr import load_dmsr
 from mvdatasets.loaders.llff import load_llff
-# from mvdatasets.loaders.pac_nerf import load_pac_nerf
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
 from mvdatasets.utils.geometry import apply_transformation_3d
-# from mvdatasets.utils.bounding_primitives import Sphere, AABB
+
+
+def get_poses_all(cameras):
+    poses = []
+    for camera in cameras:
+        poses.append(camera.get_pose())
+    poses = np.stack(poses, 0)
+    return poses
+
+
+def poses_radius(poses):
+    """
+    return maximum pose distance from origin
+
+    Args:
+        poses (list): list of numpy (4, 4) poses
+
+    Returns:
+        scene_radius (float): scene radius
+    """
+    # get all camera centers
+    camera_centers = np.stack(poses, 0)[:, :3, 3]
+    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
+    scene_radius = np.max(camera_distances_from_origin)
+    # scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
+    return scene_radius
 
 
 class MVDataset:
@@ -38,7 +61,6 @@ class MVDataset:
         self.dataset_name = dataset_name
         self.scene_name = scene_name
         # self.profiler = profiler
-        # self.auto_scale_poses = auto_scale_poses
 
         # datasets_path/dataset_name/scene_name
         data_path = os.path.join(datasets_path, dataset_name, scene_name)
@@ -59,8 +81,8 @@ class MVDataset:
         if not is_dataset_supported(dataset_name):
             raise ValueError(f"ERROR: dataset {dataset_name} is not supported")
 
-        print(f"dataset: {dataset_name}")
-        print(f"scene: {scene_name}")
+        print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
+        print(f"scene: [magenta]{scene_name}[/magenta]")
         print(f"loading {splits} splits")
         
         self.global_transform = np.eye(4)
@@ -70,7 +92,7 @@ class MVDataset:
         
         # load dtu
         if self.dataset_name == "dtu":
-            cameras_splits, self.global_transform = load_dtu(
+            res = load_dtu(
                 data_path,
                 splits,
                 config,
@@ -87,7 +109,7 @@ class MVDataset:
                 or self.dataset_name == "refnerf"
                 or self.dataset_name == "shelly"
             ):
-            cameras_splits, self.global_transform = load_blender(
+            res = load_blender(
                 data_path,
                 splits,
                 config,
@@ -97,7 +119,7 @@ class MVDataset:
         
         # load ingp
         elif self.dataset_name == "ingp":
-            cameras_splits, self.global_transform = load_ingp(
+            res = load_ingp(
                 data_path,
                 splits,
                 config,
@@ -106,7 +128,7 @@ class MVDataset:
         
         # load dmsr
         elif self.dataset_name == "dmsr":
-            cameras_splits, self.global_transform = load_dmsr(
+            res = load_dmsr(
                 data_path,
                 splits,
                 config,
@@ -123,7 +145,7 @@ class MVDataset:
             self.dataset_name == "llff"
             or self.dataset_name == "mipnerf360"
         ):
-            cameras_splits, self.global_transform = load_llff(
+            res = load_llff(
                 data_path,
                 splits,
                 config,
@@ -133,7 +155,7 @@ class MVDataset:
         # TODO: load tanks_and_temples
         
         # TODO: ...
-        
+            
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
         # # load pac_nerf
@@ -146,12 +168,29 @@ class MVDataset:
         #                                 load_mask=load_mask
         #                             )
 
+        # UNPACK -------------------------------------------------------------
+        
+        if "cameras_splits" not in res:
+            raise ValueError("ERROR: cameras_splits not found in dataset")
+        else:
+            cameras_splits = res["cameras_splits"]
+        
+        if "global_transform" in res:
+            self.global_transform = res["global_transform"]
+        else:
+            self.global_transform = np.eye(4)
+            
+        if "scene_radius" in res:
+            self.scene_radius = res["scene_radius"]
+        else:
+            self.scene_radius = 1.0
+            
         # ---------------------------------------------------------------------
         
         # (optional) load point clouds
         if len(point_clouds_paths) > 0:
             # load point clouds
-            point_clouds = load_point_clouds(point_clouds_paths)
+            point_clouds = load_point_clouds(point_clouds_paths, verbose=verbose)
             # apply global transform
             transformed_point_clouds = []
             for point_cloud in point_clouds:
@@ -159,7 +198,8 @@ class MVDataset:
                     apply_transformation_3d(point_cloud, self.global_transform)
                 )
             self.point_clouds = transformed_point_clouds
-            print(f"loaded {len(self.point_clouds)} point clouds")
+            if verbose:
+                print(f"loaded {len(self.point_clouds)} point clouds")
         else:
             self.point_clouds = []
         
@@ -170,20 +210,14 @@ class MVDataset:
         #     print(f"loaded {len(self.meshes)} meshes")
         # else:
         #     self.meshes = []
-        
-        # def get_poses_all(cameras):
-        #     poses = []
-        #     for camera in cameras:
-        #         poses.append(camera.get_pose())
-        #     poses = torch.stack(poses, 0)
-        #     return poses
 
         # # align and center poses
         cameras_all = []
         for split, cameras_list in cameras_splits.items():
             cameras_all += cameras_list
-        # poses_all = get_poses_all(cameras_all)
-
+        
+        self.max_camera_distance = poses_radius(get_poses_all(cameras_all))
+        
         # transform = auto_orient_and_center_poses(
         #     poses_all,
         #     method=auto_orient_method,

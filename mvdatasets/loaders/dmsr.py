@@ -1,3 +1,4 @@
+from rich import print
 import os
 import json
 from glob import glob
@@ -37,44 +38,57 @@ def load_dmsr(
     
     # CONFIG -----------------------------------------------------------------
     
-    # TODO: implement additional modalities loading
-    # if "load_depth" not in config:
-    #     if verbose:
-    #         print("WARNING: load_depth not in config, setting to True")
-    #     config["load_depth"] = False
+    if "load_depth" not in config:
+        config["load_depth"] = False
+        if verbose:
+            print(f"WARNING: load_depth not in config, setting to {config['load_depth']}")
+    else:
+        if config["load_depth"]:
+            raise NotImplementedError("load_depth is not implemented yet")
         
-    # if "load_semantics" not in config:
-    #     if verbose:
-    #         print("WARNING: load_semantics not in config, setting to True")
-    #     config["load_semantics"] = False
+    if "load_semantics" not in config:
+        config["load_semantics"] = False
+        if verbose:
+            print(f"WARNING: load_semantics not in config, setting to {config['load_semantics']}")
+    else:
+        if config["load_semantics"]:
+            raise NotImplementedError("load_semantics is not implemented yet")
         
-    # if "load_semantic_instance" not in config:
-    #     if verbose:
-    #         print("WARNING: load_semantic_instance not in config, setting to True")
-    #     config["load_semantic_instance"] = False
+    if "load_semantic_instance" not in config:
+        config["load_semantic_instance"] = False
+        if verbose:
+            print(f"WARNING: load_semantic_instance not in config, setting to {config['load_semantic_instance']}")
+    else:
+        if config["load_semantic_instance"]:
+            raise NotImplementedError("load_semantic_instance is not implemented yet")
         
     if "rotate_scene_x_axis_deg" not in config:
-        if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
         config["rotate_scene_x_axis_deg"] = 0.0
+        if verbose:
+            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
     if "scene_scale_mult" not in config:
+        config["scene_scale_mult"] = 0.25
         if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 1.0")
-        config["scene_scale_mult"] = 1.0
+            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
-        if verbose:
-            print("WARNING: subsample_factor not in config, setting to 1")
         config["subsample_factor"] = 1
+        if verbose:
+            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
         
     if "test_skip" not in config:
-        if verbose:
-            print("WARNING: test_skip not in config, setting to 1")
         config["test_skip"] = 1
+        if verbose:
+            print(f"WARNING: test_skip not in config, setting to {config['test_skip']}")
+        
+    if "scene_radius" not in config:
+        config["scene_radius"] = 2.0
+        if verbose:
+            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
         
     if verbose:
-        print("load_blender config:")
+        print("load_dmsr config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
         
@@ -91,11 +105,12 @@ def load_dmsr(
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
-    
     # local transform
     local_transform = np.eye(4)
     rotation = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
     local_transform[:3, :3] = rotation
+    # scene radius
+    scene_radius = config["scene_radius"] * scene_scale_mult
     
     # cameras objects
     cameras_splits = {}
@@ -135,10 +150,6 @@ def load_dmsr(
             # remove alpha (it is always 1)
             img_np = img_np[:, :, :3]
             
-            # TODO: subsample image
-            # if subsample_factor != 1:
-            #   subsample image
-            
             # im_name = im_name.replace('r', 'd')
             # depth_pil = Image.open(os.path.join(scene_path, f"{split}", "depth", im_name))
             # depth_np = image2numpy(depth_pil)[..., None]
@@ -176,4 +187,8 @@ def load_dmsr(
 
             cameras_splits[split].append(camera)
     
-    return cameras_splits, global_transform
+    return {
+        "cameras_splits": cameras_splits,
+        "global_transform": global_transform,
+        "scene_radius": scene_radius
+    }

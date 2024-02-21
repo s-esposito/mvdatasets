@@ -1,3 +1,4 @@
+from rich import print
 import os
 from glob import glob
 import numpy as np
@@ -62,37 +63,42 @@ def load_dtu(
     # CONFIG -----------------------------------------------------------------
     
     if "load_mask" not in config:
-        if verbose:
-            print("WARNING: load_mask not in config, setting to True")
         config["load_mask"] = True
+        if verbose:
+            print(f"WARNING: load_mask not in config, setting to {config['load_mask']}")
     
     if "test_camera_freq" not in config:
-        if verbose:
-            print("WARNING: test_camera_freq not in config, setting to 8")
         config["test_camera_freq"] = 8
+        if verbose:
+            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
     if "train_test_overlap" not in config:
-        if verbose:
-            print("WARNING: train_test_overlap not in config, setting to False")
         config["train_test_overlap"] = False
+        if verbose:
+            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
         
     if "rotate_scene_x_axis_deg" not in config:
-        if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 205")
         config["rotate_scene_x_axis_deg"] = 205
+        if verbose:
+            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
     
     if "scene_scale_mult" not in config:
-        if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 0.4")
         config["scene_scale_mult"] = 0.4
+        if verbose:
+            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
-        if verbose:
-            print("WARNING: subsample_factor not in config, setting to 1")
         config["subsample_factor"] = 1
+        if verbose:
+            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+        
+    if "scene_radius" not in config:
+        config["scene_radius"] = 1.25
+        if verbose:
+            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
     
     if verbose:
-        print("dtu config:")
+        print("load_dtu config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
     
@@ -110,11 +116,12 @@ def load_dtu(
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
-    
     # local transform
     local_transform = np.eye(4)
     rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     local_transform[:3, :3] = rotation
+    # scene radius
+    scene_radius = config["scene_radius"] * scene_scale_mult
     
     # load images to cpu as numpy arrays
     imgs = []
@@ -201,4 +208,8 @@ def load_dtu(
                 if i % test_camera_freq == 0:
                     cameras_splits[split].append(camera)
 
-    return cameras_splits, global_transform
+    return {
+        "cameras_splits": cameras_splits,
+        "global_transform": global_transform,
+        "scene_radius": scene_radius
+    }

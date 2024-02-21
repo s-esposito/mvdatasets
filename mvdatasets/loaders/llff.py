@@ -1,3 +1,4 @@
+from rich import print
 import os
 import numpy as np
 import sys
@@ -76,29 +77,34 @@ def load_llff(
     # CONFIG -----------------------------------------------------------------
         
     if "rotate_scene_x_axis_deg" not in config:
-        if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
         config["rotate_scene_x_axis_deg"] = 0.0
+        if verbose:
+            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
     
     if "test_camera_freq" not in config:
-        if verbose:
-            print("WARNING: test_camera_freq not in config, setting to 8")
         config["test_camera_freq"] = 8
+        if verbose:
+            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
     if "train_test_overlap" not in config:
-        if verbose:
-            print("WARNING: train_test_overlap not in config, setting to False")
         config["train_test_overlap"] = False
+        if verbose:
+            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
     
     if "scene_scale_mult" not in config:
-        if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 0.25")
         config["scene_scale_mult"] = 0.25
+        if verbose:
+            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
 
     if "subsample_factor" not in config:
-        if verbose:
-            print("WARNING: subsample_factor not in config, setting to 1")
         config["subsample_factor"] = 1
+        if verbose:
+            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+        
+    if "scene_radius" not in config:
+        config["scene_radius"] = 1.0
+        if verbose:
+            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
         
     if verbose:
         print("load_llff config:")
@@ -116,6 +122,8 @@ def load_llff(
     scene_scale_mult = config["scene_scale_mult"]
     s_rotation = scene_scale_mult * rotation
     global_transform[:3, :3] = s_rotation
+    # scene radius
+    scene_radius = config["scene_radius"] * scene_scale_mult
     
     # read colmap data
     
@@ -130,9 +138,6 @@ def load_llff(
     # exit()
     
     intrinsics_all, extrinsics_all = read_cameras(reconstruction)
-    # print(intrinsics_all.keys())
-    # print(extrinsics_all.keys())
-    
     images_path = os.path.join(scene_path, "images")
     
     if config["subsample_factor"] > 1:
@@ -198,4 +203,8 @@ def load_llff(
                 if i % test_camera_freq == 0:
                     cameras_splits[split].append(camera)
     
-    return cameras_splits, global_transform
+    return {
+        "cameras_splits": cameras_splits,
+        "global_transform": global_transform,
+        "scene_radius": scene_radius
+    }

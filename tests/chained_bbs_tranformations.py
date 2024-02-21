@@ -98,7 +98,7 @@ def test():
         points_3d=np.concatenate(point_clouds, axis=0),
         azimuth_deg=90,
         elevation_deg=60,
-        radius=1.0,
+        scene_radius=1.0,
         up="z",
         figsize=(15, 15),
         draw_origin=True,

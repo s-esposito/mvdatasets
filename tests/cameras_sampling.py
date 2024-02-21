@@ -92,6 +92,7 @@ if __name__ == "__main__":
         points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
+        scene_radius=mv_data.max_camera_distance,
         up="z",
         figsize=(15, 15),
         title="sampled cameras",
@@ -152,6 +153,7 @@ if __name__ == "__main__":
                 rays_d,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
+                scene_radius=mv_data.max_camera_distance,
                 up="z",
                 figsize=(15, 15),
             )

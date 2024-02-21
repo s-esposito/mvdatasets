@@ -10,10 +10,7 @@ Static (3D):
 - [DTU](#)
 - [NeRF-Synthetic](#)
 
-Dynamic (4D):
-- [PAC-NERF](#)
-
-Soon to be supported:
+Work in progress:
 - [NeRF-LLFF](#)
 - [NeRF-360](#)
 
@@ -40,7 +37,7 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 
 <p float="left">
   <img src="plots/blender_training_cameras.png" width="400" />
-  <img src="plots/blender_test_cameras.png" width="400" />
+  <img src="plots/blender_point_cloud_projection.png" width="400" />
 </p>
 
 <!--

@@ -1,3 +1,4 @@
+from rich import print
 import os
 import json
 from glob import glob
@@ -39,50 +40,41 @@ def load_ingp(
     """
     
     # CONFIG -----------------------------------------------------------------
-    
-    if "load_mask" not in config:
-        if verbose:
-            print("WARNING: load_mask not in config, setting to True")
-        config["load_mask"] = True
-        
-    if "use_binary_mask" not in config:
-        if verbose:
-            print("WARNING: use_binary_mask not in config, setting to True")
-        config["use_binary_mask"] = True
         
     if "rotate_scene_x_axis_deg" not in config:
-        if verbose:
-            print("WARNING: rotate_scene_x_axis_deg not in config, setting to 0.0")
         config["rotate_scene_x_axis_deg"] = 0.0
+        if verbose:
+            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
     if "scene_scale_mult" not in config:
-        if verbose:
-            print("WARNING: scene_scale_mult not in config, setting to 0.25")
         config["scene_scale_mult"] = 0.25
+        if verbose:
+            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
-        if verbose:
-            print("WARNING: subsample_factor not in config, setting to 1")
         config["subsample_factor"] = 1
+        if verbose:
+            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+        
+    if "test_camera_freq" not in config:
+        config["test_camera_freq"] = 8
+        if verbose:
+            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
-    if "white_bg" not in config:
+    if "train_test_overlap" not in config:
+        config["train_test_overlap"] = False
         if verbose:
-            print("WARNING: white_bg not in config, setting to True")
-        config["white_bg"] = True
-        
-    if "test_skip" not in config:
-        if verbose:
-            print("WARNING: test_skip not in config, setting to 20")
-        config["test_skip"] = 20
-        
+            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
+
     if verbose:
-        print("load_blender config:")
+        print("load_ingp config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
         
     # -------------------------------------------------------------------------
     
-    height, width = None, None
+    # cameras objects
+    cameras_all = []
     
     # global transform
     global_transform = np.eye(4)
@@ -99,109 +91,70 @@ def load_ingp(
     rotation = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
     local_transform[:3, :3] = rotation
     
-    # cameras objects
+    # load camera params
+    with open(os.path.join(scene_path, "transforms.json"), "r") as fp:
+        metas = json.load(fp)
+    
+    # height, width = metas["h"], metas["w"]
+    intrinsics = np.eye(3, dtype=np.float32)
+    intrinsics[0, 0] = metas["fl_x"]
+    intrinsics[1, 1] = metas["fl_y"]
+    intrinsics[0, 2] = metas["cx"]
+    intrinsics[1, 2] = metas["cy"]
+    scene_radius = metas["aabb_scale"] * config["scene_scale_mult"]
+    
+    for frame in metas["frames"]:
+        
+        pose = np.array(frame["transform_matrix"], dtype=np.float32)
+        img_path = os.path.join(scene_path, frame["file_path"])
+        
+        # check if file exists
+        if not os.path.exists(img_path):
+            print(f"WARNING: {img_path} does not exist")
+            continue
+        
+        idx = int(img_path.split('/')[-1].split('.')[0])
+        
+        # load PIL image
+        img_pil = Image.open(img_path)
+        img_np = image2numpy(img_pil, use_uint8=True)[:, :, :3]
+                
+        camera = Camera(
+            intrinsics=intrinsics,
+            pose=pose,
+            global_transform=global_transform,
+            local_transform=local_transform,
+            rgbs=img_np[None, ...],
+            masks=None,
+            camera_idx=idx,
+            subsample_factor=int(config["subsample_factor"]),
+        )
+
+        cameras_all.append(camera)
+    
+    # split cameras into train and test
+    train_test_overlap = config["train_test_overlap"]
+    test_camera_freq = config["test_camera_freq"]
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
-
-        # load current split transforms
-        with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
-            metas = json.load(fp)
-        
-        camera_angle_x = metas["camera_angle_x"]
-        
-        # load images to cpu as numpy arrays
-        # (optional) load mask images to cpu as numpy arrays
-        frames_list = []
-        
-        for frame in metas["frames"]:
-            img_path = frame["file_path"].split('/')[-1]
-            # check if file format is in the path
-            if not img_path.endswith('.png'):
-                img_path += '.png'
-            camera_pose = frame["transform_matrix"]
-            frames_list.append((img_path, camera_pose))
-        frames_list.sort(key=lambda x: int(x[0].split('.')[0].split('_')[-1]))
-
-        if split == 'test':
-            # skip every test_skip images
-            test_skip = config["test_skip"]
-            frames_list = frames_list[::test_skip]
-        
-        # iterate over images and load them
-        pbar = tqdm(frames_list, desc=split, ncols=100)
-        for frame in pbar:
-            # get image name
-            im_name = frame[0]
-            # camera_pose = frame[1]
-            # load PIL image
-            img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
-            img_np = image2numpy(img_pil, use_uint8=True)
-            
-            # TODO: subsample image
-            # if subsample_factor > 1:
-            #   subsample image
-            
-            # override H, W
-            if height is None or width is None:
-                height, width = img_np.shape[:2]
-            
-            if config["load_mask"]:
-                # use alpha channel as mask
-                # (nb: this is only resonable for synthetic data)
-                mask_np = img_np[..., -1, None]
-                if config["use_binary_mask"]:
-                    mask_np = mask_np > 0
-                    mask_np = mask_np.astype(np.uint8) * 255
+        if split == "train":
+            if train_test_overlap:
+                # if train_test_overlap, use all cameras for training
+                cameras_splits[split] = cameras_all
+            # else use only a subset of cameras
             else:
-                mask_np = None
-            
-            # apply white background, else black
-            if config["white_bg"]:
-                if img_np.dtype == np.uint8:
-                    # values in [0, 255], cast to [0, 1], run operation, cast back
-                    img_np = image_uint8_to_float32(img_np)
-                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
-                    img_np = image_float32_to_uint8(img_np)
-                else:
-                    # values in [0, 1]
-                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
-            else:
-                img_np = img_np[..., :3]
-            
-            # get frame idx and pose
-            idx = int(frame[0].split('.')[0].split('_')[-1])
-            
-            # get images
-            cam_imgs = img_np[None, ...]
-            # print(cam_imgs.shape)
-            
-            # get mask (optional)
-            if config["load_mask"]:
-                cam_masks = mask_np[None, ...]
-                # print(cam_masks.shape)
-            else:
-                cam_masks = None
-        
-            pose = np.array(frame[1], dtype=np.float32)
-            intrinsics = np.eye(3, dtype=np.float32)
-            focal_length = 0.5 * width / np.tan(0.5 * camera_angle_x)
-            intrinsics[0, 0] = focal_length
-            intrinsics[1, 1] = focal_length
-            intrinsics[0, 2] = width / 2.0
-            intrinsics[1, 2] = height / 2.0
-        
-            camera = Camera(
-                intrinsics=intrinsics,
-                pose=pose,
-                global_transform=global_transform,
-                local_transform=local_transform,
-                rgbs=cam_imgs,
-                masks=cam_masks,
-                camera_idx=idx,
-                subsample_factor=int(config["subsample_factor"]),
-            )
+                for i, camera in enumerate(cameras_all):
+                    if i % test_camera_freq != 0:
+                        cameras_splits[split].append(camera)
+        if split == "test":
+            # select a test camera every test_camera_freq cameras
+            for i, camera in enumerate(cameras_all):
+                if i % test_camera_freq == 0:
+                    cameras_splits[split].append(camera)
 
-            cameras_splits[split].append(camera)
-    
-    return cameras_splits, global_transform
+    return {
+        "cameras_splits": cameras_splits,
+        "global_transform": global_transform,
+        "scene_radius": scene_radius
+    }

@@ -90,6 +90,7 @@ if __name__ == "__main__":
         nr_rays=512,
         azimuth_deg=20,
         elevation_deg=30,
+        scene_radius=mv_data.max_camera_distance,
         up="z",
         draw_image_planes=True,
         draw_cameras_frustums=False,

@@ -21,7 +21,7 @@ from mvdatasets.utils.bounding_box import BoundingBox
 
 
 if __name__ == "__main__":
-
+    
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
@@ -70,10 +70,9 @@ if __name__ == "__main__":
     # create bounding boxes
     bounding_boxes = []
     
-    scene_radius = 0.5
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=np.array([scene_radius*2, scene_radius*2, scene_radius*2]),
+        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
         line_width=2.0,
         device=device
     )
@@ -87,6 +86,7 @@ if __name__ == "__main__":
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
+        scene_radius=mv_data.max_camera_distance,
         draw_image_planes=True,
         draw_cameras_frustums=False,
         figsize=(15, 15),
@@ -111,6 +111,7 @@ if __name__ == "__main__":
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
+        scene_radius=mv_data.max_camera_distance,
         draw_bounding_cube=True,
         draw_image_planes=True,
         draw_cameras_frustums=False,
