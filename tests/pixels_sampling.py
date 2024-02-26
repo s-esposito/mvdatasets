@@ -27,7 +27,7 @@ if __name__ == "__main__":
         device = "cuda"
         torch.cuda.manual_seed(seed)  # Set a random seed for GPU
     else:
-        device = "cuda"
+        device = "cpu"
     torch.set_default_device(device)
 
     # Set default tensor type
@@ -56,8 +56,8 @@ if __name__ == "__main__":
     )
 
     # random camera index
-    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
+    rand_idx = 2  # torch.randint(0, len(mv_data["test"]), (1,)).item()
+    camera = deepcopy(mv_data["train"][rand_idx])
     
     # resize camera
     taget_dim = 100

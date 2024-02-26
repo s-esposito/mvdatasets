@@ -100,6 +100,8 @@ def apply_transformation_3d(points_3d, transform):
         transform (4, 4)
     out: points (N, 3)
     """
+    print("points_3d", points_3d)
+    print("transform", transform)
     augmented_points_3d = augment_vectors(points_3d)
     homogeneous_points_3d = (transform @ augmented_points_3d.T).T
     augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 3:]
@@ -140,7 +142,10 @@ def perspective_projection(intrinsics, points_3d):
         points_2d (np.array) : (N, 2)
     """
     augmented_points_3d = augment_vectors(points_3d)
-    K0 = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
+    if isinstance(intrinsics, torch.Tensor):
+        K0 = torch.concatenate([intrinsics, torch.zeros((3, 1), device=intrinsics.device)], dim=1)
+    elif isinstance(intrinsics, np.ndarray):
+        K0 = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
     homogeneous_points_2d = (K0 @ augmented_points_3d.T).T
     augmented_points_2d = homogeneous_points_2d / homogeneous_points_2d[:, 2:]
     points_2d = augmented_points_2d[:, :2]
@@ -172,15 +177,24 @@ def project_points_3d_to_2d(camera, points_3d):
         c2w (np.ndarray) : (4, 4) camera pose in world space
         intrinsics (np.ndarray) : (3, 3) camera intrinsics
     out:
-        points_2d (np.ndarray) : (N, 2) points in screen space
+        points_2d (np.ndarray or torch.tensor) : (N, 2) points in screen space
     """
 
     # get camera data
     intrinsics = camera.get_intrinsics()
     c2w = camera.get_pose()
-
-    # get world to camera transformation
-    w2c = np.linalg.inv(c2w)
+    
+    if isinstance(points_3d, torch.Tensor):
+        # convert data to torch.tensor
+        intrinsics = torch.tensor(intrinsics, dtype=torch.float32, device=points_3d.device)
+        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d.device)
+        # get world to camera transformation
+        w2c = torch.inverse(c2w)
+    elif isinstance(points_3d, np.ndarray):
+        # get world to camera transformation
+        w2c = np.linalg.inv(c2w)
+    else:
+        raise ValueError("points_3d must be torch.tensor or np.ndarray")
     
     # transform points in world space to camera space
     points_3d_c = apply_transformation_3d(points_3d, w2c)
@@ -196,13 +210,26 @@ def camera_to_points_3d_distance(camera, points_3d):
     # get camera data
     c2w = camera.get_pose()
     
-    # get world to camera transformation
-    w2c = np.linalg.inv(c2w)
+    if isinstance(points_3d, torch.Tensor):
+        # convert data to torch.tensor
+        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d.device)
+        # get world to camera transformation
+        w2c = torch.inverse(c2w)
+    elif isinstance(points_3d, np.ndarray):
+        # get world to camera transformation
+        w2c = np.linalg.inv(c2w)
+    else:
+        raise ValueError("points_3d must be torch.tensor or np.ndarray")
 
     # transform points in world space to camera space
     points_3d_c = apply_transformation_3d(points_3d, w2c)
     
-    points_3d_norm = np.linalg.norm(points_3d_c, axis=-1)
+    if isinstance(points_3d, torch.Tensor):
+        points_3d_norm = torch.norm(points_3d_c, dim=-1)
+    elif isinstance(points_3d, np.ndarray):
+        points_3d_norm = np.linalg.norm(points_3d_c, axis=-1)
+    else:
+        raise ValueError("points_3d must be torch.tensor or np.ndarray")
     
     return points_3d_norm
     

@@ -1,3 +1,4 @@
+from rich import print
 import torch
 import os
 import numpy as np
@@ -21,6 +22,11 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
     
     if rays_o.device != aabb_min.device:
         raise ValueError("rays and bounding box must be on the same device")
+    
+    # avoid numeric issues
+    eps = 1e-6
+    aabb_min = aabb_min + eps
+    aabb_max = aabb_max - eps
     
     # general case: camera eye outside bb
     t_min = (aabb_min - rays_o) / rays_d
@@ -96,7 +102,7 @@ class BoundingBox:
         self.line_width = line_width
         
         if verbose:
-            print(f"Created bounding box with local scale {self.local_scale}")
+            print(f"created bounding box with local sides lenghts: {self.local_scale.cpu().numpy()}")
     
     def get_pose(self):
         pose = deepcopy(self.pose)
@@ -113,7 +119,7 @@ class BoundingBox:
         pose = self.get_pose()
         return pose[:3, 3]
     
-    def get_vertices(self, in_world_space=True):
+    def get_vertices(self, in_world_space=False):
         
         # offsets
         center = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device)
@@ -179,19 +185,75 @@ class BoundingBox:
         
         return is_hit, t_near, t_far, p_near, p_far
     
-    def get_random_points_inside(self, nr_points):
+    def get_random_points_inside(self, nr_points, in_world_space=False):
         # points in local space
         eps = 1e-6
-        points = torch.rand((nr_points, 3), dtype=torch.float32, device=self.device)
-        points = points * (self.local_scale - eps) - (self.local_scale / 2)
+        scale = (self.local_scale / 2) - eps
+        points = torch.rand((nr_points, 3), dtype=torch.float32, device=self.device) * 2.0 - 1.0
+        points = points * scale
         
-        # convert to world space
-        pose = self.get_pose()
-        points = apply_transformation_3d(points, pose)
+        if in_world_space:
+            # convert to world space
+            pose = self.get_pose()
+            points = apply_transformation_3d(points, pose)
+            
+        return points
+    
+    def get_random_points_on_surface(self, nr_points, in_world_space=False):
+        # points in local space
+        
+        # approximate nr_points to closest multiple of 12
+        nr_points_per_face = nr_points // 12
+        nr_points_ = nr_points_per_face * 12
+        
+        # bbox vertices
+        vertices = self.get_vertices()  # vertices in local space
+
+        # define faces of the box
+        faces = torch.tensor([
+            [0, 4, 5],
+            [0, 5, 1],
+            [4, 6, 7],
+            [4, 7, 5],
+            [2, 0, 1],
+            [2, 1, 3],
+            [2, 3, 7],
+            [2, 7, 6],
+            [1, 5, 7],
+            [1, 7, 3],
+            [2, 6, 4],
+            [2, 4, 0]
+        ], dtype=torch.int32, device=self.device)
+        
+        tri_vertices = vertices[faces.view(-1)]
+        tri_vertices = tri_vertices.reshape(-1, 3, 3)
+        
+        bar_coords = torch.rand((nr_points_, 3), dtype=torch.float32, device=self.device)
+        bar_coords = bar_coords / bar_coords.sum(dim=1, keepdim=True)
+        bar_coords = bar_coords.reshape(-1, nr_points_per_face, 3, 1)
+        
+        bar_coords_reshaped = bar_coords  # (12, nr_points_per_face, 3, 1)
+        tri_vertices_reshaped = tri_vertices.unsqueeze(1)  # (12, 1, 3, 3)
+        multipled_tensors = tri_vertices_reshaped * bar_coords_reshaped  # (12, nr_points_per_face, 3, 3)
+        points = torch.sum(multipled_tensors, dim=-2) # (12, nr_points_per_face, 3)
+        points = points.reshape(-1, 3)
+        
+        if in_world_space:
+            # convert to world space
+            pose = self.get_pose()
+            points = apply_transformation_3d(points, pose)
+        
         return points
     
     def check_points_inside(self, points):
-        # TODO: test
+        """checks if points are inside the bounding box
+
+        args:
+            points (torch.tensor): (N, 3) points are in world space
+
+        returns:
+            is_inside (torch.tensor): (N,)
+        """
         
         pose = self.get_pose()
         
@@ -202,7 +264,7 @@ class BoundingBox:
         else:
             points_ = points
         
-        vertices = self.get_vertices(self, in_world_space=False)
+        vertices = self.get_vertices()  # vertices in local space
         vmin = vertices[0]
         vmax = vertices[7]
         
@@ -215,10 +277,10 @@ class BoundingBox:
     def save_as_ply(self, dir_path, name):
         
         # bbox vertices
-        vertices = self.get_vertices()
+        vertices = self.get_vertices(in_world_space=True)  # vertices in world space
         vertices = vertices.cpu().numpy()
         
-        # # define faces of the box
+        # define faces of the box
         faces = np.array([
             [0, 4, 5],
             [0, 5, 1],

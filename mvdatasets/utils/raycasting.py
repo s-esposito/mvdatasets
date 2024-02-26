@@ -109,15 +109,16 @@ def jitter_points(points, std=0.16):
 
     # if pixels are int, convert to float:
     jittered_points = points
-    # sample offsets from gaussian distribution
-    offsets = torch.normal(
-        mean=0.0, std=std, size=jittered_points.shape, device=points.device
-    )
+    # # sample offsets from gaussian distribution
+    # offsets = torch.normal(
+    #     mean=0.0, std=std, size=jittered_points.shape, device=points.device
+    # )
     # clamp offsets to [-0.5 + eps, 0.5 - eps]
-    eps = 1e-4
-    offsets = torch.clamp(offsets, -0.5 + eps, 0.5 - eps)
+    eps = 1e-6
+    # offsets = torch.clamp(offsets, -0.5 + eps, 0.5 - eps)
     # uniformlu sampled offsets
-    # offsets = torch.rand_like(jittered_points, device=jittered_points.device) - 0.5
+    offsets = torch.rand_like(jittered_points, device=jittered_points.device) - 0.5
+    offsets = torch.clamp(offsets, -0.5 + eps, 0.5 - eps)
     jittered_points += offsets
 
     return jittered_points
@@ -155,8 +156,8 @@ def get_points_2d_from_pixels(pixels, jitter_pixels, height, width):
     if jitter_pixels:
         points_2d = jitter_points(points_2d)
     
-    points_2d[:, 0] = points_2d[:, 0].clip(0, height - 1e-6)
-    points_2d[:, 1] = points_2d[:, 1].clip(0, width - 1e-6)
+    # points_2d[:, 0] = points_2d[:, 0].clip(0, height - 1e-6)
+    # points_2d[:, 1] = points_2d[:, 1].clip(0, width - 1e-6)
 
     return points_2d
 
@@ -199,7 +200,7 @@ def get_camera_rays_per_points_2d(c2w, intrinsics_inv, points_2d_screen):
     return rays_o, rays_d
 
 
-def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
+def get_camera_rays(camera, points_2d=None, nr_rays_per_pixel=1, jitter_pixels=False, device="cpu"):
     """returns image rays origins and directions
     for 2d points on the image plane.
     If points are not provided, they are sampled 
@@ -223,8 +224,14 @@ def get_camera_rays(camera, points_2d=None, device="cpu", jitter_pixels=False):
     """
 
     if points_2d is None:
+        
+        assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
+        assert nr_rays_per_pixel == 1 or (nr_rays_per_pixel > 1 and jitter_pixels == True), "jitter_pixels must be True if nr_rays_per_pixel > 1"
+        
         pixels = get_pixels(camera.height, camera.width, device=device)
         pixels = pixels.reshape(-1, 2)
+        # repeat pixels nr_rays_per_pixel times
+        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
         points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, camera.height, camera.width)
 
     c2w = torch.from_numpy(camera.get_pose()).float().to(device)
@@ -426,13 +433,12 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     return rays_o, rays_d
 
 
-def get_tensor_reel_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=None, masks=None):
+def get_tensor_reel_frames_per_pixels(pixels, camera_idx, frame_idx, rgbs=None, masks=None):
     """given a list of 2d points on the image plane and a list of rgbs,
     return rgb and mask values at pixels
 
     args:
-        points_2d (torch.tensor, float or int): (N, 2)
-                                            Values in [0, height-1], [0, width-1].
+        pixels (torch.tensor, int): (N, 2) values in [0, height-1], [0, width-1].
         camera_idx (int): camera index
         frame_idx (int): frame index.
         rgbs (optional, torch.tensor, uint8): (N, T, H, W, 3) in [0, 1] or None
@@ -443,9 +449,8 @@ def get_tensor_reel_frames_per_points_2d(points_2d, camera_idx, frame_idx, rgbs=
             mask_vals (optional, torch.tensor, float32): (N, 1)
     """
 
-    assert points_2d.shape[1] == 2, "points_2d must be (N, 2)"
+    assert pixels.shape[1] == 2, "pixels must be (N, 2)"
 
-    pixels = points_2d.int()  # floor
     x, y = pixels[:, 1], pixels[:, 0]
 
     # prepare output

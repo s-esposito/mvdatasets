@@ -1,3 +1,4 @@
+from rich import print
 import torch
 import numpy as np
 
@@ -111,7 +112,7 @@ class BoundingSphere:
         self.line_width = line_width
         
         if verbose:
-            print(f"Created sphere with local scale {self.local_scale}")
+            print(f"created sphere with local radius : {self.local_scale[0].item()}")
         
     def get_pose(self):
         return self.pose
@@ -162,6 +163,19 @@ class BoundingSphere:
         azimuth_deg = torch.rand(nr_points, device=self.device) * 360
         elevation_deg = torch.rand(nr_points, device=self.device) * 180 - 90
         radius = torch.rand(nr_points, device=self.device) * (self.get_radius() - eps)
+        azimuth_rad = deg2rad(azimuth_deg)
+        elevation_rad = deg2rad(elevation_deg)
+        x = torch.cos(azimuth_rad) * torch.cos(elevation_rad) * radius
+        y = torch.sin(elevation_rad) * radius  # y is up
+        z = torch.sin(azimuth_rad) * torch.cos(elevation_rad) * radius
+        points = torch.column_stack((x, y, z))
+        return points
+    
+    def get_random_points_on_surface(self, nr_points):
+        # points in local space
+        azimuth_deg = torch.rand(nr_points, device=self.device) * 360
+        elevation_deg = torch.rand(nr_points, device=self.device) * 180 - 90
+        radius = torch.ones(nr_points, device=self.device) * self.get_radius()
         azimuth_rad = deg2rad(azimuth_deg)
         elevation_rad = deg2rad(elevation_deg)
         x = torch.cos(azimuth_rad) * torch.cos(elevation_rad) * radius

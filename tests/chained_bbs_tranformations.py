@@ -129,7 +129,7 @@ if __name__ == "__main__":
         device = "cuda"
         torch.cuda.manual_seed(seed)  # Set a random seed for GPU
     else:
-        device = "cuda"
+        device = "cpu"
     torch.set_default_device(device)
 
     # Set default tensor type

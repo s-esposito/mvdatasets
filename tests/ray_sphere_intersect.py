@@ -34,11 +34,11 @@ if __name__ == "__main__":
         device = "cuda"
         torch.cuda.manual_seed(seed)  # Set a random seed for GPU
     else:
-        device = "cuda"
-    torch.set_default_device(device)
+        device = "cpu"
+    # torch.set_default_device(device)
 
     # Set default tensor type
-    torch.set_default_dtype(torch.float32)
+    # torch.set_default_dtype(torch.float32)
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # print("points", points)
     
     # shoot rays from camera and intersect with boxes
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device="cuda")
+    rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
     
     intersections = []
     for i, bb in enumerate(bounding_spheres):

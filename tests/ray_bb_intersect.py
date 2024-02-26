@@ -36,7 +36,7 @@ if __name__ == "__main__":
         device = "cuda"
         torch.cuda.manual_seed(seed)  # Set a random seed for GPU
     else:
-        device = "cuda"
+        device = "cpu"
     torch.set_default_device(device)
 
     # Set default tensor type
@@ -83,73 +83,8 @@ if __name__ == "__main__":
     print("max", torch.max(points, dim=0)[0])
     print("points", points)
     
-    # bb_pose = np.eye(4)
-    # bb_pose[:3, 3] = np.array([0.0, 0.0, 0.0])
-    # bb = BoundingBox(
-    #     pose=bb_pose,
-    #     sizes=np.array([0.6, 0.4, 0.2]),
-    # )
-    # bounding_boxes.append(bb)
-    
-    # # test save
-    # bb.save_as_ply(".", "bb_0")
-    
-    # bb_pose = np.eye(4)
-    # bb_pose[:3, 3] = np.array([1.0, 0.0, 0.0])
-    # bb_scale = np.array([0.7, 0.8, 0.9])
-    # bb_pose[:3, :3] = rot_y_3d(deg2rad(45)) @ rot_x_3d(deg2rad(45))
-    # bb_pose[:3, :3] *= bb_scale
-    # bb = BoundingBox(
-    #     pose=bb_pose,
-    #     father_bb=bounding_boxes[0],
-    # )
-    # bounding_boxes.append(bb)
-    
-    # bb_pose = np.eye(4)
-    # bb_pose[:3, 3] = np.array([-0.5, 0.5, 0.0])
-    # bb_scale = np.array([0.4, 0.3, 0.2])
-    # bb_pose[:3, :3] = rot_y_3d(deg2rad(45)) @ rot_x_3d(deg2rad(45))
-    # bb_pose[:3, :3] *= bb_scale
-    # bb = BoundingBox(
-    #     pose=bb_pose,
-    #     father_bb=bounding_boxes[0],
-    # )
-    # bounding_boxes.append(bb)
-    
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([0.2, 0.5, -0.5])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_x_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     pose=bb_pose,
-    #     sizes=np.array([0.5, 0.4, 0.3]),
-    # )
-    # bounding_boxes.append(bb)
-    
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([-0.2, -0.5, 0.5])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_y_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     father_bb=bounding_boxes[0],  # parent bounding box
-    #     pose=bb_pose,
-    #     sizes=np.array([0.3, 0.4, 0.2]),
-    # )
-    # bounding_boxes.append(bb)
-    
-    # bb_pose = np.eye(4)
-    # bb_center = np.array([0.2, 0.1, 0.6])
-    # bb_pose[:3, 3] = bb_center
-    # bb_pose[:3, :3] = rot_z_3d(deg2rad(30))
-    # bb = BoundingBox(
-    #     father_bb=bounding_boxes[0],  # parent bounding box
-    #     pose=bb_pose,
-    #     sizes=np.array([0.5, 0.1, 0.4]),
-    # )
-    # bounding_boxes.append(bb)
-    
     # shoot rays from camera and intersect with boxes
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device="cuda")
+    rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
     
     intersections = []
     for i, bb in enumerate(bounding_boxes):

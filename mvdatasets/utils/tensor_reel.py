@@ -4,7 +4,7 @@ from tqdm import tqdm
 from mvdatasets.utils.raycasting import (
     get_random_pixels,
     get_cameras_rays_per_points_2d,
-    get_tensor_reel_frames_per_points_2d,
+    get_tensor_reel_frames_per_pixels,
     get_points_2d_from_pixels,
     get_random_pixels_from_error_map
 )
@@ -150,16 +150,18 @@ class TensorReel:
         self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False, nr_rays_per_pixel=1, masked_sampling=False
     ):
         assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
-        assert batch_size % nr_rays_per_pixel == 0, "batch_size must be a multiple of nr_rays_per_pixel"
+        # assert batch_size % nr_rays_per_pixel == 0, "batch_size must be a multiple of nr_rays_per_pixel"
         assert nr_rays_per_pixel == 1 or (nr_rays_per_pixel > 1 and jitter_pixels == True), "jitter_pixels must be True if nr_rays_per_pixel > 1"
+        
+        real_batch_size = batch_size // nr_rays_per_pixel
         
         # random int in range [0, nr_cameras-1] with repetitions
         nr_cameras = self.poses.shape[0]  # alway sample from all cameras
         if cameras_idx is None:
-            camera_idx = torch.randint(nr_cameras, (batch_size,))
+            camera_idx = torch.randint(nr_cameras, (real_batch_size,))
         else:
             # sample among given cameras indices with repetitions
-            sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
+            sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,))
             camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
         # TODO: improve
@@ -169,20 +171,16 @@ class TensorReel:
             #     nr_frames_in_sequence = self.rgbs.shape[1]
             # else: 
             #     nr_frames_in_sequence = 1
-            # frame_idx = torch.randint(nr_frames_in_sequence, (batch_size,))
-            frame_idx = torch.zeros(batch_size).int()
+            # frame_idx = torch.randint(nr_frames_in_sequence, (real_batch_size,))
+            frame_idx = torch.zeros(real_batch_size).int()
         else:
-            frame_idx = (torch.ones(batch_size) * frame_idx).int()
-
+            frame_idx = (torch.ones(real_batch_size) * frame_idx).int()
+        # frame_idx = frame_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
         
         # if masked_sampling:
         #     # TODO: test if correct and performance drop
-
         #     for idx in camera_idx:
-                
-                
-                
-        #         nr_rays = int((batch_size / len(camera_idx)) / nr_rays_per_pixel)
+        #         nr_rays = int((real_batch_size / len(camera_idx)) / nr_rays_per_pixel)
         #         print("nr rays per camera", nr_rays)
                 
         #         pixels = get_random_pixels_from_error_map(
@@ -204,10 +202,8 @@ class TensorReel:
         #             intrinsics_inv_all=self.intrinsics_inv[idx].repeat(nr_rays),
         #             points_2d_screen=points_2d
         #         )
-                
-                
         #         # get ground truth rgbs values at pixels
-        #         vals = get_tensor_reel_frames_per_points_2d(
+        #         vals = get_tensor_reel_frames_per_pixels(
         #             points_2d=points_2d,
         #             camera_idx=idx,
         #             frame_idx=frame_idx,
@@ -219,28 +215,28 @@ class TensorReel:
         
         # get random pixels
         pixels = get_random_pixels(
-            self.height, self.width, int(batch_size / nr_rays_per_pixel), device=self.device
+            self.height, self.width, real_batch_size, device=self.device
         )
-        # repeat pixels nr_rays_per_pixel times
-        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
-        
-        # get 2d points on the image plane
-        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
-
-        # get a ray for each pixel in corresponding camera frame
-        rays_o, rays_d = get_cameras_rays_per_points_2d(
-            c2w_all=self.poses[camera_idx],
-            intrinsics_inv_all=self.intrinsics_inv[camera_idx],
-            points_2d_screen=points_2d
-        )
-        
         # get ground truth rgbs values at pixels
-        vals = get_tensor_reel_frames_per_points_2d(
-            points_2d=points_2d,
+        vals = get_tensor_reel_frames_per_pixels(
+            pixels=pixels,
             camera_idx=camera_idx,
             frame_idx=frame_idx,
             rgbs=self.rgbs,
             masks=self.masks
+        )
+        # get 2d points on the image plane
+        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
+        # print("pixels", pixels)
+        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
+
+        # get a ray for each pixel in corresponding camera frame
+        camera_idx = camera_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
+        # print("camera_idx", camera_idx)
+        rays_o, rays_d = get_cameras_rays_per_points_2d(
+            c2w_all=self.poses[camera_idx],
+            intrinsics_inv_all=self.intrinsics_inv[camera_idx],
+            points_2d_screen=points_2d
         )
 
         return camera_idx, rays_o, rays_d, vals, frame_idx
