@@ -185,9 +185,10 @@ class BoundingBox:
         
         return is_hit, t_near, t_far, p_near, p_far
     
-    def get_random_points_inside(self, nr_points, in_world_space=False):
+    @torch.no_grad()
+    def get_random_points_inside(self, nr_points, in_world_space=False, padding=0.0):
         # points in local space
-        eps = 1e-6
+        eps = 1e-6 + padding
         scale = (self.local_scale / 2) - eps
         points = torch.rand((nr_points, 3), dtype=torch.float32, device=self.device) * 2.0 - 1.0
         points = points * scale
@@ -199,6 +200,7 @@ class BoundingBox:
             
         return points
     
+    @torch.no_grad()
     def get_random_points_on_surface(self, nr_points, in_world_space=False):
         # points in local space
         
@@ -245,6 +247,7 @@ class BoundingBox:
         
         return points
     
+    @torch.no_grad()
     def check_points_inside(self, points):
         """checks if points are inside the bounding box
 

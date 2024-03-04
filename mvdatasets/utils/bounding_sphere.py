@@ -157,9 +157,10 @@ class BoundingSphere:
         
         return is_hit, t_near, t_far, p_near, p_far
     
-    def get_random_points_inside(self, nr_points):
+    @torch.no_grad()
+    def get_random_points_inside(self, nr_points, padding=0.0):
         # points in local space
-        eps = 1e-6
+        eps = 1e-6 + padding
         azimuth_deg = torch.rand(nr_points, device=self.device) * 360
         elevation_deg = torch.rand(nr_points, device=self.device) * 180 - 90
         radius = torch.rand(nr_points, device=self.device) * (self.get_radius() - eps)
@@ -171,6 +172,7 @@ class BoundingSphere:
         points = torch.column_stack((x, y, z))
         return points
     
+    @torch.no_grad()
     def get_random_points_on_surface(self, nr_points):
         # points in local space
         azimuth_deg = torch.rand(nr_points, device=self.device) * 360
@@ -184,6 +186,7 @@ class BoundingSphere:
         points = torch.column_stack((x, y, z))
         return points
     
+    @torch.no_grad()
     def check_points_inside(self, points):
         points_ = points - self.get_center()
         # get l2 norm of points
