@@ -11,3 +11,4 @@ mvdatasets.egg-info
 dist
 cpp
 debug/particles
+debug/assetsnerf

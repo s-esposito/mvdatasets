@@ -78,30 +78,30 @@ if __name__ == "__main__":
     )
     bounding_boxes.append(bb)
 
-    # Visualize cameras
-    fig = plot_cameras(
-        mv_data["train"],
-        points_3d=point_cloud,
-        bounding_boxes=bounding_boxes,
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="z",
-        scene_radius=mv_data.max_camera_distance,
-        draw_image_planes=True,
-        draw_cameras_frustums=False,
-        figsize=(15, 15),
-        title="training cameras",
-    )
+    # # Visualize cameras
+    # fig = plot_cameras(
+    #     mv_data["train"],
+    #     points_3d=point_cloud,
+    #     bounding_boxes=bounding_boxes,
+    #     azimuth_deg=20,
+    #     elevation_deg=30,
+    #     up="z",
+    #     scene_radius=mv_data.max_camera_distance,
+    #     draw_image_planes=True,
+    #     draw_cameras_frustums=False,
+    #     figsize=(15, 15),
+    #     title="training cameras",
+    # )
 
     # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_training_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    # plt.savefig(
+    #     os.path.join("plots", f"{dataset_name}_training_cameras.png"),
+    #     transparent=True,
+    #     bbox_inches="tight",
+    #     pad_inches=0,
+    #     dpi=300
+    # )
+    # plt.close()
 
     # Visualize cameras
     fig = plot_cameras(
@@ -119,14 +119,14 @@ if __name__ == "__main__":
         title="test cameras",
     )
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_test_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    plt.show()
+    # plt.savefig(
+    #     os.path.join("plots", f"{dataset_name}_test_cameras.png"),
+    #     transparent=True,
+    #     bbox_inches="tight",
+    #     pad_inches=0,
+    #     dpi=300
+    # )
+    # plt.close()
     
     print("done")

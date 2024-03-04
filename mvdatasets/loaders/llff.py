@@ -23,11 +23,12 @@ def read_points3D(reconstruction):
 
 def read_cameras(reconstruction):
     
-    intrinsics_all = {}
+    camera_models_intrinsics = {}
     for camera_id, camera in reconstruction.cameras.items():
         intrinsics = np.eye(3)
-        print(camera.model_id)
-        print(camera.params)
+        print("camera_id", camera_id)
+        print("camera.model_id", camera.model_id)
+        print("camera.params", camera.params)
         # PINHOLE
         if camera.model_id == 1:
             intrinsics[0, 0] = camera.params[0]  # fx
@@ -44,16 +45,26 @@ def read_cameras(reconstruction):
         else:
             raise NotImplementedError(f"camera model {camera.model_id} not implemented")
         print(intrinsics)
-        intrinsics_all[str(camera_id)] = intrinsics
+        camera_models_intrinsics[str(camera_id)] = intrinsics
     
-    extrinsics_all = {}
+    cameras = []
     for image_id, image in reconstruction.images.items():
+        print("image_id", image_id)
+        print("image.name", image.name)
+        print("image.camera_id", image.camera_id)
         pose = np.eye(4)
         pose[:3, :3] = qvec2rotmat(image.qvec)
         pose[:3, 3] = image.tvec
-        extrinsics_all[image.name] = pose
-        intrinsics_all[image.name] = intrinsics_all[str(image.camera_id)]
-    return intrinsics_all, extrinsics_all
+        cameras.append(
+            {
+                "id": image_id,
+                "pose": pose,
+                "intrinsics": camera_models_intrinsics[str(image.camera_id)],
+                "img_name": image.name
+            }
+        )
+    
+    return cameras
 
 
 def load_llff(
@@ -92,7 +103,7 @@ def load_llff(
             print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
     
     if "scene_scale_mult" not in config:
-        config["scene_scale_mult"] = 0.25
+        config["scene_scale_mult"] = 0.1
         if verbose:
             print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
 
@@ -102,7 +113,7 @@ def load_llff(
             print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
         
     if "scene_radius" not in config:
-        config["scene_radius"] = 1.0
+        config["scene_radius"] = 10.0
         if verbose:
             print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
         
@@ -134,10 +145,10 @@ def load_llff(
     # # save point cloud as ply with o3d
     # o3d_point_cloud = o3d.geometry.PointCloud()
     # o3d_point_cloud.points = o3d.utility.Vector3dVector(point_cloud)
-    # o3d.io.write_point_cloud(os.path.join(scene_path, "point_cloud.ply"), o3d_point_cloud)
+    # o3d.io.write_point_cloud(os.path.join("debug/point_clouds/mipnerf360", "garden.ply"), o3d_point_cloud)
     # exit()
     
-    intrinsics_all, extrinsics_all = read_cameras(reconstruction)
+    cameras_meta = read_cameras(reconstruction)
     images_path = os.path.join(scene_path, "images")
     
     if config["subsample_factor"] > 1:
@@ -152,25 +163,25 @@ def load_llff(
     
     # read images and construct cameras
     cameras_all = []
-    images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
-    pbar = tqdm(images_list, desc="images", ncols=100)
-    for im_name in pbar:
+    # images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
+    pbar = tqdm(cameras_meta, desc="images", ncols=100)
+    for camera in pbar:
         
         # load PIL image
-        img_pil = Image.open(os.path.join(images_path, im_name))
+        img_pil = Image.open(os.path.join(images_path, camera["img_name"]))
         img_np = image2numpy(img_pil, use_uint8=True)
         
         # params
-        intrinsics = intrinsics_all[im_name]
+        intrinsics = camera["intrinsics"]
         # update intrinsics after rescaling
         intrinsics[0, 0] *= 1/subsample_factor
         intrinsics[1, 1] *= 1/subsample_factor
         intrinsics[0, 2] *= 1/subsample_factor
         intrinsics[1, 2] *= 1/subsample_factor
         
-        pose = extrinsics_all[im_name]
+        pose = camera["pose"]
         cam_imgs = img_np[None, ...]
-        idx = int(re.search(r'\d+', im_name).group())
+        idx = camera["id"]
         
         camera = Camera(
             intrinsics=intrinsics,
@@ -206,5 +217,6 @@ def load_llff(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius
+        "scene_radius": scene_radius,
+        "scene_scale": "unbounded"
     }

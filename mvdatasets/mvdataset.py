@@ -9,6 +9,7 @@ from mvdatasets.loaders.llff import load_llff
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.common import is_dataset_supported
 from mvdatasets.utils.geometry import apply_transformation_3d
+from mvdatasets.utils.contraction import contract_points
 
 
 def get_poses_all(cameras):
@@ -198,6 +199,14 @@ class MVDataset:
                     apply_transformation_3d(point_cloud, self.global_transform)
                 )
             self.point_clouds = transformed_point_clouds
+            
+            # TESTING
+            # apply contraction function
+            scene_scale = res.get("scene_scale", None)
+            if scene_scale == "unbounded":
+                for point_cloud in self.point_clouds:
+                    point_cloud = contract_points(point_cloud)
+                    
             if verbose:
                 print(f"loaded {len(self.point_clouds)} point clouds")
         else:
