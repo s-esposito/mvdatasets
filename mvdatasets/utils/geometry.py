@@ -100,8 +100,8 @@ def apply_transformation_3d(points_3d, transform):
         transform (4, 4)
     out: points (N, 3)
     """
-    print("points_3d", points_3d)
-    print("transform", transform)
+    # print("points_3d", points_3d)
+    # print("transform", transform)
     augmented_points_3d = augment_vectors(points_3d)
     homogeneous_points_3d = (transform @ augmented_points_3d.T).T
     augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 3:]
@@ -265,9 +265,8 @@ def look_at(eye, center, up):
     return rotation
 
 
-############################################
-# from https://github.com/colmap/colmap/blob/main/scripts/python/read_write_model.py#L523
-
+####################################################
+# https://github.com/nerfstudio-project/nerfstudio/blob/main/nerfstudio/data/utils/colmap_parsing_utils.py#L454
 
 def qvec2rotmat(qvec):
     return np.array(
@@ -295,7 +294,7 @@ def rotmat2qvec(R):
     Rxx, Ryx, Rzx, Rxy, Ryy, Rzy, Rxz, Ryz, Rzz = R.flat
     K = (
         np.array(
-            [
+            [  # type: ignore
                 [Rxx - Ryy - Rzz, 0, 0, 0],
                 [Ryx + Rxy, Ryy - Rxx - Rzz, 0, 0],
                 [Rzx + Rxz, Rzy + Ryz, Rzz - Rxx - Ryy, 0],
@@ -310,5 +309,4 @@ def rotmat2qvec(R):
         qvec *= -1
     return qvec
 
-
-############################################
+####################################################

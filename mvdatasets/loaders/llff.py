@@ -4,67 +4,64 @@ import numpy as np
 import sys
 import re
 import pycolmap
-from PIL import Image
 import open3d as o3d
 from tqdm import tqdm
 
-from mvdatasets.utils.images import image2numpy
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.geometry import qvec2rotmat, rot_x_3d, deg2rad
+from mvdatasets.utils.geometry import rot_x_3d, deg2rad
+from mvdatasets.utils.pycolmap import read_points3D, read_cameras
+
+# based on: https://github.com/google-research/multinerf/blob/5b4d4f64608ec8077222c52fdf814d40acc10bc1/internal/datasets.py
 
 
-def read_points3D(reconstruction):
-    point_cloud = []
-    for point3D_id, point3D in reconstruction.points3D.items():
-        point_cloud.append(point3D.xyz)
-    point_cloud = np.array(point_cloud)
-    return point_cloud
+# def pad_poses(p):
+#     """Pad [..., 3, 4] pose matrices with a homogeneous bottom row [0,0,0,1]."""
+#     bottom = np.broadcast_to([0, 0, 0, 1.], p[..., :1, :4].shape)
+#     return np.concatenate([p[..., :3, :4], bottom], axis=-2)
 
 
-def read_cameras(reconstruction):
-    
-    camera_models_intrinsics = {}
-    for camera_id, camera in reconstruction.cameras.items():
-        intrinsics = np.eye(3)
-        print("camera_id", camera_id)
-        print("camera.model_id", camera.model_id)
-        print("camera.params", camera.params)
-        # PINHOLE
-        if camera.model_id == 1:
-            intrinsics[0, 0] = camera.params[0]  # fx
-            intrinsics[1, 1] = camera.params[1]  # fy
-            intrinsics[0, 2] = camera.params[2]  # cx
-            intrinsics[1, 2] = camera.params[3]  # cy
-        # SIMPLE_RADIAL
-        elif camera.model_id == 2:
-            intrinsics[0, 0] = camera.params[0]  # fx
-            intrinsics[1, 1] = camera.params[0]  # fy = fx
-            intrinsics[0, 2] = camera.params[1]  # cx
-            intrinsics[1, 2] = camera.params[2]  # cy
-            # camera.params[3]  # k1
-        else:
-            raise NotImplementedError(f"camera model {camera.model_id} not implemented")
-        print(intrinsics)
-        camera_models_intrinsics[str(camera_id)] = intrinsics
-    
-    cameras = []
-    for image_id, image in reconstruction.images.items():
-        print("image_id", image_id)
-        print("image.name", image.name)
-        print("image.camera_id", image.camera_id)
-        pose = np.eye(4)
-        pose[:3, :3] = qvec2rotmat(image.qvec)
-        pose[:3, 3] = image.tvec
-        cameras.append(
-            {
-                "id": image_id,
-                "pose": pose,
-                "intrinsics": camera_models_intrinsics[str(image.camera_id)],
-                "img_name": image.name
-            }
-        )
-    
-    return cameras
+# def unpad_poses(p):
+#     """Remove the homogeneous bottom row from [..., 4, 4] pose matrices."""
+#     return p[..., :3, :4]
+
+
+# def transform_poses_pca(poses):
+#     """Transforms poses so principal components lie on XYZ axes.
+
+#     Args:
+#         poses: a (N, 3, 4) array containing the cameras' camera to world transforms.
+
+#     Returns:
+#         A tuple (poses, transform), with the transformed poses and the applied
+#         camera_to_world transforms.
+#     """
+#     t = poses[:, :3, 3]
+#     t_mean = t.mean(axis=0)
+#     t = t - t_mean
+
+#     eigval, eigvec = np.linalg.eig(t.T @ t)
+#     # Sort eigenvectors in order of largest to smallest eigenvalue.
+#     inds = np.argsort(eigval)[::-1]
+#     eigvec = eigvec[:, inds]
+#     rot = eigvec.T
+#     if np.linalg.det(rot) < 0:
+#         rot = np.diag(np.array([1, 1, -1])) @ rot
+
+#     transform = np.concatenate([rot, rot @ -t_mean[:, None]], -1)
+#     poses_recentered = unpad_poses(transform @ pad_poses(poses))
+#     transform = np.concatenate([transform, np.eye(4)[3:]], axis=0)
+
+#     # Flip coordinate system if z component of y-axis is negative
+#     if poses_recentered.mean(axis=0)[2, 1] < 0:
+#         poses_recentered = np.diag(np.array([1, -1, -1])) @ poses_recentered
+#         transform = np.diag(np.array([1, -1, -1, 1])) @ transform
+
+#     # Just make sure it's it in the [-1, 1]^3 cube
+#     scale_factor = 1. / np.max(np.abs(poses_recentered[:, :3, 3]))
+#     poses_recentered[:, :3, 3] *= scale_factor
+#     transform = np.diag(np.array([scale_factor] * 3 + [1])) @ transform
+
+#     return poses_recentered, transform
 
 
 def load_llff(
@@ -87,6 +84,15 @@ def load_llff(
 
     # CONFIG -----------------------------------------------------------------
         
+    if "scene_type" not in config:
+        config["scene_type"] = "unbounded"  # "forward_facing"
+        if verbose:
+            print(f"WARNING: scene_type not in config, setting to {config['scene_type']}")
+    else:
+        valid_scene_types = ["unbounded", "forward_facing"]
+        if config["scene_type"] not in valid_scene_types:
+            raise ValueError(f"scene_type {config['scene_type']} must be a value in {valid_scene_types}")
+    
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
@@ -111,7 +117,11 @@ def load_llff(
         config["subsample_factor"] = 1
         if verbose:
             print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
-        
+    else:
+        valid_subsample_factors = [1, 2, 4, 8]
+        if config["subsample_factor"] not in valid_subsample_factors:
+            raise ValueError(f"subsample_factor {config['subsample_factor']} must be a value in {valid_subsample_factors}")
+            
     if "scene_radius" not in config:
         config["scene_radius"] = 10.0
         if verbose:
@@ -136,19 +146,23 @@ def load_llff(
     # scene radius
     scene_radius = config["scene_radius"] * scene_scale_mult
     
+    # local transform
+    local_transform = np.eye(4)
+    # local_transform[:3, :3] = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]])
+    
     # read colmap data
     
     reconstruction_path = os.path.join(scene_path, "sparse/0")
     reconstruction = pycolmap.Reconstruction(reconstruction_path)
+    # print(reconstruction.summary())
 
-    # point_cloud = read_points3D(reconstruction)    
+    point_cloud = read_points3D(reconstruction)  
     # # save point cloud as ply with o3d
     # o3d_point_cloud = o3d.geometry.PointCloud()
     # o3d_point_cloud.points = o3d.utility.Vector3dVector(point_cloud)
     # o3d.io.write_point_cloud(os.path.join("debug/point_clouds/mipnerf360", "garden.ply"), o3d_point_cloud)
     # exit()
     
-    cameras_meta = read_cameras(reconstruction)
     images_path = os.path.join(scene_path, "images")
     
     if config["subsample_factor"] > 1:
@@ -156,36 +170,67 @@ def load_llff(
         images_path += f"_{subsample_factor}"
     else:
         subsample_factor = 1
-        
-    # local transform
-    local_transform = np.eye(4)
-    # local_transform[:3, :3] = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]])
     
-    # read images and construct cameras
+    cameras_meta = read_cameras(reconstruction, images_path)
+    
+    # # open poses_bounds.npy
+    # poses_bounds_path = os.path.join(scene_path, "poses_bounds.npy")
+    # # check if file exists
+    # if os.path.exists(poses_bounds_path):
+    #     poses_arr = np.load(poses_bounds_path)
+    #     bounds = poses_arr[:, -2:]
+    # else:
+    #     bounds = np.array([0.01, 1.])
+    
+    # poses = []
+    # for camera in cameras_meta:
+    #     poses.append(camera["pose"])
+    # poses = np.array(poses)
+    
+    # # TODO: forward_facing specific
+    # if config["scene_type"] == "forward_facing":
+    #     pass
+    # else:
+    #     # unbouded
+    #     poses = unpad_poses(poses)
+    #     # Rotate/scale poses to align ground with xy plane and fit to unit cube.
+    #     poses, transform = transform_poses_pca(poses)
+    #     poses = pad_poses(poses)
+
+    #     print("transform", transform)
+    #     print("poses", poses.shape)
+        
+    #     global_transform = transform
+        
+    # read images
     cameras_all = []
     # images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
     pbar = tqdm(cameras_meta, desc="images", ncols=100)
-    for camera in pbar:
+    for i, camera in enumerate(pbar):
         
-        # load PIL image
-        img_pil = Image.open(os.path.join(images_path, camera["img_name"]))
-        img_np = image2numpy(img_pil, use_uint8=True)
+        w2c = np.eye(4)
+        w2c[:3, :3] = camera["rotation"]
+        w2c[:3, 3] = camera["translation"]
+        c2w = np.linalg.inv(w2c)
+        pose = c2w
         
         # params
-        intrinsics = camera["intrinsics"]
-        # update intrinsics after rescaling
-        intrinsics[0, 0] *= 1/subsample_factor
-        intrinsics[1, 1] *= 1/subsample_factor
-        intrinsics[0, 2] *= 1/subsample_factor
-        intrinsics[1, 2] *= 1/subsample_factor
+        params = camera["params"]
+        intrinsics = np.eye(3)
+        intrinsics[0, 0] = params["fx"] / subsample_factor
+        intrinsics[1, 1] = params["fy"] / subsample_factor
+        intrinsics[0, 2] = params["cx"] / subsample_factor
+        intrinsics[1, 2] = params["cy"] / subsample_factor
+        # print("intrinsics", intrinsics)
         
-        pose = camera["pose"]
-        cam_imgs = img_np[None, ...]
         idx = camera["id"]
+        cam_imgs = camera["img"][None, ...]
+        # print("cam_imgs", cam_imgs.shape)
         
         camera = Camera(
             intrinsics=intrinsics,
             pose=pose,
+            params=params,
             global_transform=global_transform,
             local_transform=local_transform,
             rgbs=cam_imgs,
@@ -218,5 +263,6 @@ def load_llff(
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "scene_radius": scene_radius,
-        "scene_scale": "unbounded"
+        "scene_type": config["scene_type"],
+        "point_clouds": [point_cloud]
     }

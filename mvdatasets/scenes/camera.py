@@ -10,7 +10,7 @@ class Camera:
     """
 
     def __init__(
-        self, intrinsics, pose,
+        self, intrinsics, pose, params={},
         rgbs=None, masks=None, normals=None, depths=None,
         instance_masks=None, semantic_masks=None,
         global_transform=None, local_transform=None,
@@ -27,8 +27,9 @@ class Camera:
             depths (np.array, uint8 or float32): (T, H, W, 1) with values in [0, 255] or [0, 1]
             instance_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_instances]
             semantic_masks (np.array, uint8): (T, H, W, 1) with values in [0, n_classes]
-            intrinsics (np.array): (3, 3) camera intrinsics
-            pose (np.array): (4, 4) camera extrinsics
+            intrinsics (np.array): (3, 3) camera intrinsics (camtopix)
+            pose (np.array): (4, 4) camera extrinsics (c2w)
+            params (dict): additional parameters
             camera_idx (int): camera index
             width (int): image width, mandatory when camera has no images
             height (int): image height, mandatory when camera has no images

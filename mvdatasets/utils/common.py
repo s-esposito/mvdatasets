@@ -6,7 +6,7 @@ def is_dataset_supported(dataset_name):
                             "blendernerf",
                             "dmsr",
                             "refnerf",
-                            "llff",
+                            # "llff",
                             "mipnerf360",
                             "shelly"
                         ]
@@ -80,17 +80,19 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "fern"
         pc_paths = ["debug/point_clouds/llff/fern.ply"]
         config = {
+            "scene_type": "forward_facing",
             "scene_scale_mult": 0.03,
         }
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
-        scene_name = "garden"
-        pc_paths = [f"debug/point_clouds/mipnerf360/{scene_name}.ply"]
+        scene_name = "bicycle"
+        pc_paths = []
         
         # dataset specific config
         config = {
-            "subsample_factor": 4,
+            "scene_type": "unbounded",
+            "subsample_factor": 8,
             "scene_scale_mult": 0.1,
         }
         
@@ -98,6 +100,6 @@ def get_dataset_test_preset(dataset_name):
         if scene_name == "bicycle":
             config["rotate_scene_x_axis_deg"] = -104
         if scene_name == "garden":
-            config["rotate_scene_x_axis_deg"] = 62
+            config["rotate_scene_x_axis_deg"] = -120
     
     return scene_name, pc_paths, config

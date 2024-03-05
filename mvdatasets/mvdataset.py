@@ -86,7 +86,6 @@ class MVDataset:
         print(f"scene: [magenta]{scene_name}[/magenta]")
         print(f"loading {splits} splits")
         
-        self.global_transform = np.eye(4)
         self.cameras_on_hemisphere = False
         
         # STATIC SCENE DATASETS -----------------------------------------------
@@ -185,32 +184,37 @@ class MVDataset:
             self.scene_radius = res["scene_radius"]
         else:
             self.scene_radius = 1.0
+        
+        if "point_clouds" in res:
+            self.point_clouds = res["point_clouds"]
+        else:
+            self.point_clouds = []
             
         # ---------------------------------------------------------------------
         
         # (optional) load point clouds
-        if len(point_clouds_paths) > 0:
-            # load point clouds
-            point_clouds = load_point_clouds(point_clouds_paths, verbose=verbose)
-            # apply global transform
-            transformed_point_clouds = []
-            for point_cloud in point_clouds:
-                transformed_point_clouds.append(
-                    apply_transformation_3d(point_cloud, self.global_transform)
-                )
-            self.point_clouds = transformed_point_clouds
-            
-            # TESTING
-            # apply contraction function
-            scene_scale = res.get("scene_scale", None)
-            if scene_scale == "unbounded":
-                for point_cloud in self.point_clouds:
-                    point_cloud = contract_points(point_cloud)
-                    
-            if verbose:
-                print(f"loaded {len(self.point_clouds)} point clouds")
+        if len(self.point_clouds) == 0:
+            # need to load point clouds
+            if len(point_clouds_paths) > 0:
+                # load point clouds
+                self.point_clouds = load_point_clouds(point_clouds_paths, verbose=verbose)
+                if verbose:
+                    print(f"loaded {len(self.point_clouds)} point clouds")
         else:
-            self.point_clouds = []
+            if len(point_clouds_paths) > 0:
+                print("WARNING: point_clouds_paths will be ignored")
+        
+        transformed_point_clouds = []
+        for point_cloud in self.point_clouds:
+            # apply global transform
+            pc = apply_transformation_3d(point_cloud, self.global_transform)
+            # apply contraction function
+            scene_type = res.get("scene_type", None)
+            if scene_type == "unbounded":
+                pc = contract_points(pc)
+            
+            transformed_point_clouds.append(pc)
+        self.point_clouds = transformed_point_clouds
         
         # TODO: (optional) load meshes
         # if len(meshes_paths) > 0:
