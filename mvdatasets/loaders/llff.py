@@ -123,7 +123,7 @@ def load_llff(
             raise ValueError(f"subsample_factor {config['subsample_factor']} must be a value in {valid_subsample_factors}")
             
     if "scene_radius" not in config:
-        config["scene_radius"] = 10.0
+        config["scene_radius"] = 5.0
         if verbose:
             print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
         
