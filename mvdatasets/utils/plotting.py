@@ -113,7 +113,8 @@ def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, max_nr_
     scale = _scene_radius_to_scale(scene_radius)
     
     if color is None:
-        color = "b"
+        # random matplotlib color
+        color = np.random.rand(3)
     if size is None:
         size = 10
     if marker is None:
@@ -413,6 +414,25 @@ def _draw_camera_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
         pos[2] if up == "z" else pos[1],  # z
         str(idx)
     )
+    
+
+def _draw_point_clouds(
+    ax,
+    point_clouds,
+    max_nr_points=1000,
+    up="z",
+    scene_radius=1.0
+):
+    if not isinstance(point_clouds, list):
+        point_clouds_ = [point_clouds]
+    else:
+        point_clouds_ = point_clouds
+    
+    if len(point_clouds_) > 0:
+        max_nr_points_per_pc = max_nr_points // len(point_clouds_)
+        for pc in point_clouds_:
+            if max_nr_points_per_pc > 0:
+                _draw_point_cloud(ax, pc, max_nr_points=max_nr_points_per_pc, up=up, scene_radius=scene_radius)
 
 
 def _draw_cameras(
@@ -424,19 +444,25 @@ def _draw_cameras(
     draw_image_planes=True,
     draw_cameras_frustums=True
 ):
-    if len(cameras) == 0:
-        return
-    # draw camera frames
-    for camera in cameras:
-        pose = camera.get_pose()
-        camera_idx = camera.camera_idx
-        _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
-        if draw_image_planes:
-            _draw_image_plane(ax, camera, up=up, scene_radius=scene_radius)
-        if draw_cameras_frustums:
-            _draw_frustum(ax, camera, up=up, scene_radius=scene_radius)
-        if nr_rays // len(cameras) > 0:
-            _draw_camera_rays(ax, camera, nr_rays=nr_rays // len(cameras), up=up, scene_radius=scene_radius)
+    if not isinstance(cameras, list):
+        cameras_ = [cameras]
+    else:
+        cameras_ = cameras
+    
+    if len(cameras_) > 0:
+        nr_rays_per_camera = nr_rays // len(cameras_)
+        
+        # draw camera frames
+        for camera in cameras_:
+            pose = camera.get_pose()
+            camera_idx = camera.camera_idx
+            _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
+            if draw_image_planes:
+                _draw_image_plane(ax, camera, up=up, scene_radius=scene_radius)
+            if draw_cameras_frustums:
+                _draw_frustum(ax, camera, up=up, scene_radius=scene_radius)
+            if nr_rays_per_camera > 0:
+                _draw_camera_rays(ax, camera, nr_rays=nr_rays_per_camera, up=up, scene_radius=scene_radius)
 
 
 def plot_cameras(
@@ -514,11 +540,13 @@ def plot_cameras(
 
 def plot_bounding_boxes(
     bounding_boxes=[],
-    points_3d=None,
+    cameras=[],
+    point_clouds=[],
     azimuth_deg=60,
     elevation_deg=30,
     scene_radius=1.0,
     up="z",
+    max_nr_points=1000,
     draw_origin=True,
     draw_frame=False,
     figsize=(15, 15),
@@ -559,8 +587,11 @@ def plot_bounding_boxes(
     )
     
     # draw points
-    _draw_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scene_radius=scene_radius)
-
+    _draw_point_clouds(ax, point_clouds, max_nr_points=max_nr_points, up=up, scene_radius=scene_radius)
+    
+    # draw cameras
+    _draw_cameras(ax, cameras, up=up, scene_radius=scene_radius)
+    
     return fig
 
 

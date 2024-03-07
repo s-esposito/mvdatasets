@@ -23,15 +23,6 @@ from mvdatasets.utils.bounding_box import BoundingBox
 from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.raycasting import get_camera_rays
 
-def load_instance_info(directory, obj_type):
-    instance_info_file = os.path.join(directory, f"{obj_type}_instance_info.npy")
-    if os.path.exists(instance_info_file):
-        instance_info = np.load(instance_info_file, allow_pickle=True).item()
-        return instance_info
-    else:
-        print(f"Instance info file not found for {obj_type}.")
-        return None
-
 
 if __name__ == "__main__":
 
@@ -54,81 +45,107 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
     
-    width = 800
-    height = 800
-    vfov = 90.0
-    focal = (height / 2) / np.tan(np.deg2rad(vfov / 2))
-    cx = width / 2
-    cy = height / 2
-    intrinsics = np.array([
-        [focal, 0, cx],
-        [0, focal, cy],
-        [0, 0, 1]
-    ], dtype=np.float32)
-    camera_radius = 0.5
+    # Set datasets path
+    datasets_path = "/home/stefano/Data"
+
+    # Get dataset test preset
+    dataset_name = "dmsr"
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    # config["scene_scale_mult"] = 1.0
     
-    sampled_cameras = sample_cameras_on_hemisphere(
-        intrinsics=intrinsics,
-        width=width,
-        height=height,
-        radius=camera_radius,
-        nr_cameras=1
+    # dataset loading
+    mv_data = MVDataset(
+        dataset_name,
+        scene_name,
+        datasets_path,
+        point_clouds_paths=pc_paths,
+        splits=["train", "test"],
+        config=config,
+        verbose=True
     )
-    camera = sampled_cameras[0]
+    
+    if len(mv_data.point_clouds) > 0:
+        point_cloud = mv_data.point_clouds[0]
+    else:
+        point_cloud = np.empty((0, 3))
+    
+    camera = mv_data["test"][0]
+    width = camera.width
+    height = camera.height
+    # width = 800
+    # height = 800
+    # vfov = 90.0
+    # focal = (height / 2) / np.tan(np.deg2rad(vfov / 2))
+    # cx = width / 2
+    # cy = height / 2
+    # intrinsics = np.array([
+    #     [focal, 0, cx],
+    #     [0, focal, cy],
+    #     [0, 0, 1]
+    # ], dtype=np.float32)
+    # camera_radius = 0.5
+    
+    # sampled_cameras = sample_cameras_on_hemisphere(
+    #     intrinsics=intrinsics,
+    #     width=width,
+    #     height=height,
+    #     radius=camera_radius,
+    #     nr_cameras=1
+    # )
+    # camera = sampled_cameras[0]
 
     # create bounding boxes
     bounding_boxes = []
     
-     # create bounding boxes
+    # create bounding boxes
     bounding_boxes = []
-    icp_directory = "/home/mad_iyengar/Documents/research/nerf_asset_project/datasets/dmsr/dinning/train/icp_info"
-    save_dir = "./plots"
-    obj_types = ['chair', 'vase']
-    # obj_types = ['chair'] 
-    for asset_name in obj_types:
-        loaded_instance_info = load_instance_info(icp_directory, asset_name)
-        
-        if loaded_instance_info:
-            for o_type, info_dict in loaded_instance_info.items():
-                father_bounding_box = info_dict['bb']
-                father_bb_pose = np.eye(4)
-                # father_bb_pose[:3,:3] *= father_bounding_box['dimensions'] 
-                father_bb_pose[:3, 3] = father_bounding_box["center"]               
-                father_bb = BoundingBox(
-                    pose=father_bb_pose,
-                    label="P",
-                    color="red",
-                    local_scale=father_bounding_box['dimensions'],
-                    device="cuda"
-                )
-                father_bb.save_as_ply(save_dir,f'bb_{asset_name}_principal')
-                bounding_boxes.append(father_bb) 
-                for instance_num, info in info_dict.items():
-                    if isinstance(instance_num, int):
-                        transformation_matrix = info["transformation"]
-                        bb_pose = transformation_matrix
-                        bb = BoundingBox(
-                            pose=bb_pose,
-                            father_bb=father_bb,
-                            label=instance_num,
-                            color="blue",
-                            device="cuda"
-                        )
-                        bb.save_as_ply(save_dir,f'bb_{asset_name}_{instance_num}')
-                        bounding_boxes.append(bb)   
-
-    # bb = BoundingBox(
-    #     pose=np.eye(4),
-    #     local_scale=np.array([1.0, 1.0, 1.0]),
-    #     device=device
-    # )
-    # bounding_boxes.append(bb)
+    scene_path = f"debug/assetsnerf/{dataset_name}/{scene_name}"
+    icp_path = os.path.join(scene_path, "icp")
+    # bounding_boxes_path = os.path.join(scene_path, "bounding_boxes")
     
-    # points = bb.get_random_points_inside(1000)
-    # # get points norm
-    # print("min", torch.min(points, dim=0)[0])
-    # print("max", torch.max(points, dim=0)[0])
-    # print("points", points)
+    # list files in icp directory
+    scene_scale = config["scene_scale_mult"]
+    assets_names = [f.split(".")[0] for f in os.listdir(icp_path) if f.endswith(".npy")]
+    for asset_name in assets_names:
+        
+        # load asset instances info
+        asset_meta_path = os.path.join(icp_path, f"{asset_name}.npy")
+        asset_meta = np.load(asset_meta_path, allow_pickle=True).item()[asset_name]
+        print(f"loaded {asset_name} instances info")
+        
+        father_bb = asset_meta['bb']
+        father_bb["dimensions"] *= scene_scale
+        father_bb_pose = np.eye(4)
+        father_bb_pose[:3, 3] = father_bb["center"] * scene_scale
+        print(f"father_bb_pose: {father_bb_pose}")
+        father_bb = BoundingBox(
+            pose=father_bb_pose,
+            label="P",
+            color="red",
+            local_scale=father_bb['dimensions'],
+            device="cuda"
+        )
+        # father_bb.save_as_ply(bounding_boxes_path, f'bb_{asset_name}_principal')
+        bounding_boxes.append(father_bb)
+        
+        # remove "bb" key from asset_meta
+        del asset_meta["bb"]
+        
+        for instance_id, instance_meta in asset_meta.items():
+        
+            transformation_matrix = instance_meta["transformation"]
+            bb_pose = transformation_matrix
+            bb_pose[:3, 3] = bb_pose[:3, 3] * scene_scale
+            bb = BoundingBox(
+                pose=bb_pose,
+                father_bb=father_bb,
+                label=str(instance_id),
+                color="blue",
+                device="cuda"
+            )
+            # bb.save_as_ply(bounding_boxes_path, f'bb_{asset_name}_{instance_id}')
+            bounding_boxes.append(bb)
+    # finished loading bounding boxes
     
     # shoot rays from camera and intersect with boxes
     rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
@@ -139,11 +156,13 @@ if __name__ == "__main__":
         intersections.append([is_hit, t_near, t_far, p_near, p_far])
         print(f"is {i} bb hit?", np.any(is_hit.cpu().numpy()))
     
-    points_3d = []
+    points_near = []
+    points_far = []
     for (is_hit, _, _, p_near, p_far) in intersections:
-        points_3d.append(p_near[is_hit].cpu().numpy())
-        points_3d.append(p_far[is_hit].cpu().numpy())
-    points_3d = np.concatenate(points_3d, axis=0)
+        points_near.append(p_near[is_hit].cpu().numpy())
+        points_far.append(p_far[is_hit].cpu().numpy())
+    points_near = np.concatenate(points_near, axis=0)
+    points_far = np.concatenate(points_far, axis=0)
     
     near_depth = np.ones((height, width)).flatten() * np.inf
     far_depth = np.ones((height, width)).flatten() * np.inf
@@ -184,42 +203,19 @@ if __name__ == "__main__":
     )
     plt.close()
     
-    # # visualize
-    # fig = plot_cameras(
-    #     camera,
-    #     nr_rays=32,
-    #     points_3d=points_3d,
-    #     bounding_boxes=bounding_boxes,
-    #     azimuth_deg=20,
-    #     elevation_deg=30,
-    #     scene_radius=camera_radius,
-    #     up="z",
-    #     draw_bounding_cube=False,
-    #     figsize=(15, 15),
-    #     title="camera, rays and bounding boxes intersection",
-    # )
-    # # plt.show()
-    
-    # plt.savefig(
-    #     os.path.join("plots", "camera_rays_bbs_intersections.png"),
-    #     transparent=False,
-    #     bbox_inches="tight",
-    #     pad_inches=0,
-    #     dpi=300
-    # )
-    # plt.close()
-    
     fig = plot_bounding_boxes(
         bounding_boxes=bounding_boxes,
-        points_3d=points_3d,
+        point_clouds=[point_cloud, points_near, points_far],
+        cameras=[camera],
         azimuth_deg=230,
         elevation_deg=60,
         scene_radius=1.0,
+        max_nr_points=1000,
         up="z",
         figsize=(15, 15),
         draw_origin=False,
         draw_frame=False,
-        title="",
+        title="bounding boxes and intersection points",
     )
     # plt.show()
     

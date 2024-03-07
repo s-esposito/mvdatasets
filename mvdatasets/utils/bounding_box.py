@@ -111,6 +111,8 @@ class BoundingBox:
         #     pose = pose @ father_bb.get_pose()
         #     father_bb = father_bb.father_bb
         if father_bb is not None:
+            # TODO: figure this out
+            # pose = father_bb.get_pose() @ pose
             pose = pose @ father_bb.get_pose()
     
         return pose
