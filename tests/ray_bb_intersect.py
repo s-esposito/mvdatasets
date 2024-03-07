@@ -23,6 +23,15 @@ from mvdatasets.utils.bounding_box import BoundingBox
 from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.raycasting import get_camera_rays
 
+def load_instance_info(directory, obj_type):
+    instance_info_file = os.path.join(directory, f"{obj_type}_instance_info.npy")
+    if os.path.exists(instance_info_file):
+        instance_info = np.load(instance_info_file, allow_pickle=True).item()
+        return instance_info
+    else:
+        print(f"Instance info file not found for {obj_type}.")
+        return None
+
 
 if __name__ == "__main__":
 
@@ -70,18 +79,56 @@ if __name__ == "__main__":
     # create bounding boxes
     bounding_boxes = []
     
-    bb = BoundingBox(
-        pose=np.eye(4),
-        local_scale=np.array([1.0, 1.0, 1.0]),
-        device=device
-    )
-    bounding_boxes.append(bb)
+     # create bounding boxes
+    bounding_boxes = []
+    icp_directory = "/home/mad_iyengar/Documents/research/nerf_asset_project/datasets/dmsr/dinning/train/icp_info"
+    save_dir = "./plots"
+    obj_types = ['chair', 'vase']
+    # obj_types = ['chair'] 
+    for asset_name in obj_types:
+        loaded_instance_info = load_instance_info(icp_directory, asset_name)
+        
+        if loaded_instance_info:
+            for o_type, info_dict in loaded_instance_info.items():
+                father_bounding_box = info_dict['bb']
+                father_bb_pose = np.eye(4)
+                # father_bb_pose[:3,:3] *= father_bounding_box['dimensions'] 
+                father_bb_pose[:3, 3] = father_bounding_box["center"]               
+                father_bb = BoundingBox(
+                    pose=father_bb_pose,
+                    label="P",
+                    color="red",
+                    local_scale=father_bounding_box['dimensions'],
+                    device="cuda"
+                )
+                father_bb.save_as_ply(save_dir,f'bb_{asset_name}_principal')
+                bounding_boxes.append(father_bb) 
+                for instance_num, info in info_dict.items():
+                    if isinstance(instance_num, int):
+                        transformation_matrix = info["transformation"]
+                        bb_pose = transformation_matrix
+                        bb = BoundingBox(
+                            pose=bb_pose,
+                            father_bb=father_bb,
+                            label=instance_num,
+                            color="blue",
+                            device="cuda"
+                        )
+                        bb.save_as_ply(save_dir,f'bb_{asset_name}_{instance_num}')
+                        bounding_boxes.append(bb)   
+
+    # bb = BoundingBox(
+    #     pose=np.eye(4),
+    #     local_scale=np.array([1.0, 1.0, 1.0]),
+    #     device=device
+    # )
+    # bounding_boxes.append(bb)
     
-    points = bb.get_random_points_inside(1000)
-    # get points norm
-    print("min", torch.min(points, dim=0)[0])
-    print("max", torch.max(points, dim=0)[0])
-    print("points", points)
+    # points = bb.get_random_points_inside(1000)
+    # # get points norm
+    # print("min", torch.min(points, dim=0)[0])
+    # print("max", torch.max(points, dim=0)[0])
+    # print("points", points)
     
     # shoot rays from camera and intersect with boxes
     rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
@@ -162,24 +209,25 @@ if __name__ == "__main__":
     # )
     # plt.close()
     
-    # fig = plot_bounding_boxes(
-    #     bounding_boxes=bounding_boxes,
-    #     azimuth_deg=230,
-    #     elevation_deg=60,
-    #     scene_radius=1.0,
-    #     up="z",
-    #     figsize=(15, 15),
-    #     draw_origin=False,
-    #     draw_frame=False,
-    #     title="",
-    # )
-    # # plt.show()
+    fig = plot_bounding_boxes(
+        bounding_boxes=bounding_boxes,
+        points_3d=points_3d,
+        azimuth_deg=230,
+        elevation_deg=60,
+        scene_radius=1.0,
+        up="z",
+        figsize=(15, 15),
+        draw_origin=False,
+        draw_frame=False,
+        title="",
+    )
+    # plt.show()
     
-    # plt.savefig(
-    #     os.path.join("plots", f"bbs.png"),
-    #     transparent=False,
-    #     bbox_inches="tight",
-    #     pad_inches=0,
-    #     dpi=300
-    # )
-    # plt.close()
+    plt.savefig(
+        os.path.join("plots", f"bbs.png"),
+        transparent=False,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
+    plt.close()

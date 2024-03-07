@@ -87,11 +87,11 @@ class BoundingBox:
             if self.father_bb.device != device:
                 raise ValueError("father and child and bounding boxes must be on the same device")
         
-        # if self.father_bb is None:
-        self.local_scale = torch.tensor(local_scale, dtype=torch.float32, device=device)
-        # else:
+        if self.father_bb is None:
+            self.local_scale = torch.tensor(local_scale, dtype=torch.float32, device=device)
+        else:
         # inherit local scale from father bounding box
-        # self.local_scale = self.father_bb.local_scale
+            self.local_scale = self.father_bb.local_scale
             
         self.device = device
         self.identity = torch.eye(4, dtype=torch.float32, device=device)
@@ -102,14 +102,17 @@ class BoundingBox:
         self.line_width = line_width
         
         if verbose:
-            print(f"created bounding box with local sides lenghts: {self.local_scale.cpu().numpy()}")
+            print(f"created bounding box with local sides lengths: {self.local_scale.cpu().numpy()}")
     
     def get_pose(self):
         pose = deepcopy(self.pose)
         father_bb = self.father_bb
-        while father_bb is not None:
-            pose = father_bb.get_pose() @ pose
-            father_bb = father_bb.father_bb
+        # while father_bb is not None:
+        #     pose = pose @ father_bb.get_pose()
+        #     father_bb = father_bb.father_bb
+        if father_bb is not None:
+            pose = pose @ father_bb.get_pose()
+    
         return pose
     
     def get_radius(self):

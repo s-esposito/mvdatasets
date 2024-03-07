@@ -68,7 +68,7 @@ Pygments==2.16.1
 pyparsing==3.1.1
 pyquaternion==0.9.9
 python-dateutil==2.8.2
-pytorch-triton==2.1.0+e6216047b8
+pytorch-triton
 pytz==2023.3.post1
 PyYAML==6.0.1
 referencing==0.30.2
@@ -83,9 +83,6 @@ stack-data==0.6.3
 sympy==1.12
 tenacity==8.2.3
 threadpoolctl==3.2.0
-torch==2.1.0+cu118
-torchaudio==2.1.0+cu118
-torchvision==0.16.0+cu118
 tqdm==4.66.1
 traitlets==5.13.0
 triton==2.1.0
@@ -97,3 +94,5 @@ wcwidth==0.2.9
 Werkzeug==3.0.1
 widgetsnbextension==4.0.9
 zipp==3.17.0
+rich
+imageio
