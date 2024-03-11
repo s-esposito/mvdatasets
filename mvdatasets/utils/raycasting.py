@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 
-from mvdatasets.utils.geometry import inv_perspective_projection, augment_vectors
+from mvdatasets.utils.geometry import inv_perspective_projection, euclidean_to_augmented
 from mvdatasets.utils.images import image_uint8_to_float32
 
 
@@ -418,7 +418,7 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     rays_o = c2w_all[:, :3, -1]
     
     # pixels have height, width order, we need x, y, z order
-    augmented_points_2d_screen = augment_vectors(points_2d_screen[:, [1, 0]])
+    augmented_points_2d_screen = euclidean_to_augmented(points_2d_screen[:, [1, 0]])
 
     # from screen to camera coords (out is (N, 3, 1))
     points_3d_camera = intrinsics_inv_all @ augmented_points_2d_screen.unsqueeze(-1)

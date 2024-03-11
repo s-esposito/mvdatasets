@@ -102,14 +102,16 @@ def apply_transformation_3d(points_3d, transform):
     """
     # print("points_3d", points_3d)
     # print("transform", transform)
-    augmented_points_3d = augment_vectors(points_3d)
+    augmented_points_3d = euclidean_to_augmented(points_3d)
     homogeneous_points_3d = (transform @ augmented_points_3d.T).T
-    augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 3:]
-    points_3d = augmented_points_3d[:, :3]
+    # augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 3:]
+    # points_3d = augmented_points_3d[:, :3]
+    augmented_points_3d = homogeneous_to_augmented(homogeneous_points_3d)
+    points_3d = augmented_to_euclidean(augmented_points_3d)
     return points_3d
 
 
-def augment_vectors(vectors):
+def euclidean_to_augmented(vectors):
     """concatenate ones to vectors
     args:
         vectors (np.ndarray or torch.tensor) : (N, C)
@@ -133,6 +135,26 @@ def augment_vectors(vectors):
         raise ValueError("vectors must be torch.tensor or np.ndarray")
 
 
+def homogeneous_to_augmented(vectors):
+    """convert homogeneous coordinates to augmented coordinates
+    args:
+        vectors (np.ndarray or torch.tensor) : (N, C+1)
+    out: 
+        vectors (np.ndarray or torch.tensor) : (N, C)
+    """
+    return vectors / vectors[:, -1:]
+
+
+def augmented_to_euclidean(vectors):
+    """convert augmented coordinates to euclidean coordinates
+    args:
+        vectors (np.ndarray or torch.tensor) : (N, C+1)
+    out: 
+        vectors (np.ndarray or torch.tensor) : (N, C)
+    """
+    return vectors[:, :-1]
+
+
 def perspective_projection(intrinsics, points_3d):
     """apply perspective projection to points
     args:
@@ -141,14 +163,16 @@ def perspective_projection(intrinsics, points_3d):
     out: 
         points_2d (np.array) : (N, 2)
     """
-    augmented_points_3d = augment_vectors(points_3d)
+    augmented_points_3d = euclidean_to_augmented(points_3d)
     if isinstance(intrinsics, torch.Tensor):
         K0 = torch.concatenate([intrinsics, torch.zeros((3, 1), device=intrinsics.device)], dim=1)
     elif isinstance(intrinsics, np.ndarray):
         K0 = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
     homogeneous_points_2d = (K0 @ augmented_points_3d.T).T
-    augmented_points_2d = homogeneous_points_2d / homogeneous_points_2d[:, 2:]
-    points_2d = augmented_points_2d[:, :2]
+    # augmented_points_2d = homogeneous_points_2d / homogeneous_points_2d[:, 2:]
+    # points_2d = augmented_points_2d[:, :2]
+    augmented_points_2d = homogeneous_to_augmented(homogeneous_points_2d)
+    points_2d = augmented_to_euclidean(augmented_points_2d)
     return points_2d
 
     
@@ -164,7 +188,7 @@ def inv_perspective_projection(intrinsics_inv, points_2d_screen):
     assert intrinsics_inv.shape == (3, 3)
     assert points_2d_screen.shape[-1] == 2
     
-    augmented_points_2d_screen = augment_vectors(points_2d_screen)
+    augmented_points_2d_screen = euclidean_to_augmented(points_2d_screen)
     augmented_points_3d_camera = (intrinsics_inv @ augmented_points_2d_screen.T).T
     
     return augmented_points_3d_camera
@@ -201,6 +225,14 @@ def project_points_3d_to_2d(camera, points_3d):
 
     # convert homogeneous coordinates to 2d coordinates
     points_2d_s = perspective_projection(intrinsics, points_3d_c)
+    # print("points_2d_s", points_2d_s)
+
+    # proj = camera.get_projection()
+    # augmented_points_3d = euclidean_to_augmented(points_3d)
+    # homogeneous_points_2d_s = (proj @ augmented_points_3d.T).T
+    # augmented_points_2d_s = homogeneous_to_augmented(homogeneous_points_2d_s)
+    # points_2d_s = augmented_to_euclidean(augmented_points_2d_s)
+    # print("points_2d_s", points_2d_s)
 
     return points_2d_s
 

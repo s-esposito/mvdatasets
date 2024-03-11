@@ -50,6 +50,7 @@ class Camera:
         self.intrinsics = intrinsics
         self.pose = pose
         self.intrinsics_inv = np.linalg.inv(intrinsics)
+        self.params = params
         
         # load modalities
         self.modalities = {}
@@ -100,7 +101,6 @@ class Camera:
         if subsample_factor > 1:
             self.resize(subsample_factor)
             
-
     def has_modality(self, modality_name):
         """check if modality_name exists in frames"""
         return modality_name in self.modalities
@@ -177,6 +177,16 @@ class Camera:
     def get_intrinsics_inv(self):
         """return inverse of camera intrinsics"""
         return self.intrinsics_inv
+    
+    def get_projection(self):
+        """return camera projection matrix"""
+        # get camera data
+        intrinsics = self.get_intrinsics()
+        intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
+        c2w = self.get_pose()
+        w2c = np.linalg.inv(c2w)
+        proj = intrinsics_padded @ w2c
+        return proj
 
     def has_rgbs(self):
         """check if rgbs exists"""
