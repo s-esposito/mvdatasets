@@ -1,6 +1,10 @@
 import numpy as np
 import cv2 as cv
 
+from mvdatasets.utils.geometry import (
+    opencv_to_opengl_intrinsics,
+    opencv_to_opengl_pose
+)
 
 class Camera:
     """Camera class.
@@ -178,14 +182,32 @@ class Camera:
         """return inverse of camera intrinsics"""
         return self.intrinsics_inv
     
-    def get_projection(self):
-        """return camera projection matrix"""
+    def get_projection(self, opengl_standard=False, near=0.1, far=1000.0):
+        """return 4x4 camera projection matrix"""
         # get camera data
         intrinsics = self.get_intrinsics()
-        intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
         c2w = self.get_pose()
-        w2c = np.linalg.inv(c2w)
-        proj = intrinsics_padded @ w2c
+        if not opengl_standard:
+            # opencv standard
+            intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
+            w2c = np.linalg.inv(c2w)
+            proj = intrinsics_padded @ w2c
+        else:
+            # opengl standard
+            ogl_proj = opencv_to_opengl_intrinsics(
+                intrinsics,
+                self.width,
+                self.height,
+                near,
+                far
+            )  # (4, 4)
+            # ogl_c2w (4, 4)
+            ogl_c2w = opencv_to_opengl_pose(c2w)
+            # ogl_w2c (4, 4)
+            ogl_w2c = np.linalg.inv(ogl_c2w)
+            # proj (4, 4)
+            proj = np.matmul(ogl_proj, ogl_w2c).astype(np.float32)
+
         return proj
 
     def has_rgbs(self):

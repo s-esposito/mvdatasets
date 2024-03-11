@@ -69,6 +69,56 @@ def rot_z_3d(theta):
     )
 
 
+def opencv_to_opengl_intrinsics(intrinsics, width, height, near, far):
+    """
+    Convert OpenCV intrinsic matrix to OpenGL projection matrix.
+    
+    Args:
+    - intrinsics: A 3x3 np.ndarray representing the camera's intrinsic matrix.
+    - width: image plane width
+    - height: image plane height
+    - near: Near clipping plane distance.
+    - far: Far clipping plane distance.
+    
+    Returns:
+    - A 4x4 np.ndarray representing the OpenGL projection matrix.
+    """
+    
+    # OpenGL projection matrix
+    proj = np.zeros((4, 4))
+
+    # Parameters for OpenGL projection matrix
+    fx = intrinsics[0, 0]
+    fy = intrinsics[1, 1]
+    cx = intrinsics[0, 2]
+    cy = intrinsics[1, 2]
+
+    # Calculate OpenGL projection matrix
+    proj[0, 0] = 2 * fx / width
+    proj[1, 1] = 2 * fy / height
+    proj[2, 0] = 2 * (cx / width) - 1
+    proj[2, 1] = 2 * (cy / height) - 1
+    proj[2, 2] = -(far + near) / (far - near)
+    proj[2, 3] = -2 * far * near / (far - near)
+    proj[3, 2] = -1
+    
+    return proj
+
+
+def opencv_to_opengl_pose(c2w):
+    """
+    Convert OpenCV camera-to-world pose to OpenGL camera pose.
+    
+    Args:
+    - c2w: A 4x4 np.ndarray representing the OpenCV camera-to-world pose.
+    
+    Returns:
+    - A 4x4 np.ndarray representing the OpenGL camera pose.
+    """
+    flip_z = np.diag(np.array([1, 1, -1, 1]))
+    return np.matmul(c2w, flip_z)
+
+
 def pose_local_rotation(pose, rotation):
     """
     Local rotation of the pose frame by rotation matrix
@@ -109,6 +159,25 @@ def apply_transformation_3d(points_3d, transform):
     augmented_points_3d = homogeneous_to_augmented(homogeneous_points_3d)
     points_3d = augmented_to_euclidean(augmented_points_3d)
     return points_3d
+
+
+def pad_matrix(matrix):
+    """Pad matrix with a homogeneous bottom row [0,0,0,1]."""
+    if isinstance(matrix, np.ndarray):
+        bottom = np.array([0.0, 0.0, 0.0, 1.0], dtype=matrix.dtype)
+        padded_matrix = np.vstack([matrix, bottom[None, :]])
+    elif isinstance(matrix, torch.Tensor):
+        bottom = torch.tensor([0.0, 0.0, 0.0, 1.0], device=matrix.device, dtype=matrix.dtype)
+        padded_matrix = torch.cat([matrix, bottom[None, :]], dim=0)
+    else:
+        raise ValueError('Unsupported matrix type, should be np.ndarray or torch.Tensor.')
+
+    return padded_matrix
+
+
+def unpad_matrix(matrix):
+    """Remove the homogeneous bottom row from pose matrix."""
+    return matrix[:3, :4]
 
 
 def euclidean_to_augmented(vectors):
