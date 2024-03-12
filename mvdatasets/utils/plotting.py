@@ -816,12 +816,13 @@ def plot_points_2d_on_image(
     return fig
 
 
-def plot_ray_samples(
-    ray_o,
-    ray_d,
+def plot_rays_samples(
+    rays_o,
+    rays_d,
     t_near,
     t_far,
-    bounding_box,
+    camera = None,
+    bounding_boxes=[],
     points_samples=[],
     points_samples_colors=[],
     points_samples_sizes=[],
@@ -831,6 +832,7 @@ def plot_ray_samples(
     up="z",
     draw_origin=True,
     draw_contraction_spheres=True,
+    draw_near_far_points=True,
     figsize=(15, 15),
     title=None
 ):
@@ -841,9 +843,10 @@ def plot_ray_samples(
     
     if not (up == "z" or up == "y"):
         raise ValueError("up must be either 'y' or 'z'")
-    
-    assert ray_o.shape[0] == 1, "ray_o must have shape (1, 3)"
-    assert ray_o.shape[0] == ray_d.shape[0], "ray_o and ray_d must have the same length"
+
+    assert rays_o.shape[0] == rays_d.shape[0], "ray_o and ray_d must have the same length"
+    assert t_near.shape[0] == t_far.shape[0], "t_near and t_far must have the same length"
+    assert rays_o.shape[0] == t_near.shape[0], "ray_o and t_near must have the same length"
     
     # init figure
     fig = plt.figure(figsize=figsize)
@@ -861,40 +864,48 @@ def plot_ray_samples(
     if draw_origin:
         _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
 
+    # draw camera
+    if camera is not None:
+        _draw_cameras(ax, [camera], up=up, scene_radius=scene_radius, draw_image_planes=True, draw_cameras_frustums=True)
+
     # plot bounding box
-    _draw_bounding_box(
-        ax,
-        bounding_box,
-        up=up,
-        scene_radius=scene_radius,
-        draw_frame=False
-    )
-    
-    # draw t_near, t_far points
-    p_near = ray_o + ray_d * t_near
-    p_far = ray_o + ray_d * t_far
-    p_near = p_near.unsqueeze(1)
-    p_far = p_far.unsqueeze(1)
-    
-    ray_o = ray_o.cpu().numpy()
-    ray_d = ray_d.cpu().numpy()
-    p_near = p_near.cpu().numpy()
-    p_far = p_far.cpu().numpy()
-    
-    p_boundaries = np.concatenate([p_near, p_far], axis=1)
-    print(p_boundaries.shape)
-    
-    for i in range(p_boundaries.shape[0]):
-        # draw t_near, t_far points
-        _draw_point_cloud(
+    for bb in bounding_boxes:
+        _draw_bounding_box(
             ax,
-            p_boundaries[0],
-            size=200,
-            color="black",
-            marker="x",
+            bb,
             up=up,
-            scene_radius=scene_radius
+            scene_radius=scene_radius,
+            draw_frame=False
         )
+    
+    if draw_near_far_points:
+        # draw t_near, t_far points
+        p_near = rays_o + rays_d * t_near
+        p_far = rays_o + rays_d * t_far
+        
+        # edge case of a single ray
+        if p_near.dim() == 1:
+            p_near = p_near.unsqueeze(1)
+            p_far = p_far.unsqueeze(1)
+        
+        rays_o = rays_o.cpu().numpy()
+        rays_d = rays_d.cpu().numpy()
+        p_near = p_near.cpu().numpy()
+        p_far = p_far.cpu().numpy()
+        
+        p_boundaries = np.concatenate([p_near[:, np.newaxis, :], p_far[:, np.newaxis, :]], axis=1)
+
+        for i in range(p_boundaries.shape[0]):
+            # draw t_near, t_far points
+            _draw_point_cloud(
+                ax,
+                p_boundaries.reshape(-1, 3),
+                size=200,
+                color="black",
+                marker="x",
+                up=up,
+                scene_radius=scene_radius
+            )
     
     # draw points
     for i, samples in enumerate(points_samples):
