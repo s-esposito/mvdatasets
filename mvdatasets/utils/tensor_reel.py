@@ -5,11 +5,17 @@ from tqdm import tqdm
 from mvdatasets.utils.images import image_uint8_to_float32
 
 from mvdatasets.utils.raycasting import (
+    get_pixels,
     get_random_pixels,
     get_cameras_rays_per_points_2d,
     get_tensor_reel_frames_per_pixels,
     get_points_2d_from_pixels,
     get_random_pixels_from_error_map
+)
+from mvdatasets.utils.geometry import (
+    euclidean_to_augmented,
+    augmented_to_euclidean,
+    homogeneous_to_augmented
 )
 
 
@@ -184,6 +190,7 @@ class TensorReel:
         Returns:
             cameras_idx (batch_size)
             projections (batch_size, 4, 4)
+            rays_d (batch_size, height, width, 3)
             vals (dict):
                 rgb (batch_size, height, width, 3)
                 mask (batch_size, height, width, 1)
@@ -207,7 +214,7 @@ class TensorReel:
                 sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
             else:
                 # sample without repetitions
-                sampled_idx = torch.tensor(len(cameras_idx), device=self.device)[:batch_size]
+                sampled_idx = torch.randperm(len(cameras_idx), device=self.device)[:batch_size]
             cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
             
         # TODO: sample frames_idx for each camera (if not given)
@@ -228,8 +235,53 @@ class TensorReel:
             vals["mask"] = masks
             
         projections = self.projections[cameras_idx]
+        
+        # get rays_d for each pixel in each camera (batch)
+        # get random pixels
+        pixels = get_pixels(
+            self.height,
+            self.width,
+            device=self.device
+        )
+        # get 2d points on the image plane
+        jitter_pixels = False
+        points_2d = get_points_2d_from_pixels(
+            pixels,
+            jitter_pixels,
+            self.height,
+            self.width
+        ).reshape(-1, 2)
+        
+        # unproject pixels to get view directions
+        
+        # pixels have height, width order, we need x, y, z order
+        points_2d_s = points_2d[..., [1, 0]]  # swap x and y
+        points_2d_a_s = euclidean_to_augmented(points_2d_s)
+        points_2d_a_s = points_2d_a_s.unsqueeze(0)
+        # print("points_2d_a_s", points_2d_a_s.shape)
+        
+        # from screen to camera coords
+        intrinsics_inv_all = self.intrinsics_inv[cameras_idx]  # (batch_size, 3, 3)
+        # print("intrinsics_inv_all", intrinsics_inv_all.shape)
+        
+        # from screen to camera coords
+        points_3d_c = torch.matmul(intrinsics_inv_all, points_2d_a_s.permute(0, 2, 1)).permute(0, 2, 1)
+        # print("points_3d_c", points_3d_c.shape)
+        
+        c2w_rot_all = self.poses[cameras_idx, :3, :3]  # (batch_size, 3, 3)
+        # print("c2w_rot_all", c2w_rot_all.shape)
+        
+        # rotate points to world space
+        points_3d_w = torch.matmul(c2w_rot_all, points_3d_c.permute(0, 2, 1)).permute(0, 2, 1)
+        # print("points_3d_w", points_3d_w.shape)
+        
+        # normalize rays
+        rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
+        
+        # reshape
+        view_dirs = rays_d.reshape(batch_size, self.height, self.width, 3)
 
-        return cameras_idx, projections, vals, frames_idx
+        return cameras_idx, projections, view_dirs, vals, frames_idx
     
     @torch.no_grad()
     def get_next_rays_batch(

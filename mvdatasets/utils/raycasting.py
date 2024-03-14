@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import torch.nn.functional as F
 
 from mvdatasets.utils.geometry import inv_perspective_projection, euclidean_to_augmented
 from mvdatasets.utils.images import image_uint8_to_float32
@@ -185,17 +184,17 @@ def get_camera_rays_per_points_2d(c2w, intrinsics_inv, points_2d_screen):
     rays_o = c2w[:3, -1].unsqueeze(0).expand(points_2d_screen.shape[0], -1)
 
     # pixels have height, width order
-    points_3d_camera = inv_perspective_projection(
+    points_3d_c = inv_perspective_projection(
         intrinsics_inv,
         points_2d_screen[:, [1, 0]]  # pixels have h, w order but we need x, y
     )
     # points_3d_unprojected have all z=1
     
     # rotate points to world space
-    points_3d_world = (c2w[:3, :3] @ points_3d_camera.T).T
+    points_3d_w = (c2w[:3, :3] @ points_3d_c.T).T
     
     # normalize rays
-    rays_d = F.normalize(points_3d_world, dim=-1)
+    rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
 
     return rays_o, rays_d
 
@@ -417,18 +416,20 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     # ray origin are the cameras centers
     rays_o = c2w_all[:, :3, -1]
     
+    # unproject pixels to get view directions
+    
     # pixels have height, width order, we need x, y, z order
-    augmented_points_2d_screen = euclidean_to_augmented(points_2d_screen[:, [1, 0]])
+    points_2d_a_s = euclidean_to_augmented(points_2d_screen[:, [1, 0]])
 
     # from screen to camera coords (out is (N, 3, 1))
-    points_3d_camera = intrinsics_inv_all @ augmented_points_2d_screen.unsqueeze(-1)
+    points_3d_c = intrinsics_inv_all @ points_2d_a_s.unsqueeze(-1)
 
     # rotate points to world space
-    points_3d_world = c2w_all[:, :3, :3] @ points_3d_camera
-    points_3d_world = points_3d_world.reshape(-1, 3)
+    points_3d_w = c2w_all[:, :3, :3] @ points_3d_c
+    points_3d_w = points_3d_w.reshape(-1, 3)
     
     # normalize rays
-    rays_d = F.normalize(points_3d_world, dim=-1)
+    rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
     
     return rays_o, rays_d
 
