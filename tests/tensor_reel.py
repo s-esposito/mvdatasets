@@ -89,7 +89,7 @@ if __name__ == "__main__":
         # cameras_idx = np.random.permutation(len(mv_data["train"]))[:2]
 
         if profiler is not None:
-            profiler.start("get_next_batch")
+            profiler.start("get_next_rays_batch")
 
         # get rays and gt values
         (
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             rays_d,
             vals,
             frame_idx,
-        ) = tensor_reel.get_next_batch(
+        ) = tensor_reel.get_next_rays_batch(
             batch_size=batch_size,
             cameras_idx=cameras_idx,
             frame_idx=frame_idx,
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         )
 
         if profiler is not None:
-            profiler.end("get_next_batch")
+            profiler.end("get_next_rays_batch")
 
         if not benchmark:
         

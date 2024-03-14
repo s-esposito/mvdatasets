@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.rendering import render_mesh
+from mvdatasets.utils.open3d_rendering import render_o3d_mesh
 from mvdatasets.utils.images import numpy2image
 from mvdatasets.utils.common import get_dataset_test_preset
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     splits = ["test", "train"]
     for split in splits:
         for camera in mv_data[split]:
-            imgs = render_mesh(camera, triangle_mesh)
+            imgs = render_o3d_mesh(camera, triangle_mesh)
             depth = imgs["depth"]
             plt.imshow(depth)
             plt.show()
@@ -69,7 +69,7 @@ if __name__ == "__main__":
             
     # camera = mv_data["test"][0]
 
-    # imgs = render_mesh(camera, triangle_mesh)
+    # imgs = render_o3d_mesh(camera, triangle_mesh)
 
     # plt.imshow(imgs["depth"])
     # plt.colorbar()

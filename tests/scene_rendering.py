@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.rendering import render_scene
+from mvdatasets.utils.open3d_rendering import render_o3d_scene
 from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.common import get_dataset_test_preset
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         save_path = os.path.join(datasets_path, dataset_name, scene_name, split)
         for camera in mv_data[split]:
             # print(camera.camera_idx)
-            imgs = render_scene(camera, o3d_scene)
+            imgs = render_o3d_scene(camera, o3d_scene)
             geom_ids = imgs["geom_ids"]
             depth = imgs["depth"]
             print("min depth", np.min(depth))

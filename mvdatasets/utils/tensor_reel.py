@@ -1,5 +1,8 @@
 import torch
+import numpy as np
 from tqdm import tqdm
+
+from mvdatasets.utils.images import image_uint8_to_float32
 
 from mvdatasets.utils.raycasting import (
     get_random_pixels,
@@ -11,7 +14,17 @@ from mvdatasets.utils.raycasting import (
 
 
 class TensorReel:
-    def __init__(self, cameras_list, width=None, height=None, device="cuda", verbose=False):
+    def __init__(
+        self,
+        cameras_list,
+        width=None,
+        height=None,
+        opengl_standard=False,
+        near=0.1,
+        far=1000.0,
+        device="cuda",
+        verbose=False
+    ):
         """Create a tensor_reel object, containing all data
         stored contiguosly in tensors.
         
@@ -38,6 +51,7 @@ class TensorReel:
         
         poses = []
         intrinsics_inv = []
+        projections = []
 
         # collect data from all cameras
         if verbose:
@@ -70,9 +84,15 @@ class TensorReel:
             if camera.has_semantic_masks():
                 semantic_masks.append(torch.from_numpy(camera.get_semantic_masks()))
             
-            # camera params
+            # camera matrices
             poses.append(torch.from_numpy(camera.get_pose()).float())
             intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
+            proj = camera.get_projection(
+                opengl_standard=opengl_standard,
+                near=near,
+                far=far
+            )
+            projections.append(torch.from_numpy(proj).float())
 
         # concat rgb
         if len(rgbs) > 0:
@@ -110,9 +130,10 @@ class TensorReel:
         else:
             self.semantic_masks = None
         
-        # concat camera params
+        # concat cameras matrices
         self.poses = torch.stack(poses)
         self.intrinsics_inv = torch.stack(intrinsics_inv)
+        self.projections = torch.stack(projections)
 
         # move tensors to desired device
         if device != "cpu":
@@ -120,6 +141,7 @@ class TensorReel:
                 print("moving tensor reel to device")
             self.intrinsics_inv = self.intrinsics_inv.to(device)
             self.poses = self.poses.to(device)
+            self.projections = self.projections.to(device)
             if self.rgbs is not None:
                 self.rgbs = self.rgbs.to(device)
             if self.masks is not None:
@@ -146,41 +168,163 @@ class TensorReel:
             self.width = width
 
     @torch.no_grad()
-    def get_next_batch(
-        self, batch_size=512, cameras_idx=None, frame_idx=None, jitter_pixels=False, nr_rays_per_pixel=1, masked_sampling=False
+    def get_next_cameras_batch(
+        self,
+        batch_size=8,
+        cameras_idx=None,
+        frames_idx=None
     ):
+        """Sample a batch of cameras from the tensor reel.
+
+        Args:
+            batch_size (int, optional): Defaults to 512.
+            cameras_idx (torch.tensor, optional): (N) Defaults to None.
+            frames_idx (torch.tensor, optional): (N) Defaults to None.
+
+        Returns:
+            cameras_idx (batch_size)
+            projections (batch_size, 4, 4)
+            vals (dict):
+                rgb (batch_size, height, width, 3)
+                mask (batch_size, height, width, 1)
+            frame_idx (batch_size)
+        """
+        
+        # sample cameras_idx
+        nr_cameras = self.poses.shape[0]
+        if cameras_idx is None:
+            # sample among all cameras
+            if nr_cameras < batch_size:
+                # with repetitions
+                cameras_idx = torch.randint(nr_cameras, (batch_size,))
+            else:
+                # without repetitions
+                cameras_idx = torch.randperm(nr_cameras)[:batch_size]
+        else:
+            # sample among given cameras indices
+            if len(cameras_idx) < batch_size:
+                # sample with repetitions
+                sampled_idx = torch.randint(len(cameras_idx), (batch_size,))
+            else:
+                # sample without repetitions
+                sampled_idx = torch.tensor(len(cameras_idx), device=self.device)[:batch_size]
+            cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
+            
+        # TODO: sample frames_idx for each camera (if not given)
+        frames_idx = torch.zeros(batch_size).int()
+        # if frames_idx is None:
+        #   ....
+        
+        vals = {}
+        
+        if self.rgbs is not None:
+            rgbs = self.rgbs[cameras_idx, frames_idx]
+            rgbs = image_uint8_to_float32(rgbs)
+            vals["rgb"] = rgbs
+        
+        if self.masks is not None:
+            masks = self.masks[cameras_idx, frames_idx]
+            masks = image_uint8_to_float32(masks)
+            vals["mask"] = masks
+            
+        projections = self.projections[cameras_idx]
+
+        return cameras_idx, projections, vals, frames_idx
+    
+    @torch.no_grad()
+    def get_next_rays_batch(
+        self,
+        batch_size=512,
+        cameras_idx=None,
+        frames_idx=None,
+        jitter_pixels=False,
+        nr_rays_per_pixel=1,
+        # masked_sampling=False
+    ):
+        """Sample a batch of rays from the tensor reel.
+
+        Args:
+            batch_size (int, optional): Defaults to 512.
+            cameras_idx (torch.tensor, optional): (N) Defaults to None.
+            frames_idx (torch.tensor, optional): (N) Defaults to None.
+            jitter_pixels (bool, optional): Defaults to False.
+            nr_rays_per_pixel (int, optional): Defaults to 1.
+
+        Returns:
+            cameras_idx (batch_size)
+            rays_o (batch_size, 3)
+            rays_d (batch_size, 3)
+            vals (dict):
+                rgb (batch_size, 3)
+                mask (batch_size, 1)
+            frame_idx (batch_size)
+        """
+        
         assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
-        # assert batch_size % nr_rays_per_pixel == 0, "batch_size must be a multiple of nr_rays_per_pixel"
         assert nr_rays_per_pixel == 1 or (nr_rays_per_pixel > 1 and jitter_pixels == True), "jitter_pixels must be True if nr_rays_per_pixel > 1"
         
         real_batch_size = batch_size // nr_rays_per_pixel
         
-        # random int in range [0, nr_cameras-1] with repetitions
-        nr_cameras = self.poses.shape[0]  # alway sample from all cameras
+        # sample cameras_idx
+        nr_cameras = self.poses.shape[0]
         if cameras_idx is None:
-            camera_idx = torch.randint(nr_cameras, (real_batch_size,))
+            # sample among all cameras with repetitions
+            cameras_idx = torch.randint(nr_cameras, (real_batch_size,))
         else:
             # sample among given cameras indices with repetitions
             sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,))
-            camera_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
+            cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
-        # TODO: improve
+        # TODO: sample frames_idx for each camera (if not given)
+        frames_idx = torch.zeros(real_batch_size).int()
+        
+        # get random pixels
+        pixels = get_random_pixels(
+            self.height,
+            self.width,
+            real_batch_size,
+            device=self.device
+        )
+        # get ground truth rgbs values at pixels
+        vals = get_tensor_reel_frames_per_pixels(
+            pixels=pixels,
+            cameras_idx=cameras_idx,
+            frames_idx=frames_idx,
+            rgbs=self.rgbs,
+            masks=self.masks
+        )
+        # get 2d points on the image plane
+        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
+        points_2d = get_points_2d_from_pixels(
+            pixels,
+            jitter_pixels,
+            self.height,
+            self.width
+        )
+
+        # get a ray for each pixel in corresponding camera frame
+        cameras_idx = cameras_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
+        rays_o, rays_d = get_cameras_rays_per_points_2d(
+            c2w_all=self.poses[cameras_idx],
+            intrinsics_inv_all=self.intrinsics_inv[cameras_idx],
+            points_2d_screen=points_2d
+        )
+        
         # random int in range [0, nr_frames_in_sequence-1] with repetitions
-        if frame_idx is None:
+        # if frames_idx is None:
             # if self.rgbs is not None:
             #     nr_frames_in_sequence = self.rgbs.shape[1]
             # else: 
             #     nr_frames_in_sequence = 1
-            # frame_idx = torch.randint(nr_frames_in_sequence, (real_batch_size,))
-            frame_idx = torch.zeros(real_batch_size).int()
-        else:
-            frame_idx = (torch.ones(real_batch_size) * frame_idx).int()
-        # frame_idx = frame_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
+            # frames_idx = torch.randint(nr_frames_in_sequence, (real_batch_size,))
+            
+        # else:
+        #    frames_idx = (torch.ones(real_batch_size) * frames_idx).int()
+        # frames_idx = frames_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
         
         # if masked_sampling:
-        #     # TODO: test if correct and performance drop
-        #     for idx in camera_idx:
-        #         nr_rays = int((real_batch_size / len(camera_idx)) / nr_rays_per_pixel)
+        #     for idx in cameras_idx:
+        #         nr_rays = int((real_batch_size / len(cameras_idx)) / nr_rays_per_pixel)
         #         print("nr rays per camera", nr_rays)
                 
         #         pixels = get_random_pixels_from_error_map(
@@ -205,47 +349,20 @@ class TensorReel:
         #         # get ground truth rgbs values at pixels
         #         vals = get_tensor_reel_frames_per_pixels(
         #             points_2d=points_2d,
-        #             camera_idx=idx,
-        #             frame_idx=frame_idx,
+        #             cameras_idx=idx,
+        #             frames_idx=frames_idx,
         #             rgbs=self.rgbs,
         #             masks=self.masks
         #         )
-            
-        # else:
-        
-        # get random pixels
-        pixels = get_random_pixels(
-            self.height, self.width, real_batch_size, device=self.device
-        )
-        # get ground truth rgbs values at pixels
-        vals = get_tensor_reel_frames_per_pixels(
-            pixels=pixels,
-            camera_idx=camera_idx,
-            frame_idx=frame_idx,
-            rgbs=self.rgbs,
-            masks=self.masks
-        )
-        # get 2d points on the image plane
-        pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)
-        # print("pixels", pixels)
-        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, self.height, self.width)
 
-        # get a ray for each pixel in corresponding camera frame
-        camera_idx = camera_idx.repeat_interleave(nr_rays_per_pixel, dim=0)
-        # print("camera_idx", camera_idx)
-        rays_o, rays_d = get_cameras_rays_per_points_2d(
-            c2w_all=self.poses[camera_idx],
-            intrinsics_inv_all=self.intrinsics_inv[camera_idx],
-            points_2d_screen=points_2d
-        )
-
-        return camera_idx, rays_o, rays_d, vals, frame_idx
+        return cameras_idx, rays_o, rays_d, vals, frames_idx
     
     def __str__(self) -> str:
         string = "\nTensorReel\n"
         string += f"device: {self.device}\n"
         string += f"poses: {self.poses.shape}, {self.poses.dtype}\n"
         string += f"intrinsics_inv: {self.intrinsics_inv.shape}, {self.intrinsics_inv.dtype}\n"
+        string += f"projections: {self.projections.shape}, {self.projections.dtype}\n"
         if self.rgbs is not None:
             string += f"rgbs: {self.rgbs.shape}, {self.rgbs.dtype}\n"
         if self.masks is not None:

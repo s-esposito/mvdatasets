@@ -192,6 +192,7 @@ class Camera:
             intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
             w2c = np.linalg.inv(c2w)
             proj = intrinsics_padded @ w2c
+            proj = np.concatenate([proj, np.zeros((1, 4))], axis=0)  # (4, 4)
         else:
             # opengl standard
             ogl_proj = opencv_to_opengl_intrinsics(

@@ -192,13 +192,13 @@ def euclidean_to_augmented(vectors):
         return torch.cat(
             [
                 vectors,
-                torch.ones_like(vectors[:, :1], device=vectors.device)
+                torch.ones_like(vectors[..., :1], device=vectors.device)
             ], dim=-1)
     elif isinstance(vectors, np.ndarray):
         return np.concatenate(
             [
                 vectors,
-                np.ones_like(vectors[:, :1])
+                np.ones_like(vectors[..., :1])
             ], axis=-1)
     else:
         raise ValueError("vectors must be torch.tensor or np.ndarray")
@@ -211,7 +211,7 @@ def homogeneous_to_augmented(vectors):
     out: 
         vectors (np.ndarray or torch.tensor) : (N, C)
     """
-    return vectors / vectors[:, -1:]
+    return vectors / vectors[..., -1:]
 
 
 def augmented_to_euclidean(vectors):
@@ -221,7 +221,7 @@ def augmented_to_euclidean(vectors):
     out: 
         vectors (np.ndarray or torch.tensor) : (N, C)
     """
-    return vectors[:, :-1]
+    return vectors[..., :-1]
 
 
 def perspective_projection(intrinsics, points_3d):

@@ -433,14 +433,14 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     return rays_o, rays_d
 
 
-def get_tensor_reel_frames_per_pixels(pixels, camera_idx, frame_idx, rgbs=None, masks=None):
+def get_tensor_reel_frames_per_pixels(pixels, cameras_idx, frames_idx, rgbs=None, masks=None):
     """given a list of 2d points on the image plane and a list of rgbs,
     return rgb and mask values at pixels
 
     args:
         pixels (torch.tensor, int): (N, 2) values in [0, height-1], [0, width-1].
-        camera_idx (int): camera index
-        frame_idx (int): frame index.
+        cameras_idx (torch.tensor): (N) camera indices
+        frames_idx (torch.tensor): (N) frame indices.
         rgbs (optional, torch.tensor, uint8): (N, T, H, W, 3) in [0, 1] or None
         masks (optional, torch.tensor, uint8): (N, T, H, W, 1) in [0, 1] or None
     out:
@@ -459,14 +459,14 @@ def get_tensor_reel_frames_per_pixels(pixels, camera_idx, frame_idx, rgbs=None, 
     # rgb
     rgb_vals = None
     if rgbs is not None:
-        rgb_vals = rgbs[camera_idx, frame_idx, y, x]
+        rgb_vals = rgbs[cameras_idx, frames_idx, y, x]
         rgb_vals = image_uint8_to_float32(rgb_vals)
         vals["rgb"] = rgb_vals
     
     # mask
     mask_vals = None
     if masks is not None:
-        mask_vals = masks[camera_idx, frame_idx, y, x]
+        mask_vals = masks[cameras_idx, frames_idx, y, x]
         mask_vals = image_uint8_to_float32(mask_vals)
         vals["mask"] = mask_vals
         
