@@ -156,5 +156,6 @@ def load_ingp(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius
+        "scene_radius": scene_radius,
+        "config": config,
     }

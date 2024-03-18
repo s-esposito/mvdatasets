@@ -212,5 +212,6 @@ def load_llff(
         "global_transform": global_transform,
         "scene_radius": scene_radius,
         "scene_type": config["scene_type"],
-        "point_clouds": [point_cloud]
+        "point_clouds": [point_cloud],
+        "config": config,  # TODO: find better way to return config settings
     }

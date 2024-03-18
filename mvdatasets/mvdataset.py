@@ -190,6 +190,9 @@ class MVDataset:
         else:
             self.point_clouds = []
             
+        if "config" in res:
+            self.config = res["config"]
+            
         # ---------------------------------------------------------------------
         
         # (optional) load point clouds
