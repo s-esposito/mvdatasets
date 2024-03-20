@@ -44,42 +44,42 @@ def load_blender(
     if "load_mask" not in config:
         config["load_mask"] = True
         if verbose:
-            print(f"WARNING: load_mask not in config, setting to {config['load_mask']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: load_mask not in config, setting to {config['load_mask']}")
         
     if "use_binary_mask" not in config:
         config["use_binary_mask"] = True
         if verbose:
-            print(f"WARNING: use_binary_mask not in config, setting to {config['use_binary_mask']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: use_binary_mask not in config, setting to {config['use_binary_mask']}")
         
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
-            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
     if "scene_scale_mult" not in config:
         config["scene_scale_mult"] = 0.25
         if verbose:
-            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
-            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
     
     if "white_bg" not in config:
         config["white_bg"] = True
         if verbose:
-            print(f"WARNING: white_bg not in config, setting to {config['white_bg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: white_bg not in config, setting to {config['white_bg']}")
         
     if "test_skip" not in config:
         config["test_skip"] = 20
         if verbose:
-            print(f"WARNING: test_skip not in config, setting to {config['test_skip']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
         
     if "scene_radius" not in config:
         config["scene_radius"] = 2.0
         if verbose:
-            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
         
     if verbose:
         print("load_blender config:")

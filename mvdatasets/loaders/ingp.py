@@ -44,27 +44,27 @@ def load_ingp(
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
-            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
     if "scene_scale_mult" not in config:
         config["scene_scale_mult"] = 0.25
         if verbose:
-            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
-            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
         
     if "test_camera_freq" not in config:
         config["test_camera_freq"] = 8
         if verbose:
-            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
     if "train_test_overlap" not in config:
         config["train_test_overlap"] = False
         if verbose:
-            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
 
     if verbose:
         print("load_ingp config:")
@@ -110,7 +110,7 @@ def load_ingp(
         
         # check if file exists
         if not os.path.exists(img_path):
-            print(f"WARNING: {img_path} does not exist")
+            print(f"[bold yellow]WARNING[/bold yellow]: {img_path} does not exist")
             continue
         
         idx = int(img_path.split('/')[-1].split('.')[0])

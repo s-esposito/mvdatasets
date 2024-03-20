@@ -35,7 +35,7 @@ def load_llff(
     if "scene_type" not in config:
         config["scene_type"] = "unbounded"  # "forward_facing"
         if verbose:
-            print(f"WARNING: scene_type not in config, setting to {config['scene_type']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_type not in config, setting to {config['scene_type']}")
     else:
         valid_scene_types = ["unbounded", "forward_facing"]
         if config["scene_type"] not in valid_scene_types:
@@ -44,27 +44,27 @@ def load_llff(
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
-            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
     
     if "test_camera_freq" not in config:
         config["test_camera_freq"] = 8
         if verbose:
-            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
     if "train_test_overlap" not in config:
         config["train_test_overlap"] = False
         if verbose:
-            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
     
     if "scene_scale_mult" not in config:
         config["scene_scale_mult"] = 0.1
         if verbose:
-            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
 
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
-            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
     else:
         valid_subsample_factors = [1, 2, 4, 8]
         if config["subsample_factor"] not in valid_subsample_factors:
@@ -73,7 +73,7 @@ def load_llff(
     if "scene_radius" not in config:
         config["scene_radius"] = 5.0
         if verbose:
-            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
         
     if verbose:
         print("load_llff config:")

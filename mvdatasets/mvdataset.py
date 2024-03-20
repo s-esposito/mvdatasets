@@ -68,19 +68,20 @@ class MVDataset:
 
         # check if path exists
         if not os.path.exists(data_path):
-            raise ValueError(f"ERROR: data path {data_path} does not exist")
+            print(f"[bold red]ERROR[/bold red]: data path {data_path} does not exist")
+            exit(1)
 
         # load scene cameras
         if splits is None:
             splits = ["all"]
         elif "train" not in splits and "test" not in splits:
-            raise ValueError(
-                "ERROR: splits must contain at least one of 'train' or 'test'"
-            )
+            print("[bold red]ERROR[/bold red]: splits must contain at least one of 'train' or 'test'")
+            exit(1)
 
         # check if dataset is supported
         if not is_dataset_supported(dataset_name):
-            raise ValueError(f"ERROR: dataset {dataset_name} is not supported")
+            print(f"[bold red]ERROR[/bold red]: dataset {dataset_name} is not supported")
+            exit(1)
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
@@ -171,7 +172,8 @@ class MVDataset:
         # UNPACK -------------------------------------------------------------
         
         if "cameras_splits" not in res:
-            raise ValueError("ERROR: cameras_splits not found in dataset")
+            print("[bold red]ERROR[/bold red]: cameras_splits not found in dataset")
+            exit(1)
         else:
             cameras_splits = res["cameras_splits"]
         
@@ -205,7 +207,7 @@ class MVDataset:
                     print(f"loaded {len(self.point_clouds)} point clouds")
         else:
             if len(point_clouds_paths) > 0:
-                print("WARNING: point_clouds_paths will be ignored")
+                print("[bold yellow]WARNING[/bold yellow]: point_clouds_paths will be ignored")
         
         transformed_point_clouds = []
         for point_cloud in self.point_clouds:

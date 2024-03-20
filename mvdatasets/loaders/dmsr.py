@@ -41,7 +41,7 @@ def load_dmsr(
     if "load_depth" not in config:
         config["load_depth"] = False
         if verbose:
-            print(f"WARNING: load_depth not in config, setting to {config['load_depth']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: load_depth not in config, setting to {config['load_depth']}")
     else:
         if config["load_depth"]:
             raise NotImplementedError("load_depth is not implemented yet")
@@ -49,7 +49,7 @@ def load_dmsr(
     if "load_semantics" not in config:
         config["load_semantics"] = False
         if verbose:
-            print(f"WARNING: load_semantics not in config, setting to {config['load_semantics']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: load_semantics not in config, setting to {config['load_semantics']}")
     else:
         if config["load_semantics"]:
             raise NotImplementedError("load_semantics is not implemented yet")
@@ -57,7 +57,7 @@ def load_dmsr(
     if "load_semantic_instance" not in config:
         config["load_semantic_instance"] = False
         if verbose:
-            print(f"WARNING: load_semantic_instance not in config, setting to {config['load_semantic_instance']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: load_semantic_instance not in config, setting to {config['load_semantic_instance']}")
     else:
         if config["load_semantic_instance"]:
             raise NotImplementedError("load_semantic_instance is not implemented yet")
@@ -65,27 +65,27 @@ def load_dmsr(
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
-            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
     if "scene_scale_mult" not in config:
         config["scene_scale_mult"] = 0.25
         if verbose:
-            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
-            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
         
     if "test_skip" not in config:
         config["test_skip"] = 1
         if verbose:
-            print(f"WARNING: test_skip not in config, setting to {config['test_skip']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
         
     if "scene_radius" not in config:
         config["scene_radius"] = 2.0
         if verbose:
-            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
         
     if verbose:
         print("load_dmsr config:")

@@ -65,37 +65,37 @@ def load_dtu(
     if "load_mask" not in config:
         config["load_mask"] = True
         if verbose:
-            print(f"WARNING: load_mask not in config, setting to {config['load_mask']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: load_mask not in config, setting to {config['load_mask']}")
     
     if "test_camera_freq" not in config:
         config["test_camera_freq"] = 8
         if verbose:
-            print(f"WARNING: test_camera_freq not in config, setting to {config['test_camera_freq']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: test_camera_freq not in config, setting to {config['test_camera_freq']}")
     
     if "train_test_overlap" not in config:
         config["train_test_overlap"] = False
         if verbose:
-            print(f"WARNING: train_test_overlap not in config, setting to {config['train_test_overlap']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
         
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 205
         if verbose:
-            print(f"WARNING: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
     
     if "scene_scale_mult" not in config:
         config["scene_scale_mult"] = 0.4
         if verbose:
-            print(f"WARNING: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
     
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
-            print(f"WARNING: subsample_factor not in config, setting to {config['subsample_factor']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
         
     if "scene_radius" not in config:
         config["scene_radius"] = 1.25
         if verbose:
-            print(f"WARNING: scene_radius not in config, setting to {config['scene_radius']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
     
     if verbose:
         print("load_dtu config:")
