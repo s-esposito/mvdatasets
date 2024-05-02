@@ -318,15 +318,16 @@ class Camera:
         # subsample frames
         new_frames = []
         for frame in self.get_modality_frames(modality_name):
-            new_frames.append(
-                cv.resize(
+            new_frame = cv.resize(
                             frame,
                             (0, 0),
                             fx=scale,
                             fy=scale,
                             interpolation=cv.INTER_AREA
                         )
-            )
+            if new_frame.ndim == 2:
+                new_frame = new_frame[:, :, None]
+            new_frames.append(new_frame)
         self.modalities[modality_name] = np.stack(new_frames)
 
     def __str__(self):

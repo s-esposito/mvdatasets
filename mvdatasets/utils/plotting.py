@@ -262,6 +262,43 @@ def _draw_bounding_boxes(ax, bounding_boxes, up="z", scene_radius=1.0, draw_fram
         _draw_bounding_box(ax, bb, idx=i, up=up, scene_radius=scene_radius, draw_frame=draw_frame)
 
 
+def _draw_bounding_sphere(ax, sphere, idx=0, up="z", scene_radius=1.0, draw_frame=False):
+    if sphere is None:
+        return
+    
+    # scale = _scene_radius_to_scale(scene_radius)
+    
+    # draw sphere at origin
+    radius = sphere.get_radius()
+    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+    x = np.cos(u)*np.sin(v)*radius
+    y = np.sin(u)*np.sin(v)*radius
+    z = np.cos(v)*radius
+    ax.plot_wireframe(x, y, z, color="black", alpha=0.1)
+    
+    if sphere.label is not None:
+        label = sphere.label
+    else:
+        label = idx
+    
+    # get bb pose
+    pose = sphere.get_pose()
+    
+    # draw bb frame
+    if draw_frame:
+        _draw_frame(ax, pose, idx=label, up=up, scene_radius=scene_radius)
+    
+
+
+def _draw_bounding_spheres(ax, bounding_spheres, up="z", scene_radius=1.0):
+    if bounding_spheres is None:
+        return
+    
+    # draw bounding spheres
+    for i, sphere in enumerate(bounding_spheres):
+        _draw_bounding_sphere(ax, sphere, idx=i, up=up, scene_radius=scene_radius)
+
+
 def _draw_image_plane(ax, camera, up="z", scene_radius=1.0):
     if camera is None:
         return
@@ -823,6 +860,7 @@ def plot_rays_samples(
     t_far,
     camera = None,
     bounding_boxes=[],
+    bounding_spheres=[],
     points_samples=[],
     points_samples_colors=[],
     points_samples_sizes=[],
@@ -873,6 +911,16 @@ def plot_rays_samples(
         _draw_bounding_box(
             ax,
             bb,
+            up=up,
+            scene_radius=scene_radius,
+            draw_frame=False
+        )
+        
+    # plot bounding spheres
+    for sphere in bounding_spheres:
+        _draw_bounding_sphere(
+            ax,
+            sphere,
             up=up,
             scene_radius=scene_radius,
             draw_frame=False
