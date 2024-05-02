@@ -47,11 +47,14 @@ def get_dataset_test_preset(dataset_name):
 
     # test blendernerf
     if dataset_name == "blendernerf":
-        scene_name = "plushy"
-        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
-        config = {
-            "test_skip": 10
-        }
+        scene_name = "hairy_monkey"
+        pc_paths = []
+        config = {"test_skip": 1}
+        # scene_name = "plushy"
+        # pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        # config = {
+        #     "test_skip": 10
+        # }
 
     # test dmsr
     if dataset_name == "dmsr":

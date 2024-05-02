@@ -3,7 +3,7 @@ from copy import deepcopy
 import torch
 
 
-def contract_points(points):
+def contraction_function(points):
     """
     Warping function that smoothly maps
     all coordinates outside of a ball of

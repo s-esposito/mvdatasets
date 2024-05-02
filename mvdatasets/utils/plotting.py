@@ -122,9 +122,9 @@ def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, max_nr_
     
     # draw points
     if up == "z":
-        ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*size, c=color, marker=marker)
+        ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*size, color=color, marker=marker)
     else:  # up = "y"
-        ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*size, c=color, marker=marker)
+        ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*size, color=color, marker=marker)
 
 
 def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
