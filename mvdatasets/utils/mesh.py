@@ -46,7 +46,7 @@ class Mesh:
 
         # uvs (if any)
         triangle_uvs = np.asarray(mesh.triangle_uvs).astype(np.float32)
-        if triangle_uvs.shape[0] > 0:
+        if triangle_uvs.shape[0] == 0:
             self.vertices_uvs = None
             self.has_uvs = False
         else:
@@ -56,10 +56,10 @@ class Mesh:
                 self.vertices,
             )
             self.has_uvs = True
-            if verbose:
-                print(
-                    f"[INFO] mesh vertices uvs: {self.vertices_uvs.shape if self.vertices_uvs is not None else None}"
-                )
+        if verbose:
+            print(
+                f"[INFO] mesh vertices uvs: {self.vertices_uvs.shape if self.vertices_uvs is not None else None}"
+            )
 
         # load texture
         if len(textures_meta) > 0:

@@ -102,44 +102,44 @@ class TensorReel:
 
         # concat rgb
         if len(rgbs) > 0:
-            self.rgbs = torch.stack(rgbs)
+            self.rgbs = torch.stack(rgbs).contiguous()
         else:
             self.rgbs = None
         
         # concat masks
         if len(masks) > 0:
-            self.masks = torch.stack(masks)
+            self.masks = torch.stack(masks).contiguous()
         else:
             self.masks = None
         
         # concat normals
         if len(normals) > 0:
-            self.normals = torch.stack(normals)
+            self.normals = torch.stack(normals).contiguous()
         else:
             self.normals = None
         
         # concat depths
         if len(depths) > 0:
-            self.depths = torch.stack(depths)
+            self.depths = torch.stack(depths).contiguous()
         else:
             self.depths = None
         
         # concat instance_masks
         if len(instance_masks) > 0:
-            self.instance_masks = torch.stack(instance_masks)
+            self.instance_masks = torch.stack(instance_masks).contiguous()
         else:
             self.instance_masks = None
             
         # concat semantic_masks
         if len(semantic_masks) > 0:
-            self.semantic_masks = torch.stack(semantic_masks)
+            self.semantic_masks = torch.stack(semantic_masks).contiguous()
         else:
             self.semantic_masks = None
         
         # concat cameras matrices
-        self.poses = torch.stack(poses)
-        self.intrinsics_inv = torch.stack(intrinsics_inv)
-        self.projections = torch.stack(projections)
+        self.poses = torch.stack(poses).contiguous()
+        self.intrinsics_inv = torch.stack(intrinsics_inv).contiguous()
+        self.projections = torch.stack(projections).contiguous()
 
         # move tensors to desired device
         if device != "cpu":
