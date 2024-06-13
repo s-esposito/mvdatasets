@@ -6,7 +6,7 @@ def is_dataset_supported(dataset_name):
                             "blendernerf",
                             "dmsr",
                             "refnerf",
-                            # "llff",
+                            "llff",
                             "mipnerf360",
                             "shelly"
                         ]
@@ -20,7 +20,8 @@ def is_dataset_supported(dataset_name):
 def get_dataset_test_preset(dataset_name):
 
     if not is_dataset_supported(dataset_name):
-        raise NotImplementedError(f"Dataset {dataset_name} not currently supported.")
+        print(f"[bold red]ERROR[/bold red]: {dataset_name} is not a supported dataset.")
+        exit(1)
     
     # test DTU
     if dataset_name == "dtu":
@@ -34,7 +35,6 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = ["debug/point_clouds/blender/lego.ply"]
         config = {
             "test_skip": 20,
-            "scene_radius": 1.2
         }
         
     # test shelly
@@ -43,19 +43,15 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
             "test_skip": 4,
-            "scene_radius": 1.2
         }
 
     # test blendernerf
     if dataset_name == "blendernerf":
-        scene_name = "hairy_monkey"
-        pc_paths = []
-        config = {"test_skip": 1}
-        # scene_name = "plushy"
-        # pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
-        # config = {
-        #     "test_skip": 10
-        # }
+        scene_name = "plushy"
+        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        config = {
+            "test_skip": 10,
+        }
 
     # test dmsr
     if dataset_name == "dmsr":
@@ -85,7 +81,6 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = ["debug/point_clouds/llff/fern.ply"]
         config = {
             "scene_type": "forward_facing",
-            "scene_scale_mult": 0.03,
         }
     
     # test mipnerf360
@@ -95,8 +90,8 @@ def get_dataset_test_preset(dataset_name):
         
         # dataset specific config
         config = {
-            # "scene_type": "bounded",
-            "scene_type": "unbounded",
+            "scene_type": "bounded",
+            # "scene_type": "unbounded",
             "subsample_factor": 8,
         }
         

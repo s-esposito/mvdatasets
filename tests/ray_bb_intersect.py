@@ -51,7 +51,6 @@ if __name__ == "__main__":
     # Get dataset test preset
     dataset_name = "dmsr"
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
-    # config["scene_scale_mult"] = 1.0
     
     # dataset loading
     mv_data = MVDataset(
@@ -104,7 +103,7 @@ if __name__ == "__main__":
     # bounding_boxes_path = os.path.join(scene_path, "bounding_boxes")
     
     # list files in icp directory
-    scene_scale = config["scene_scale_mult"]
+    scene_scale = mv_data.scene_scale_mult
     assets_names = [f.split(".")[0] for f in os.listdir(icp_path) if f.endswith(".npy")]
     for asset_name in assets_names:
         

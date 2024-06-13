@@ -31,9 +31,9 @@ def load_llff(
     """
 
     # CONFIG -----------------------------------------------------------------
-        
+    
     if "scene_type" not in config:
-        config["scene_type"] = "unbounded"  # "forward_facing"
+        config["scene_type"] = "bounded"
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: scene_type not in config, setting to {config['scene_type']}")
     else:

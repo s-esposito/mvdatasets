@@ -32,7 +32,8 @@ def read_cameras_params(reconstruction):
         #     intrinsics[1, 2] = camera.params[2]  # cy
         #     # camera.params[3]  # k1
         else:
-            raise NotImplementedError(f"camera model {camera.model_id} not implemented")
+            print(f"[bold red]ERROR[/bold red]: camera model {camera.model_id} not implemented.")
+            exit(1)
         cameras_params[str(camera_id)] = params
     return cameras_params
 

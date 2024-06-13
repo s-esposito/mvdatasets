@@ -75,7 +75,7 @@ def load_blender(
             print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
         
     if "scene_radius_mult" not in config:
-        config["scene_radius_mult"] = 0.5
+        config["scene_radius_mult"] = 0.4
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
     
