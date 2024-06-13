@@ -354,7 +354,7 @@ def _draw_contraction_spheres(ax):
     x = np.cos(u)*np.sin(v)*radius
     y = np.sin(u)*np.sin(v)*radius
     z = np.cos(v)*radius
-    ax.plot_wireframe(x, y, z, color="black", alpha=0.1)
+    ax.plot_wireframe(x, y, z, color="orange", alpha=0.1)
     
     # draw sphere at origin
     radius = 0.5
@@ -362,7 +362,7 @@ def _draw_contraction_spheres(ax):
     x = np.cos(u)*np.sin(v)*radius
     y = np.sin(u)*np.sin(v)*radius
     z = np.cos(v)*radius
-    ax.plot_wireframe(x, y, z, color="black", alpha=0.1)
+    ax.plot_wireframe(x, y, z, color="orange", alpha=0.1)
     
 
 def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
@@ -506,6 +506,7 @@ def plot_cameras(
     cameras,
     points_3d=None,
     bounding_boxes=[],
+    bounding_spheres=[],
     nr_rays=0,
     azimuth_deg=60,
     elevation_deg=30,
@@ -568,6 +569,9 @@ def plot_cameras(
     
     # plot bounding boxes (if given)
     _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
+    
+    # plot bounding sphere (if given)
+    _draw_bounding_spheres(ax, bounding_spheres, up=up, scene_radius=scene_radius)
 
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)

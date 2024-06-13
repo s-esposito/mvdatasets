@@ -8,7 +8,7 @@ import open3d as o3d
 from tqdm import tqdm
 
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.geometry import rot_x_3d, deg2rad
+from mvdatasets.utils.geometry import rot_x_3d, deg2rad, get_min_max_cameras_distances
 from mvdatasets.utils.pycolmap import read_points3D, read_cameras
 
 
@@ -37,10 +37,11 @@ def load_llff(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: scene_type not in config, setting to {config['scene_type']}")
     else:
-        valid_scene_types = ["unbounded", "forward_facing"]
+        valid_scene_types = ["bounded", "unbounded", "forward_facing"]
         if config["scene_type"] not in valid_scene_types:
-            raise ValueError(f"scene_type {config['scene_type']} must be a value in {valid_scene_types}")
-    
+            print(f"[bold red]ERROR[/bold red]: scene_type {config['scene_type']} must be a value in {valid_scene_types}")
+            exit(1)
+                
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
@@ -55,11 +56,6 @@ def load_llff(
         config["train_test_overlap"] = False
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
-    
-    if "scene_scale_mult" not in config:
-        config["scene_scale_mult"] = 0.1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
 
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
@@ -69,12 +65,20 @@ def load_llff(
         valid_subsample_factors = [1, 2, 4, 8]
         if config["subsample_factor"] not in valid_subsample_factors:
             raise ValueError(f"subsample_factor {config['subsample_factor']} must be a value in {valid_subsample_factors}")
-            
-    if "scene_radius" not in config:
-        config["scene_radius"] = 5.0
+
+    if "init_sphere_scale" not in config:
+        config["init_sphere_scale"] = 0.5
         if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
-        
+            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
+    
+    if config["scene_type"] == "bounded":
+        config["target_cameras_max_distance"] = 1.0
+    elif config["scene_type"] == "unbounded":
+        config["target_cameras_max_distance"] = 0.5
+    elif config["scene_type"] == "forward_facing":
+        print("[bold red]ERROR[/bold red]: forward_facing scene type not implemented yet")
+        exit(1)
+    
     if verbose:
         print("load_llff config:")
         for k, v in config.items():
@@ -82,29 +86,19 @@ def load_llff(
         
     # -------------------------------------------------------------------------
     
-    # global transform
-    global_transform = np.eye(4)
-    # rotate
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # scale
-    scene_scale_mult = config["scene_scale_mult"]
-    s_rotation = scene_scale_mult * rotation
-    global_transform[:3, :3] = s_rotation
-    # scene radius
-    scene_radius = config["scene_radius"] * scene_scale_mult
-    
-    # local transform
-    local_transform = np.eye(4)
-    # local_transform[:3, :3] = np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 1]])
-    
     # read colmap data
     
     reconstruction_path = os.path.join(scene_path, "sparse/0")
     reconstruction = pycolmap.Reconstruction(reconstruction_path)
     # print(reconstruction.summary())
 
-    point_cloud = read_points3D(reconstruction)  
+    point_cloud = read_points3D(reconstruction)
+    # get point cloud mean
+    # point_cloud_mean = np.mean(point_cloud, axis=0)
+    # only shift along z axis
+    # point_cloud_mean[0] = 0
+    # point_cloud_mean[1] = 0
+    # point_cloud -= point_cloud_mean
     # # save point cloud as ply with o3d
     # o3d_point_cloud = o3d.geometry.PointCloud()
     # o3d_point_cloud.points = o3d.utility.Vector3dVector(point_cloud)
@@ -151,8 +145,8 @@ def load_llff(
     #     global_transform = transform
         
     # read images
-    cameras_all = []
     # images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
+    poses_all = []
     pbar = tqdm(cameras_meta, desc="images", ncols=100)
     for i, camera in enumerate(pbar):
         
@@ -161,6 +155,36 @@ def load_llff(
         w2c[:3, 3] = camera["translation"]
         c2w = np.linalg.inv(w2c)
         pose = c2w
+        poses_all.append(pose)
+    
+    # find scene radius
+    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
+    # print("min_camera_distance:", min_camera_distance)
+    # print("max_camera_distance:", max_camera_distance)
+    
+    # define scene scale
+    scene_scale = max_camera_distance
+    # round to 2 decimals
+    scene_scale = round(scene_scale, 2)
+    
+    # scene scale such that furthest away camera is at target distance
+    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
+    
+    # global transform
+    global_transform = np.eye(4)
+    # rotate and scale
+    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    
+    # local transform
+    local_transform = np.eye(4)
+    
+    # build cameras
+    cameras_all = []
+    pbar = tqdm(cameras_meta, desc="images", ncols=100)
+    for i, camera in enumerate(pbar):
+        
+        pose = poses_all[i]
         
         # params
         params = camera["params"]
@@ -169,11 +193,9 @@ def load_llff(
         intrinsics[1, 1] = params["fy"] / subsample_factor
         intrinsics[0, 2] = params["cx"] / subsample_factor
         intrinsics[1, 2] = params["cy"] / subsample_factor
-        # print("intrinsics", intrinsics)
         
         idx = camera["id"]
         cam_imgs = camera["img"][None, ...]
-        # print("cam_imgs", cam_imgs.shape)
         
         camera = Camera(
             intrinsics=intrinsics,
@@ -210,8 +232,10 @@ def load_llff(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius,
-        "scene_type": config["scene_type"],
         "point_clouds": [point_cloud],
-        "config": config,  # TODO: find better way to return config settings
+        "config": config,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
+        "scene_scale": scene_scale,
+        "scene_scale_mult": scene_scale_mult,
     }

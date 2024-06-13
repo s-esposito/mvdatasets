@@ -124,6 +124,9 @@ class BoundingSphere:
     def get_radius(self):
         return self.local_scale[0].item()
     
+    def get_max_traversable_distance(self):
+        return self.get_radius() * 2.0
+    
     def intersect(self, rays_o, rays_d):
         """
         Args:

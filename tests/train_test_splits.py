@@ -18,6 +18,7 @@ from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.common import get_dataset_test_preset
 from mvdatasets.utils.bounding_box import BoundingBox
+from mvdatasets.utils.bounding_sphere import BoundingSphere
 
 
 if __name__ == "__main__":
@@ -61,13 +62,20 @@ if __name__ == "__main__":
         config=config,
         verbose=True
     )
+    
+    print("scene_radius:", mv_data.scene_radius)
+    print("init_sphere_radius:", mv_data.init_sphere_radius)
+    
+    if mv_data.init_sphere_radius > mv_data.scene_radius:
+        print("[bold red]ERROR[/bold red]: init_sphere_radius > scene_radius")
+        exit(1)
 
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
     else:
         point_cloud = np.array([[0, 0, 0]])
         
-    # create bounding boxes
+    # create bounding boxes (scene)
     bounding_boxes = []
     
     bb = BoundingBox(
@@ -78,47 +86,62 @@ if __name__ == "__main__":
     )
     bounding_boxes.append(bb)
     
-    draw_contraction_spheres = False
-    scene_type = config.get("scene_type", None)
-    if scene_type == "unbounded":
-        draw_contraction_spheres = True
-
-    # Visualize cameras
-    fig = plot_cameras(
-        mv_data["train"],
-        points_3d=point_cloud,
-        bounding_boxes=bounding_boxes,
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="z",
-        scene_radius=mv_data.max_camera_distance,
-        draw_bounding_cube=True,
-        draw_image_planes=True,
-        draw_cameras_frustums=False,
-        draw_contraction_spheres=draw_contraction_spheres,
-        figsize=(15, 15),
-        title="training cameras",
+    # create sphere (sdf init)
+    
+    bounding_spheres = []
+    
+    bs = BoundingSphere(
+        pose=np.eye(4),
+        local_scale=np.array([mv_data.init_sphere_radius, mv_data.init_sphere_radius, mv_data.init_sphere_radius]),  # outer primitive
+        device=device,
+        verbose=True
     )
+    bounding_spheres.append(bs)
+    
+    # draw_contraction_spheres = False
+    # scene_type = config.get("scene_type", None)
+    # if scene_type == "unbounded":
+    #     draw_contraction_spheres = True
+    draw_contraction_spheres = False
+
+    # # Visualize cameras
+    # fig = plot_cameras(
+    #     mv_data["train"],
+    #     points_3d=point_cloud,
+    #     bounding_boxes=bounding_boxes,
+    #     bounding_spheres=bounding_spheres,
+    #     azimuth_deg=20,
+    #     elevation_deg=30,
+    #     up="z",
+    #     scene_radius=1.0,  # mv_data.max_camera_distance,
+    #     draw_bounding_cube=True,
+    #     draw_image_planes=True,
+    #     draw_cameras_frustums=False,
+    #     draw_contraction_spheres=draw_contraction_spheres,
+    #     figsize=(15, 15),
+    #     title="training cameras",
+    # )
 
     # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_training_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    # # plt.savefig(
+    # #     os.path.join("plots", f"{dataset_name}_training_cameras.png"),
+    # #     transparent=True,
+    # #     bbox_inches="tight",
+    # #     pad_inches=0,
+    # #     dpi=300
+    # # )
+    # # plt.close()
 
     # Visualize cameras
     fig = plot_cameras(
         mv_data["test"],
         points_3d=point_cloud,
         bounding_boxes=bounding_boxes,
+        bounding_spheres=bounding_spheres,
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
-        scene_radius=mv_data.max_camera_distance,
+        scene_radius=1.0,  # mv_data.max_camera_distance,
         draw_bounding_cube=True,
         draw_image_planes=True,
         draw_cameras_frustums=False,
@@ -127,14 +150,14 @@ if __name__ == "__main__":
         title="test cameras",
     )
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_test_cameras.png"),
-        transparent=True,
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300
-    )
-    plt.close()
+    plt.show()
+    # plt.savefig(
+    #     os.path.join("plots", f"{dataset_name}_test_cameras.png"),
+    #     transparent=True,
+    #     bbox_inches="tight",
+    #     pad_inches=0,
+    #     dpi=300
+    # )
+    # plt.close()
     
     print("done")

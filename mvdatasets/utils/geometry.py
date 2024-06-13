@@ -5,6 +5,27 @@ import torch
 import numpy as np
 
 
+def get_min_max_cameras_distances(poses):
+    """
+    return maximum pose distance from origin
+
+    Args:
+        poses (list): list of numpy (4, 4) poses
+
+    Returns:
+        min_dist (float): minumum camera distance from origin
+        max_dist (float): maximum camera distance from origin
+    """
+    # get all camera centers
+    camera_centers = np.stack(poses, 0)[:, :3, 3]
+    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
+    
+    min_dist = np.min(camera_distances_from_origin)
+    max_dist = np.max(camera_distances_from_origin)
+
+    return min_dist, max_dist
+
+
 def rotation_matrix(a, b):
     """Compute the rotation matrix that rotates vector a to vector b.
 

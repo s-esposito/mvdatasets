@@ -120,6 +120,10 @@ class BoundingBox:
     def get_radius(self):
         return (torch.max(self.local_scale) / 2.0).item()
     
+    def get_max_traversable_distance(self):
+        # TODO
+        pass
+    
     def get_center(self):
         pose = self.get_pose()
         return pose[:3, 3]

@@ -33,7 +33,8 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "lego"
         pc_paths = ["debug/point_clouds/blender/lego.ply"]
         config = {
-            "test_skip": 20
+            "test_skip": 20,
+            "scene_radius": 1.2
         }
         
     # test shelly
@@ -61,7 +62,7 @@ def get_dataset_test_preset(dataset_name):
         scene_name = "dinning"
         pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
-            "test_skip": 5
+            "test_skip": 5,
         }
 
     # test refnerf
@@ -89,14 +90,14 @@ def get_dataset_test_preset(dataset_name):
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
-        scene_name = "bicycle"
+        scene_name = "bicycle"  # "bicycle", "garden"
         pc_paths = []
         
         # dataset specific config
         config = {
+            # "scene_type": "bounded",
             "scene_type": "unbounded",
             "subsample_factor": 8,
-            "scene_scale_mult": 0.1,
         }
         
         # scene specific config

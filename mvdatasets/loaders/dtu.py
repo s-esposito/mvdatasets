@@ -15,6 +15,7 @@ from mvdatasets.utils.geometry import (
     rot_y_3d,
     pose_local_rotation,
     pose_global_rotation,
+    get_min_max_cameras_distances
 )
 
 
@@ -62,6 +63,8 @@ def load_dtu(
     
     # CONFIG -----------------------------------------------------------------
     
+    config["scene_type"] = "bounded"
+    
     if "load_mask" not in config:
         config["load_mask"] = True
         if verbose:
@@ -81,21 +84,26 @@ def load_dtu(
         config["rotate_scene_x_axis_deg"] = 205
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
-    
-    if "scene_scale_mult" not in config:
-        config["scene_scale_mult"] = 0.4
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
-    
+
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
         
-    if "scene_radius" not in config:
-        config["scene_radius"] = 1.25
+    if "scene_radius_mult" not in config:
+        config["scene_radius_mult"] = 0.25
         if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
+    
+    if "target_cameras_max_distance" not in config:
+        config["target_cameras_max_distance"] = 1.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
+    
+    if "init_sphere_scale" not in config:
+        config["init_sphere_scale"] = 0.25
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
     if verbose:
         print("load_dtu config:")
@@ -103,25 +111,6 @@ def load_dtu(
             print(f"\t{k}: {v}")
     
     # -------------------------------------------------------------------------
-    
-    # cameras objects
-    cameras_all = []
-    
-    # global transform
-    global_transform = np.eye(4)
-    # rotate
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # scale
-    scene_scale_mult = config["scene_scale_mult"]
-    s_rotation = scene_scale_mult * rotation
-    global_transform[:3, :3] = s_rotation
-    # local transform
-    local_transform = np.eye(4)
-    rotation = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    local_transform[:3, :3] = rotation
-    # scene radius
-    scene_radius = config["scene_radius"] * scene_scale_mult
     
     # load images to cpu as numpy arrays
     imgs = []
@@ -158,13 +147,44 @@ def load_dtu(
     ]
 
     # decompose into intrinsics and extrinsics
+    intrinsics_all = []
+    poses_all = []
     for idx, mats in enumerate(zip(world_mats_np, scale_mats_np)):
         world_mat_np, scale_mat_np = mats
 
         projection_np = world_mat_np @ scale_mat_np
         projection_np = projection_np[:3, :4]
         intrinsics, pose = load_K_Rt_from_P(None, projection_np)
+        
+        intrinsics_all.append(intrinsics)
+        poses_all.append(pose)
+        
+    # find scene radius
+    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
+    
+    # define scene scale
+    scene_scale = max_camera_distance * config["scene_radius_mult"]
+    # round to 2 decimals
+    scene_scale = round(scene_scale, 2)
+    
+    # scene scale such that furthest away camera is at target distance
+    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
+    
+    # global transform
+    global_transform = np.eye(4)
+    # rotate and scale
+    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    
+    # local transform
+    local_transform = np.eye(4)
+    local_transform[:3, :3] = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
+    cameras_all = []
+    for idx, params in enumerate(zip(intrinsics_all, poses_all)):
+        
+        intrinsics, pose = params
+        
         # get images
         cam_imgs = imgs[idx][None, ...]
 
@@ -211,6 +231,9 @@ def load_dtu(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius,
         "config": config,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
+        "scene_scale": scene_scale,
+        "scene_scale_mult": scene_scale_mult,
     }

@@ -15,6 +15,7 @@ from mvdatasets.utils.geometry import (
     rot_z_3d,
     pose_local_rotation,
     pose_global_rotation,
+    get_min_max_cameras_distances
 )
 
 
@@ -37,6 +38,8 @@ def load_dmsr(
     """
     
     # CONFIG -----------------------------------------------------------------
+    
+    config["scene_type"] = "bounded"
     
     if "load_depth" not in config:
         config["load_depth"] = False
@@ -67,11 +70,6 @@ def load_dmsr(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
         
-    if "scene_scale_mult" not in config:
-        config["scene_scale_mult"] = 0.25
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
-    
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
@@ -81,12 +79,22 @@ def load_dmsr(
         config["test_skip"] = 1
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
-        
-    if "scene_radius" not in config:
-        config["scene_radius"] = 2.0
+    
+    if "scene_radius_mult" not in config:
+        config["scene_radius_mult"] = 0.5
         if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius not in config, setting to {config['scene_radius']}")
-        
+            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
+    
+    if "target_cameras_max_distance" not in config:
+        config["target_cameras_max_distance"] = 1.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
+    
+    if "init_sphere_scale" not in config:
+        config["init_sphere_scale"] = 0.3
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
+
     if verbose:
         print("load_dmsr config:")
         for k, v in config.items():
@@ -94,25 +102,40 @@ def load_dmsr(
         
     # -------------------------------------------------------------------------
     
-    height, width = None, None
+    # read all poses
+    poses_all = []
+    for split in splits:
+        # load current split transforms
+        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
+            metas = json.load(fp)
+            
+        for frame in metas["frames"]:
+            camera_pose = frame["transform_matrix"]
+            poses_all.append(camera_pose)
+    
+    # find scene radius
+    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
+    
+    # define scene scale
+    scene_scale = max_camera_distance * config["scene_radius_mult"]
+    # round to 2 decimals
+    scene_scale = round(scene_scale, 2)
+    
+    # scene scale such that furthest away camera is at target distance
+    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
     
     # global transform
     global_transform = np.eye(4)
-    # rotate
+    # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # scale
-    scene_scale_mult = config["scene_scale_mult"]
-    s_rotation = scene_scale_mult * rotation
-    global_transform[:3, :3] = s_rotation
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    
     # local transform
     local_transform = np.eye(4)
-    rotation = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
-    local_transform[:3, :3] = rotation
-    # scene radius
-    scene_radius = config["scene_radius"] * scene_scale_mult
+    local_transform[:3, :3] = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
     
     # cameras objects
+    height, width = None, None
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
@@ -190,6 +213,9 @@ def load_dmsr(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius,
         "config": config,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
+        "scene_scale": scene_scale,
+        "scene_scale_mult": scene_scale_mult,
     }

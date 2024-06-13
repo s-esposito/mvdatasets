@@ -14,6 +14,7 @@ from mvdatasets.utils.geometry import (
     rot_y_3d,
     pose_local_rotation,
     pose_global_rotation,
+    get_min_max_cameras_distances
 )
 from mvdatasets.utils.images import (
     image_uint8_to_float32,
@@ -40,17 +41,14 @@ def load_ingp(
     """
     
     # CONFIG -----------------------------------------------------------------
-        
+    
+    config["scene_type"] = "bounded"
+    
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
-        
-    if "scene_scale_mult" not in config:
-        config["scene_scale_mult"] = 0.25
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_scale_mult not in config, setting to {config['scene_scale_mult']}")
-    
+
     if "subsample_factor" not in config:
         config["subsample_factor"] = 1
         if verbose:
@@ -66,30 +64,22 @@ def load_ingp(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
 
+    if "target_cameras_max_distance" not in config:
+        config["target_cameras_max_distance"] = 1.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
+    
+    if "init_sphere_scale" not in config:
+        config["init_sphere_scale"] = 0.5
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
+    
     if verbose:
         print("load_ingp config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
         
     # -------------------------------------------------------------------------
-    
-    # cameras objects
-    cameras_all = []
-    
-    # global transform
-    global_transform = np.eye(4)
-    # rotate
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    rotation = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # scale
-    scene_scale_mult = config["scene_scale_mult"]
-    s_rotation = scene_scale_mult * rotation
-    global_transform[:3, :3] = s_rotation
-    
-    # local transform
-    local_transform = np.eye(4)
-    rotation = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
-    local_transform[:3, :3] = rotation
     
     # load camera params
     with open(os.path.join(scene_path, "transforms.json"), "r") as fp:
@@ -101,11 +91,39 @@ def load_ingp(
     intrinsics[1, 1] = metas["fl_y"]
     intrinsics[0, 2] = metas["cx"]
     intrinsics[1, 2] = metas["cy"]
-    scene_radius = metas["aabb_scale"] * config["scene_scale_mult"]
     
+    # read all poses
+    poses_all = []
     for frame in metas["frames"]:
-        
         pose = np.array(frame["transform_matrix"], dtype=np.float32)
+        poses_all.append(pose)
+        
+    # find scene radius
+    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
+    
+    # define scene scale
+    scene_scale = max_camera_distance  # (1/metas["aabb_scale"])
+    # round to 2 decimals
+    scene_scale = round(scene_scale, 2)
+    
+    # scene scale such that furthest away camera is at target distance
+    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
+    
+    # global transform
+    global_transform = np.eye(4)
+    # rotate and scale
+    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    
+    # local transform
+    local_transform = np.eye(4)
+    local_transform[:3, :3] = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
+    
+    # cameras objects
+    cameras_all = []
+    for i, frame in enumerate(metas["frames"]):
+        
+        pose = poses_all[i]
         img_path = os.path.join(scene_path, frame["file_path"])
         
         # check if file exists
@@ -156,6 +174,9 @@ def load_ingp(
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "scene_radius": scene_radius,
         "config": config,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
+        "scene_scale": scene_scale,
+        "scene_scale_mult": scene_scale_mult,
     }

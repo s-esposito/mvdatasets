@@ -20,24 +20,6 @@ def get_poses_all(cameras):
     return poses
 
 
-def poses_radius(poses):
-    """
-    return maximum pose distance from origin
-
-    Args:
-        poses (list): list of numpy (4, 4) poses
-
-    Returns:
-        scene_radius (float): scene radius
-    """
-    # get all camera centers
-    camera_centers = np.stack(poses, 0)[:, :3, 3]
-    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
-    scene_radius = np.max(camera_distances_from_origin)
-    # scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
-    return scene_radius
-
-
 class MVDataset:
     """Dataset class for all static multi-view datasets.
 
@@ -170,36 +152,38 @@ class MVDataset:
         #                             )
 
         # UNPACK -------------------------------------------------------------
+    
+        # cameras
+        cameras_splits = res["cameras_splits"]
         
-        if "cameras_splits" not in res:
-            print("[bold red]ERROR[/bold red]: cameras_splits not found in dataset")
-            exit(1)
-        else:
-            cameras_splits = res["cameras_splits"]
+        # computed
+        self.global_transform = res["global_transform"]
+        self.min_camera_distance = res["min_camera_distance"]
+        self.max_camera_distance = res["max_camera_distance"]
+        self.scene_scale_mult = res["scene_scale_mult"]
+        self.scene_radius = res["scene_scale"] * self.scene_scale_mult
+        # round to 2 decimals
+        self.scene_radius = round(self.scene_radius, 2)
+        print("scene_radius:", self.scene_radius)
         
-        if "global_transform" in res:
-            self.global_transform = res["global_transform"]
-        else:
-            self.global_transform = np.eye(4)
-            
-        if "scene_radius" in res:
-            self.scene_radius = res["scene_radius"]
-        else:
-            self.scene_radius = 1.0
-            
-        if "scene_type" in res:
-            self.scene_type = res["scene_type"]
-        else:
-            self.scene_type = "bounded"
+        # config
+        self.scene_type = res["config"]["scene_type"]
         
+        self.init_sphere_radius = (
+            self.min_camera_distance \
+            * self.scene_scale_mult \
+            * res["config"]["init_sphere_scale"]
+        )  # SDF sphere init radius
+        # round to 2 decimals
+        self.init_sphere_radius = round(self.init_sphere_radius, 2)
+        print("init_sphere_radius:", self.init_sphere_radius)
+        
+        # optional
         if "point_clouds" in res:
             self.point_clouds = res["point_clouds"]
         else:
             self.point_clouds = []
-            
-        if "config" in res:
-            self.config = res["config"]
-            
+        
         # ---------------------------------------------------------------------
         
         # (optional) load point clouds
@@ -238,8 +222,6 @@ class MVDataset:
         for split, cameras_list in cameras_splits.items():
             cameras_all += cameras_list
         
-        self.max_camera_distance = poses_radius(get_poses_all(cameras_all))
-        
         # transform = auto_orient_and_center_poses(
         #     poses_all,
         #     method=auto_orient_method,
@@ -274,7 +256,8 @@ class MVDataset:
         
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
-
+            
+            
     def has_masks(self):
         for split, cameras in self.data.items():
             for camera in cameras:
