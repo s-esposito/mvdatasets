@@ -95,15 +95,17 @@ def load_dtu(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
     
-    if "target_cameras_max_distance" not in config:
-        config["target_cameras_max_distance"] = 1.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
+    # if "target_cameras_max_distance" not in config:
+    #     config["target_cameras_max_distance"] = 1.0
+    #     if verbose:
+    #         print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
     
     if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.25
+        config["init_sphere_scale"] = 0.3
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
+    
+    config["target_cameras_max_distance"] = 1.0
     
     if verbose:
         print("load_dtu config:")
@@ -163,7 +165,7 @@ def load_dtu(
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
     
     # define scene scale
-    scene_scale = max_camera_distance * config["scene_radius_mult"]
+    scene_scale = max_camera_distance  # * config["scene_radius_mult"]
     # round to 2 decimals
     scene_scale = round(scene_scale, 2)
     
