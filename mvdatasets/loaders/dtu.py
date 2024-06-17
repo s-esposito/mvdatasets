@@ -90,10 +90,10 @@ def load_dtu(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
         
-    if "scene_radius_mult" not in config:
-        config["scene_radius_mult"] = 0.25
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
+    # if "scene_radius_mult" not in config:
+    #     config["scene_radius_mult"] = 0.25
+    #     if verbose:
+    #         print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
     
     # if "target_cameras_max_distance" not in config:
     #     config["target_cameras_max_distance"] = 1.0
@@ -101,7 +101,7 @@ def load_dtu(
     #         print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
     
     if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.3
+        config["init_sphere_scale"] = 0.25
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
