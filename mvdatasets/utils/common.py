@@ -43,6 +43,7 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
         config = {
             "test_skip": 4,
+            "init_sphere_scale": 0.2
         }
 
     # test blendernerf

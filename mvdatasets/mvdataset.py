@@ -161,6 +161,7 @@ class MVDataset:
         self.min_camera_distance = res["min_camera_distance"]
         self.max_camera_distance = res["max_camera_distance"]
         self.scene_scale_mult = res["scene_scale_mult"]
+        print("scene_scale:", res["scene_scale"])
         self.scene_radius = res["scene_scale"] * self.scene_scale_mult
         # round to 2 decimals
         self.scene_radius = round(self.scene_radius, 2)
