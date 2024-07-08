@@ -30,14 +30,14 @@ def get_random_pixels(height, width, nr_pixels, device="cpu"):
     """
     
     # sample nr_pixels randon values in [0, (height * width) - 1] without replacement
-    probabilities = torch.ones(height * width, device=device)
-    pixels = get_random_pixels_from_error_map(probabilities, height, width, nr_pixels, device=device)
+    # probabilities = torch.ones(height * width, device=device)
+    # pixels = get_random_pixels_from_error_map(probabilities, height, width, nr_pixels, device=device)
     
-    # # sample nr_pixels random pixels
-    # pixels = torch.rand(nr_pixels, 2, device=device)
-    # pixels[:, 0] *= height
-    # pixels[:, 1] *= width
-    # pixels = pixels.int()
+    # sample nr_pixels random pixels
+    pixels = torch.rand(nr_pixels, 2, device=device)
+    pixels[:, 0] *= height
+    pixels[:, 1] *= width
+    pixels = pixels.int()
 
     return pixels
 
