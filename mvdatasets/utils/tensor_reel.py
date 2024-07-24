@@ -25,9 +25,6 @@ class TensorReel:
         cameras_list,
         width=None,
         height=None,
-        opengl_standard=False,
-        near=0.1,
-        far=1000.0,
         device="cuda",
         verbose=False
     ):
@@ -93,11 +90,7 @@ class TensorReel:
             # camera matrices
             poses.append(torch.from_numpy(camera.get_pose()).float())
             intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
-            proj = camera.get_projection(
-                opengl_standard=opengl_standard,
-                near=near,
-                far=far
-            )
+            proj = camera.get_projection()
             projections.append(torch.from_numpy(proj).float())
 
         # concat rgb

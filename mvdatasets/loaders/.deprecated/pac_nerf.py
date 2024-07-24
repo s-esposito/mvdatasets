@@ -6,7 +6,7 @@ import cv2 as cv
 import open3d as o3d
 from PIL import Image
 
-from mvdatasets.utils.images import numpy2image, image2numpy
+from mvdatasets.utils.images import numpy_to_image, image_to_numpy
 from mvdatasets.utils.geometry import rot_x_3d, rot_z_3d, pose_local_rotation
 from mvdatasets.scenes.camera import Camera
 
@@ -75,7 +75,7 @@ def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
         poses_all[cam_id] = pose
         intrinsics_all[cam_id] = entry["intrinsic"]
         img_pil = Image.open(os.path.join(data_path, entry["file_path"]))
-        img_np = image2numpy(img_pil, use_uint8=True)[..., :3]
+        img_np = image_to_numpy(img_pil, use_uint8=True)[..., :3]
 
         if frame_id < 0:
             # background frame

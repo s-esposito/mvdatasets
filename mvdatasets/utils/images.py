@@ -1,6 +1,67 @@
 from PIL import Image
 import numpy as np
 import torch
+import os
+import cv2
+
+
+def bilinear_downscale(img_np, times=1):
+    # Resize the image using INTER_LINEAR interpolation
+    for _ in range(times):
+        # Get the dimensions of the input image
+        height, width = img_np.shape[:2]
+        img_np = cv2.resize(img_np, (width // 2, height // 2), interpolation=cv2.INTER_LINEAR)
+    return img_np
+
+
+def bilinear_upscale(img_np, times=1):
+    # Resize the image using INTER_LINEAR interpolation
+    for _ in range(times):
+        # Get the dimensions of the input image
+        height, width = img_np.shape[:2]
+        img_np = cv2.resize(img_np, (width * 2, height * 2), interpolation=cv2.INTER_LINEAR)
+    return img_np
+
+
+def pix_to_texel_corners_uv_coords(uv_pix, res):
+    # 0, 0
+    uv_coords_0 = uv_pix / torch.flip(res, dims=[0])
+    # 0, 1
+    uv_coords_1 = (uv_pix + torch.tensor([1, 0], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
+    # 1, 0
+    uv_coords_2 = (uv_pix + torch.tensor([0, 1], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
+    # 1, 1
+    uv_coords_3 = (uv_pix + torch.tensor([1, 1], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
+    uv_texel_corners = torch.stack([uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1)
+    return uv_texel_corners
+
+
+def pix_to_texel_center_uv_coord(uv_pix, res):
+    # convert pixel coordinates to uv
+    uv_coords = (uv_pix + 0.5) / torch.flip(res, dims=[0])
+    return uv_coords
+
+
+def uv_coord_to_pix(uv_coord, res):
+    # convert uv to pixel coordinates
+    uv_pix = (uv_coord * torch.flip(res, dims=[0])).long()
+    return uv_pix
+
+
+def uv_coord_to_lerp_weights(uv_coords, res):
+    uv_pix_float = uv_coords * torch.flip(res, dims=[0])
+    uv_pix = uv_pix_float.long()
+    diff = uv_pix_float - uv_pix.float()
+    lerp_weights = torch.zeros((uv_coords.shape[0], 4), device=uv_coords.device)
+    # 0, 0
+    lerp_weights[:, 0] = (1.0 - diff[:, 1]) * (1.0 - diff[:, 0])
+    # 0, 1
+    lerp_weights[:, 1] = (1.0 - diff[:, 1]) * diff[:, 0]
+    # 1, 0
+    lerp_weights[:, 2] = diff[:, 1] * (1.0 - diff[:, 0])
+    # 1, 1
+    lerp_weights[:, 3] = diff[:, 1] * diff[:, 0]
+    return lerp_weights.unsqueeze(-1)
 
 
 def image_uint8_to_float32(tensor):
@@ -29,7 +90,7 @@ def image_float32_to_uint8(tensor):
     raise ValueError("tensor must be torch.tensor or np.ndarray")
 
 
-def image2numpy(pil_image, use_lower_left_origin=False, use_uint8=False):
+def image_to_numpy(pil_image, use_lower_left_origin=False, use_uint8=False):
     """
     Convert a PIL Image to a numpy array.
     If use_uint8 is False, the values are in [0, 1] and the dtype is float32.
@@ -47,7 +108,7 @@ def image2numpy(pil_image, use_lower_left_origin=False, use_uint8=False):
     return img
 
 
-def numpy2image(np_image, use_lower_left_origin=False):
+def numpy_to_image(np_image, use_lower_left_origin=False):
     """Convert a numpy array to a PIL Image with int values in 0 and 255."""
     # if grayscale, repeat 3 times
     if np_image.shape[-1] == 1:
@@ -63,15 +124,15 @@ def numpy2image(np_image, use_lower_left_origin=False):
     return pil_image
 
 
-def tensor2image(torch_tensor):
+def tensor_to_image(torch_tensor):
     """Convert a torch tensor to a PIL Image with int values in 0 and 255."""
     np_array = torch_tensor.cpu().numpy()
-    return numpy2image(np_array)
+    return numpy_to_image(np_array)
 
 
-def image2tensor(pil_image, device="cpu"):
+def image_to_tensor(pil_image, device="cpu"):
     """Convert a PIL Image to a torch tensor with values in 0 and 1."""
-    np_array = image2numpy(pil_image)
+    np_array = image_to_numpy(pil_image)
     return torch.from_numpy(np_array).float().to(device)
 
 
@@ -84,34 +145,12 @@ def flip_image_horizontally(image):
     """Flip a PIL Image horizontally."""
     return image.transpose(Image.FLIP_LEFT_RIGHT)
 
-# TODO: implement bilinear interpolation
-# def tensor_img_bilinear_interp(img, points_2d):
-#     """bilinear interpolation of image values at points_2d
-    
-#     args: 
-#         img (torch.tensor or np.ndarray): (H, W, C)
-#         points_2d (torch.tensor or np.ndarray): (N, 2) with values in [0, H-1], [0, W-1]
-    
-#     out:
-#         interp_vals (torch.tensor or np.ndarray): (N, C)
-#     """
-    
-#     # Extract dimensions from the image tensor
-#     H, W, C = img.shape[:3]
-    
-#     # Get the number of points to interpolate
-#     N = points_2d.shape[0]
-    
-#     # Create an array to store the interpolated values for each point
-#     interp_vals = torch.zeros(N, C, dtype=img.dtype, device=img.device)
-    
-#     # Extract x and y coordinates from the points_2d array
-#     y, x = points_2d[:, 0], points_2d[:, 1]
-    
-#     # Calculate the integer part of the coordinates for indexing
-#     y0, x0 = torch.floor(y).int(), np.floor(x).astype(int)
-    
-#     # Calculate the neighboring pixel indices for interpolation
-#     y1, x1 = np.minimum(y0 + 1, H - 1), np.minimum(x0 + 1, W - 1)
-    
-    
+
+def save_numpy_as_png(img_np, save_dir_path, img_filename):
+    # create path is not exists
+    os.makedirs(save_dir_path, exist_ok=True)
+    # convert to Image and save
+    img_pil = Image.fromarray(np.uint8(np.clip(img_np, 0, 1) * 255))
+    # write PIL Image to file
+    save_path = os.path.join(save_dir_path, img_filename + ".png")
+    img_pil.save(save_path)

@@ -2,7 +2,7 @@ import os
 import numpy as np
 from PIL import Image
 from mvdatasets.utils.geometry import qvec2rotmat
-from mvdatasets.utils.images import image2numpy
+from mvdatasets.utils.images import image_to_numpy
 
 
 def read_points3D(reconstruction):
@@ -52,7 +52,7 @@ def read_cameras(reconstruction, images_path):
         
         # load PIL image
         img_pil = Image.open(os.path.join(images_path, image.name))
-        img_np = image2numpy(img_pil, use_uint8=True)
+        img_np = image_to_numpy(img_pil, use_uint8=True)
         
         cameras_meta.append(
             {

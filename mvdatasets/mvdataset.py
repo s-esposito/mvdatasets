@@ -206,7 +206,6 @@ class MVDataset:
             # apply contraction function
             if self.scene_type == "unbounded":
                 pc = contraction_function(pc)
-            
             transformed_point_clouds.append(pc)
         self.point_clouds = transformed_point_clouds
         
@@ -257,8 +256,7 @@ class MVDataset:
         
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
-            
-            
+                    
     def has_masks(self):
         for split, cameras in self.data.items():
             for camera in cameras:
@@ -267,6 +265,58 @@ class MVDataset:
                     return True
         return False
     
+    def get_width(self, split="train", camera_id=0):
+        """Returns the width of a camera
+
+        Args:
+            split (str, optional): Defaults to "train".
+            camera_id (int, optional): Defaults to 0.
+
+        Returns:
+            int: width
+        """
+        if split in self.data:
+            if camera_id >= 0 and camera_id < len(self.data[split]):
+                return self.data[split][camera_id].width
+            else:
+                print(f"[bold red]ERROR[/bold red]: camera index {camera_id} out of range [0, {len(self.data[split])})")
+                exit(1)
+        else:
+            print(f"[bold red]ERROR[/bold red]: split {split} does not exist, available splits: {list(self.data.keys())}")
+            exit(1)
+            
+    def get_height(self, split="train", camera_id=0):
+        """Returns the height of a camera
+
+        Args:
+            split (str, optional): Defaults to "train".
+            camera_id (int, optional): Defaults to 0.
+
+        Returns:
+            int: height
+        """
+        if split in self.data:
+            if camera_id >= 0 and camera_id < len(self.data[split]):
+                return self.data[split][camera_id].height
+            else:
+                print(f"[bold red]ERROR[/bold red]: camera index {camera_id} out of range [0, {len(self.data[split])})")
+                exit(1)
+        else:
+            print(f"[bold red]ERROR[/bold red]: split {split} does not exist, available splits: {list(self.data.keys())}")
+            exit(1)
+            
+    def get_resolution(self, split="train", camera_id=0):
+        """Returns the resolution (width, height) of a camera
+
+        Args:
+            split (str, optional): Defaults to "train".
+            camera_id (int, optional): Defaults to 0.
+
+        Returns:
+            (int, int): width, height
+        """
+        return (self.get_width(split, camera_id), self.get_height(split, camera_id))
+                    
     def __getitem__(self, split):
         return self.data[split]
 

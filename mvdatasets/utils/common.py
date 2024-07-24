@@ -91,8 +91,7 @@ def get_dataset_test_preset(dataset_name):
         
         # dataset specific config
         config = {
-            "scene_type": "bounded",
-            # "scene_type": "unbounded",
+            "scene_type": "unbounded",
             "subsample_factor": 8,
         }
         

@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.images import image2numpy
+from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.geometry import (
     deg2rad,
     scale_3d,
@@ -135,7 +135,7 @@ def load_ingp(
         
         # load PIL image
         img_pil = Image.open(img_path)
-        img_np = image2numpy(img_pil, use_uint8=True)[:, :, :3]
+        img_np = image_to_numpy(img_pil, use_uint8=True)[:, :, :3]
                 
         camera = Camera(
             intrinsics=intrinsics,

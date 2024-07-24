@@ -182,34 +182,54 @@ class Camera:
         """return inverse of camera intrinsics"""
         return self.intrinsics_inv
     
-    def get_projection(self, opengl_standard=False, near=0.1, far=1000.0):
+    def get_projection(self):
         """return 4x4 camera projection matrix"""
         # get camera data
         intrinsics = self.get_intrinsics()
         c2w = self.get_pose()
-        if not opengl_standard:
-            # opencv standard
-            intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
-            w2c = np.linalg.inv(c2w)
-            proj = intrinsics_padded @ w2c
-            proj = np.concatenate([proj, np.zeros((1, 4))], axis=0)  # (4, 4)
-        else:
-            # opengl standard
-            ogl_proj = opencv_to_opengl_intrinsics(
-                intrinsics,
-                self.width,
-                self.height,
-                near,
-                far
-            )  # (4, 4)
-            # ogl_c2w (4, 4)
-            ogl_c2w = opencv_to_opengl_pose(c2w)
-            # ogl_w2c (4, 4)
-            ogl_w2c = np.linalg.inv(ogl_c2w)
-            # proj (4, 4)
-            proj = np.matmul(ogl_proj, ogl_w2c).astype(np.float32)
+        # opencv standard
+        intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
+        w2c = np.linalg.inv(c2w)
+        proj = intrinsics_padded @ w2c
+        proj = np.concatenate([proj, np.zeros((1, 4))], axis=0)  # (4, 4)
+        # else:
+        #     # opengl standard
+        #     ogl_proj = opencv_to_opengl_intrinsics(
+        #         intrinsics,
+        #         self.width,
+        #         self.height,
+        #         near,
+        #         far
+        #     )  # (4, 4)
+        #     # ogl_c2w (4, 4)
+        #     ogl_c2w = opencv_to_opengl_pose(c2w)
+        #     # ogl_w2c (4, 4)
+        #     ogl_w2c = np.linalg.inv(ogl_c2w)
+        #     # proj (4, 4)
+        #     proj = np.matmul(ogl_proj, ogl_w2c).astype(np.float32)
 
         return proj
+    
+    def get_opengl_projectionMatrix(self, near=0.1, far=100.0):
+        # get camera data
+        intrinsics = self.get_intrinsics()
+        # opengl standard
+        projectionMatrix = opencv_to_opengl_intrinsics(
+            intrinsics,
+            self.width,
+            self.height,
+            near,
+            far
+        )  # (4, 4)
+        # flip vertical and horizontal axis
+        # projectionMatrix[0, 0] *= -1
+        # projectionMatrix[1, 1] *= -1
+        return projectionMatrix
+    
+    def get_opengl_matrixWorld(self):
+        c2w = self.get_pose()
+        c2w = opencv_to_opengl_pose(c2w)
+        return c2w
 
     def has_rgbs(self):
         """check if rgbs exists"""

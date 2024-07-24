@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.images import image2numpy
+from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.geometry import (
     deg2rad,
     scale_3d,
@@ -168,14 +168,14 @@ def load_dmsr(
             # camera_pose = frame[1]
             # load PIL image
             img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
-            img_np = image2numpy(img_pil, use_uint8=True)
+            img_np = image_to_numpy(img_pil, use_uint8=True)
             
             # remove alpha (it is always 1)
             img_np = img_np[:, :, :3]
             
             # im_name = im_name.replace('r', 'd')
             # depth_pil = Image.open(os.path.join(scene_path, f"{split}", "depth", im_name))
-            # depth_np = image2numpy(depth_pil)[..., None]
+            # depth_np = image_to_numpy(depth_pil)[..., None]
             
             # override H, W
             if height is None or width is None:

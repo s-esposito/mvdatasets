@@ -125,6 +125,15 @@ def opencv_to_opengl_intrinsics(intrinsics, width, height, near, far):
     
     return proj
 
+def is_valid_pose(c2w):
+    if not isinstance(c2w, np.ndarray):
+        return False
+    if c2w.shape != (4, 4):
+        return False
+    if not np.allclose(c2w[3], [0, 0, 0, 1]):
+        return False
+    # Additional checks if needed, e.g., for the upper 3x3 block being a rotation matrix.
+    return True
 
 def opencv_to_opengl_pose(c2w):
     """

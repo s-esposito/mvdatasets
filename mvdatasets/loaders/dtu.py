@@ -6,7 +6,7 @@ from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
 
-from mvdatasets.utils.images import image2numpy
+from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.scenes.camera import Camera
 from mvdatasets.utils.geometry import (
     deg2rad,
@@ -121,7 +121,7 @@ def load_dtu(
     for im_name in pbar:
         # load PIL image
         img_pil = Image.open(im_name)
-        img_np = image2numpy(img_pil, use_uint8=True)
+        img_np = image_to_numpy(img_pil, use_uint8=True)
         imgs.append(img_np)
 
     # (optional) load mask images to cpu as numpy arrays
@@ -132,7 +132,7 @@ def load_dtu(
         for im_name in pbar:
             # load PIL image
             mask_pil = Image.open(im_name)
-            mask_np = image2numpy(mask_pil, use_uint8=True)
+            mask_np = image_to_numpy(mask_pil, use_uint8=True)
             mask_np = mask_np[:, :, 0, None]
             masks.append(mask_np)
     

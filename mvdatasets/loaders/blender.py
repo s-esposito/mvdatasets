@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from mvdatasets.scenes.camera import Camera
-from mvdatasets.utils.images import image2numpy
+from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.geometry import (
     deg2rad,
     scale_3d,
@@ -166,7 +166,7 @@ def load_blender(
             # camera_pose = frame[1]
             # load PIL image
             img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
-            img_np = image2numpy(img_pil, use_uint8=True)
+            img_np = image_to_numpy(img_pil, use_uint8=True)
             
             # TODO: subsample image
             # if subsample_factor > 1:
