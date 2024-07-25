@@ -100,7 +100,7 @@ def _draw_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_le
         )
 
 
-def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, max_nr_points=None, up="z", scene_radius=1.0):
+def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, label=None, max_nr_points=None, up="z", scene_radius=1.0):
     if points_3d is None:
         return
     
@@ -122,9 +122,9 @@ def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, max_nr_
     
     # draw points
     if up == "z":
-        ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*size, color=color, marker=marker)
+        ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*size, color=color, marker=marker, label=label)
     else:  # up = "y"
-        ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*size, color=color, marker=marker)
+        ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*size, color=color, marker=marker, label=label)
 
 
 def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
@@ -868,6 +868,7 @@ def plot_rays_samples(
     points_samples=[],
     points_samples_colors=[],
     points_samples_sizes=[],
+    points_samples_labels=[],
     azimuth_deg=60,
     elevation_deg=30,
     scene_radius=1.0,
@@ -971,6 +972,11 @@ def plot_rays_samples(
         if len(points_samples_colors) > 0:
             assert len(points_samples) == len(points_samples_colors), "points_samples and points_samples_colors must have the same length"
             color = points_samples_colors[i]
+            
+        label = None
+        if len(points_samples_labels) > 0:
+            assert len(points_samples) == len(points_samples_labels), "points_samples and points_samples_labels must have the same length"
+            label = points_samples_labels[i]
         
         # draw sampling points
         _draw_point_cloud(
@@ -979,10 +985,18 @@ def plot_rays_samples(
             size=size,
             color=color,
             up=up,
-            scene_radius=scene_radius
+            scene_radius=scene_radius,
+            label=label
         )
 
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)
+
+    # Get current axes and check if there are any labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+
+    # Only display legend if there are labels
+    if labels:
+        plt.legend()
 
     return fig

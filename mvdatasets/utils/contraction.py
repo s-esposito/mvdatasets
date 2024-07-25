@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 import torch
 
-# def contraction_function(points):
+# def contract_points(points):
 #     """
 #     Warping function that smoothly maps
 #     all coordinates outside of a ball of
@@ -30,7 +30,7 @@ import torch
 #     points_[to_contract] = contracted_points
 #     return points_
 
-def contraction_function(points):
+def contract_points(points):
     """
     Warping function that smoothly maps
     all coordinates outside of a ball of
@@ -38,30 +38,34 @@ def contraction_function(points):
     From MipNeRF360.
     """
     
+    # TODO: contract dt and z too given a ray_samples_packed object
+    
     scale = 2
     
     # compute points norm
     if isinstance(points, np.ndarray):
         points_norm = np.linalg.norm(points*scale, axis=1)[:, np.newaxis]  # (N, 1)
-        return np.where(points_norm < 1, points, 1 - 1 / (scale * points))
+        return np.where(points_norm < 1.0, points, (2-1.0/points_norm)*points/points_norm)
     elif isinstance(points, torch.Tensor):
         points_norm = torch.norm(points*scale, dim=1, keepdim=True)
-        return torch.where(points_norm < 1, points, 1 - 1 / (scale * points))
+        return torch.where(points_norm < 1.0, points, (2-1.0/points_norm)*points/points_norm)
     else:
         raise ValueError("points must be a numpy array or a torch tensor")
 
 
-def uncontraction_function(points):
+def uncontract_points(points):
     """
-    Inverse of contraction_function.
+    Inverse of contract_points.
     """
     
+    # TODO: uncontract dt and z too given a ray_samples_packed object
+    scale = 2
     # compute points norm
     if isinstance(points, np.ndarray):
-        points_norm = np.linalg.norm(points, axis=1)[:, np.newaxis]  # (N, 1)
-        return np.where(points_norm < 0.5, points, 0.5 / (2 - 2 * points))
+        points_norm = np.linalg.norm(points*scale, axis=1)[:, np.newaxis]  # (N, 1)
+        return np.where(points_norm < 1.0, points, 1.0/(2-points_norm)*points/points_norm)
     elif isinstance(points, torch.Tensor):
-        points_norm = torch.norm(points, dim=1, keepdim=True)
-        return torch.where(points_norm < 0.5, points, 0.5 / (2 - 2 * points))
+        points_norm = torch.norm(points*scale, dim=1, keepdim=True)
+        return torch.where(points_norm < 1.0, points, 1.0/(2-points_norm)*points/points_norm)
     else:
         raise ValueError("points must be a numpy array or a torch tensor")

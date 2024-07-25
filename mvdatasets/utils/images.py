@@ -23,35 +23,58 @@ def bilinear_upscale(img_np, times=1):
     return img_np
 
 
-def pix_to_texel_corners_uv_coords(uv_pix, res):
-    # 0, 0
-    uv_coords_0 = uv_pix / torch.flip(res, dims=[0])
-    # 0, 1
-    uv_coords_1 = (uv_pix + torch.tensor([1, 0], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
-    # 1, 0
-    uv_coords_2 = (uv_pix + torch.tensor([0, 1], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
-    # 1, 1
-    uv_coords_3 = (uv_pix + torch.tensor([1, 1], device=uv_pix.device, dtype=uv_pix.dtype)) / torch.flip(res, dims=[0])
-    uv_texel_corners = torch.stack([uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1)
-    return uv_texel_corners
+def get_pixel_corners(uv_pix_nn):
+    """returns pix corners in non-normalised uv space"""
+    uv_coords_0 = uv_pix_nn  # 0, 0
+    uv_coords_1 = uv_pix_nn + torch.tensor([1, 0], device=uv_pix_nn.device)  # 0, 1
+    uv_coords_2 = uv_pix_nn + torch.tensor([0, 1], device=uv_pix_nn.device)  # 1, 0
+    uv_coords_3 = uv_pix_nn + torch.tensor([1, 1], device=uv_pix_nn.device)  # 1, 1
+    uv_interp_corners_nn = torch.stack([uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1)
+    return uv_interp_corners_nn
 
 
-def pix_to_texel_center_uv_coord(uv_pix, res):
-    # convert pixel coordinates to uv
-    uv_coords = (uv_pix + 0.5) / torch.flip(res, dims=[0])
+def normalize_uv_coord(uv_coords, res):
+    uv_coords = uv_coords / torch.flip(res, dims=[0])
+    return uv_coords
+
+
+def non_normalize_uv_coord(uv_coords, res):
+    uv_coords = uv_coords * torch.flip(res, dims=[0])
     return uv_coords
 
 
 def uv_coord_to_pix(uv_coord, res):
     # convert uv to pixel coordinates
-    uv_pix = (uv_coord * torch.flip(res, dims=[0])).long()
+    uv_pix = non_normalize_uv_coord(uv_coord, res).floor()
     return uv_pix
 
 
+def uv_coord_to_interp_uv_coords(uv_coord_nn):
+    # print("uv_coord_nn", uv_coord_nn)
+    # shifted space (where center of pixel is at upper left corner of each texel)
+    uv_coord_shifted = uv_coord_nn - 0.5
+    # print("uv_coord_shifted", uv_coord_shifted)
+    uv_pix_shifted = uv_coord_shifted.floor()
+    # print("uv_pix_shifted", uv_pix_shifted)
+    uv_corners_coords_shifted = get_pixel_corners(uv_pix_shifted)
+    # print(uv_corners_coords_shifted)
+    uv_corners_coords_nn = uv_corners_coords_shifted + 0.5
+    # print(uv_corners_coords)
+    return uv_corners_coords_nn
+
+
+def pix_to_texel_center_uv_coord(uv_pix, res):
+    # convert pixel coordinates to uv normalized coordinates of the texel center
+    uv_coords = (uv_pix + 0.5) / torch.flip(res, dims=[0])
+    return uv_coords
+
+
 def uv_coord_to_lerp_weights(uv_coords, res):
+    # non-normalized uv_coords
     uv_pix_float = uv_coords * torch.flip(res, dims=[0])
-    uv_pix = uv_pix_float.long()
-    diff = uv_pix_float - uv_pix.float()
+    # normalized uv_coords
+    uv_pix = uv_pix_float.floor().float() + 0.5
+    diff = uv_pix_float - uv_pix
     lerp_weights = torch.zeros((uv_coords.shape[0], 4), device=uv_coords.device)
     # 0, 0
     lerp_weights[:, 0] = (1.0 - diff[:, 1]) * (1.0 - diff[:, 0])
