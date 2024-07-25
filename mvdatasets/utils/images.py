@@ -45,11 +45,11 @@ def non_normalize_uv_coord(uv_coords, res):
 
 def uv_coord_to_pix(uv_coord, res):
     # convert uv to pixel coordinates
-    uv_pix = non_normalize_uv_coord(uv_coord, res).floor()
+    uv_pix = non_normalize_uv_coord(uv_coord, res).floor().long()
     return uv_pix
 
 
-def uv_coord_to_interp_uv_coords(uv_coord_nn):
+def non_normalized_uv_coord_to_interp_corners(uv_coord_nn):
     # print("uv_coord_nn", uv_coord_nn)
     # shifted space (where center of pixel is at upper left corner of each texel)
     uv_coord_shifted = uv_coord_nn - 0.5
@@ -69,13 +69,9 @@ def pix_to_texel_center_uv_coord(uv_pix, res):
     return uv_coords
 
 
-def uv_coord_to_lerp_weights(uv_coords, res):
-    # non-normalized uv_coords
-    uv_pix_float = uv_coords * torch.flip(res, dims=[0])
-    # normalized uv_coords
-    uv_pix = uv_pix_float.floor().float() + 0.5
-    diff = uv_pix_float - uv_pix
-    lerp_weights = torch.zeros((uv_coords.shape[0], 4), device=uv_coords.device)
+def non_normalized_uv_coord_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn):
+    diff = uv_coords_nn - uv_corners_coords_nn[:, 0, :]
+    lerp_weights = torch.zeros((uv_coords_nn.shape[0], 4), device=uv_coords_nn.device)
     # 0, 0
     lerp_weights[:, 0] = (1.0 - diff[:, 1]) * (1.0 - diff[:, 0])
     # 0, 1
