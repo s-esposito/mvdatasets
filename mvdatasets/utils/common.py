@@ -86,13 +86,13 @@ def get_dataset_test_preset(dataset_name):
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
-        scene_name = "bicycle"  # "bicycle", "garden"
+        scene_name = "garden"  # "bicycle", "garden"
         pc_paths = []
         
         # dataset specific config
         config = {
             "scene_type": "unbounded",
-            "subsample_factor": 8,
+            "subsample_factor": 4,
         }
         
         # scene specific config

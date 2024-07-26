@@ -71,10 +71,13 @@ def load_llff(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
+    # if bounded, all scene content can be represented in the foreground bounding box
     if config["scene_type"] == "bounded":
         config["target_cameras_max_distance"] = 1.0
+    # if unbounded, scene content extends beyond the foreground bounding sphere
     elif config["scene_type"] == "unbounded":
-        config["target_cameras_max_distance"] = 0.5
+        config["target_cameras_max_distance"] = 0.3
+    # if forward_facing, scene content is in front of the camera
     elif config["scene_type"] == "forward_facing":
         print("[bold red]ERROR[/bold red]: forward_facing scene type not implemented yet")
         exit(1)

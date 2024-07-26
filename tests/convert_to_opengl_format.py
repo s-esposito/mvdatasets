@@ -65,6 +65,7 @@ if __name__ == "__main__":
     )
     
     scene = {}
+    scene["resolution"] = [mv_data.get_width(), mv_data.get_height()]
     scene["meshes"] = []
     scene["cameras"] = {
         "test": {},
@@ -80,5 +81,5 @@ if __name__ == "__main__":
         }
     
     # Save the projections as a json file
-    with open("out/projections.json", "w") as f:
+    with open("out/scene.json", "w") as f:
         json.dump(scene, f, indent=4)

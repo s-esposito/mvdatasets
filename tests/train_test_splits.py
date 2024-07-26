@@ -75,20 +75,29 @@ if __name__ == "__main__":
     else:
         point_cloud = np.array([[0, 0, 0]])
         
-    # create bounding boxes (scene)
+    # create bounding primitives
     bounding_boxes = []
-    
-    bb = BoundingBox(
-        pose=np.eye(4),
-        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
-        line_width=2.0,
-        device=device
-    )
-    bounding_boxes.append(bb)
-    
-    # create sphere (sdf init)
-    
     bounding_spheres = []
+    
+    # scene
+    if mv_data.scene_type == "bounded":
+        bb = BoundingBox(
+            pose=np.eye(4),
+            local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
+            line_width=2.0,
+            device=device
+        )
+        bounding_boxes.append(bb)
+    elif mv_data.scene_type == "unbounded":
+        bs = BoundingSphere(
+            pose=np.eye(4),
+            local_scale=np.array([0.5, 0.5, 0.5]),  # outer primitive
+            device=device,
+            verbose=True
+        )
+        bounding_spheres.append(bs)
+    
+    # sdf init
     
     bs = BoundingSphere(
         pose=np.eye(4),
