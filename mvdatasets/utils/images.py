@@ -165,11 +165,13 @@ def flip_image_horizontally(image):
     return image.transpose(Image.FLIP_LEFT_RIGHT)
 
 
-def save_numpy_as_png(img_np, save_dir_path, img_filename):
+def save_numpy_as_png(img_np, save_dir_path, img_filename, append_format=True):
     # create path is not exists
     os.makedirs(save_dir_path, exist_ok=True)
     # convert to Image and save
     img_pil = Image.fromarray(np.uint8(np.clip(img_np, 0, 1) * 255))
     # write PIL Image to file
-    save_path = os.path.join(save_dir_path, img_filename + ".png")
+    save_path = os.path.join(save_dir_path, img_filename)
+    if append_format:
+        save_path += ".png"
     img_pil.save(save_path)
