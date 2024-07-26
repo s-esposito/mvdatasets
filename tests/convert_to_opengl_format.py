@@ -73,8 +73,8 @@ if __name__ == "__main__":
     }
     for camera in mv_data["test"]:
         camera_idx = camera.camera_idx
-        projectionMatrix = camera.get_opengl_projectionMatrix(near=0.1, far=100.0)
-        matrixWorld = camera.get_opengl_matrixWorld()
+        projectionMatrix = camera.get_opengl_projection_matrix(near=0.1, far=100.0)
+        matrixWorld = camera.get_opengl_matrix_world()
         scene["cameras"]["test"][camera_idx] = {
             "projectionMatrix": projectionMatrix.tolist(),
             "matrixWorld": matrixWorld.tolist(),  # c2w

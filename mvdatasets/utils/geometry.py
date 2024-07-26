@@ -90,40 +90,87 @@ def rot_z_3d(theta):
     )
 
 
-def opencv_to_opengl_intrinsics(intrinsics, width, height, near, far):
+def opengl_matrix_world_from_w2c(w2c):
     """
-    Convert OpenCV intrinsic matrix to OpenGL projection matrix.
+    Convert OpenCV camera-to-world pose to OpenGL camera pose.
     
     Args:
-    - intrinsics: A 3x3 np.ndarray representing the camera's intrinsic matrix.
-    - width: image plane width
-    - height: image plane height
-    - near: Near clipping plane distance.
-    - far: Far clipping plane distance.
+    - w2c: A 4x4 np.ndarray representing the OpenCV world-to-camera pose.
     
     Returns:
-    - A 4x4 np.ndarray representing the OpenGL projection matrix.
+    - A 4x4 np.ndarray representing the OpenGL camera pose.
     """
+    # flip_z = np.diag(np.array([1, 1, -1, 1]))
+    # return np.matmul(c2w, flip_z)
     
-    # OpenGL projection matrix
-    proj = np.zeros((4, 4))
-
-    # Parameters for OpenGL projection matrix
-    fx = intrinsics[0, 0]
-    fy = intrinsics[1, 1]
-    cx = intrinsics[0, 2]
-    cy = intrinsics[1, 2]
-
-    # Calculate OpenGL projection matrix
-    proj[0, 0] = 2 * fx / width
-    proj[1, 1] = 2 * fy / height
-    proj[2, 0] = 2 * (cx / width) - 1
-    proj[2, 1] = 2 * (cy / height) - 1
-    proj[2, 2] = -(far + near) / (far - near)
-    proj[2, 3] = -2 * far * near / (far - near)
-    proj[3, 2] = -1
+    # Flip Y-axis
+    w2c[1, :] = -w2c[1, :]  # Invert the z-axis
     
-    return proj
+    # Convert from OpenCV coordinate system (right-handed, y-up, z-forward)
+    # to OpenGL/three.js coordinate system (right-handed, y-up, z-backward)
+    w2c[2, :] = -w2c[2, :]  # Invert the z-axis
+    
+    c2w = np.linalg.inv(w2c)
+    
+    return c2w
+
+
+def opengl_projection_matrix_from_intrinsics(K, width, height, near, far):
+    fx = K[0, 0]
+    fy = K[1, 1]
+    cx = K[0, 2]
+    cy = K[1, 2]
+
+    projection_matrix = np.array([
+        [2.0 * fx / width, 0.0, -(2.0 * cx / width - 1.0), 0.0],
+        [0.0, 2.0 * fy / height, -(2.0 * cy / height - 1.0), 0.0],
+        [0.0, 0.0, -(far + near) / (far - near), -2.0 * far * near / (far - near)],
+        [0.0, 0.0, -1.0, 0.0]
+    ], dtype=np.float32)
+
+    # Transpose to column-major order for OpenGL
+    return projection_matrix
+
+# def create_model_view_matrix(c2w):
+#     # Invert the camera-to-world matrix to get the world-to-camera (view) matrix
+#     w2c = np.linalg.inv(c2w)
+#     # OpenGL requires column-major order
+#     return w2c.T
+
+# def opencv_to_opengl_intrinsics(intrinsics, width, height, near, far):
+#     """
+#     Convert OpenCV intrinsic matrix to OpenGL projection matrix.
+    
+#     Args:
+#     - intrinsics: A 3x3 np.ndarray representing the camera's intrinsic matrix.
+#     - width: image plane width
+#     - height: image plane height
+#     - near: Near clipping plane distance.
+#     - far: Far clipping plane distance.
+    
+#     Returns:
+#     - A 4x4 np.ndarray representing the OpenGL projection matrix.
+#     """
+    
+#     # OpenGL projection matrix
+#     proj = np.zeros((4, 4))
+
+#     # Parameters for OpenGL projection matrix
+#     fx = intrinsics[0, 0]
+#     fy = intrinsics[1, 1]
+#     cx = intrinsics[0, 2]
+#     cy = intrinsics[1, 2]
+
+#     # Calculate OpenGL projection matrix
+#     proj[0, 0] = 2 * fx / width
+#     proj[1, 1] = 2 * fy / height
+#     proj[2, 0] = 2 * (cx / width) - 1
+#     proj[2, 1] = 2 * (cy / height) - 1
+#     proj[2, 2] = -(far + near) / (far - near)
+#     proj[2, 3] = -2 * far * near / (far - near)
+#     proj[3, 2] = -1
+    
+#     return proj
 
 def is_valid_pose(c2w):
     if not isinstance(c2w, np.ndarray):
@@ -134,19 +181,6 @@ def is_valid_pose(c2w):
         return False
     # Additional checks if needed, e.g., for the upper 3x3 block being a rotation matrix.
     return True
-
-def opencv_to_opengl_pose(c2w):
-    """
-    Convert OpenCV camera-to-world pose to OpenGL camera pose.
-    
-    Args:
-    - c2w: A 4x4 np.ndarray representing the OpenCV camera-to-world pose.
-    
-    Returns:
-    - A 4x4 np.ndarray representing the OpenGL camera pose.
-    """
-    flip_z = np.diag(np.array([1, 1, -1, 1]))
-    return np.matmul(c2w, flip_z)
 
 
 def pose_local_rotation(pose, rotation):
