@@ -16,17 +16,36 @@ def triangle_to_vertices_uvs_conversion(triangle_uvs, faces, vertices):
 class Mesh:
     def __init__(
         self,
-        mesh_meta,
+        o3d_mesh=None,
+        mesh_meta=None,
         verbose=True,
     ):
-        self.mesh_path = mesh_meta["mesh_path"]
-        textures_meta = mesh_meta.get("textures", [])
-
-        # make sure mesh_path exists
-        assert os.path.exists(self.mesh_path), f"mesh path {self.mesh_path} does not exist"
+        # only one of o3d_mesh and mesh_meta should be provided
+        if o3d_mesh is not None and mesh_meta is not None:
+            print("[bold red]ERROR[/bold red]: only one of o3d_mesh and mesh_meta should be provided")
+            exit(1)
+            
+        # at least one of o3d_mesh and mesh_meta should be provided
+        if o3d_mesh is None and mesh_meta is None:
+            print("[bold red]ERROR[/bold red]: at least one of o3d_mesh and mesh_meta should be provided")
+            exit(1)
+            
+        if o3d_mesh is not None:
+            
+            mesh = o3d_mesh
+            textures_meta = []
         
-        # load mesh
-        mesh = o3d.io.read_triangle_mesh(self.mesh_path, print_progress=False)
+        else:
+        
+            self.mesh_path = mesh_meta["mesh_path"]
+            textures_meta = mesh_meta.get("textures", [])
+
+            # make sure mesh_path exists
+            assert os.path.exists(self.mesh_path), f"mesh path {self.mesh_path} does not exist"
+        
+            # load mesh
+            mesh = o3d.io.read_triangle_mesh(self.mesh_path, print_progress=False)
+        
         mesh.compute_vertex_normals()
 
         # vertices
