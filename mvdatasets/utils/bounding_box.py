@@ -312,6 +312,7 @@ class BoundingBox:
         mesh = o3d.geometry.TriangleMesh()
         mesh.vertices = o3d.utility.Vector3dVector(vertices)
         mesh.triangles = o3d.utility.Vector3iVector(faces)
+        mesh.compute_vertex_normals()
         
         # save mesh path
         o3d.io.write_triangle_mesh(os.path.join(dir_path, f"{name}.ply"), mesh)
