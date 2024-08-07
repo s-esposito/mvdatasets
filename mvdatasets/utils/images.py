@@ -169,7 +169,8 @@ def save_numpy_as_png(img_np, save_dir_path, img_filename, append_format=True):
     # create path is not exists
     os.makedirs(save_dir_path, exist_ok=True)
     # convert to Image and save
-    img_pil = Image.fromarray(np.uint8(np.clip(img_np, 0, 1) * 255))
+    img_np_ = np.round(np.clip(img_np, 0, 1) * 255)  # [0, 1] -> [0, 255]
+    img_pil = Image.fromarray(np.uint8(img_np_))
     # write PIL Image to file
     save_path = os.path.join(save_dir_path, img_filename)
     if append_format:
