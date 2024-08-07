@@ -100,17 +100,30 @@ def get_dataset_test_preset(dataset_name):
         # scene specific config
         if scene_name == "bicycle":
             config["rotate_scene_x_axis_deg"] = -104
+            config["translate_scene_z"] = 0.1
+            
         if scene_name == "garden":
             config["rotate_scene_x_axis_deg"] = -120
+            config["translate_scene_z"] = 0.2
+            
         if scene_name == "bonsai":
             config["rotate_scene_x_axis_deg"] = -130
+            config["translate_scene_z"] = 0.25
+            
         if scene_name == "counter":
             config["rotate_scene_x_axis_deg"] = -125
+            config["translate_scene_y"] = -0.1
+            config["translate_scene_z"] = 0.25
+            
         if scene_name == "kitchen":
             config["rotate_scene_x_axis_deg"] = -130
+            config["translate_scene_z"] = 0.2
+            
         if scene_name == "room":
             config["rotate_scene_x_axis_deg"] = -115
+            
         if scene_name == "stump":
-            config["rotate_scene_x_axis_deg"] = -140
+            config["rotate_scene_x_axis_deg"] = -137
+            config["translate_scene_z"] = 0.25
     
     return scene_name, pc_paths, config

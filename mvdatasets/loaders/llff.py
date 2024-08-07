@@ -1,5 +1,6 @@
 from rich import print
 import os
+import copy
 import numpy as np
 import sys
 import re
@@ -41,7 +42,22 @@ def load_llff(
         if config["scene_type"] not in valid_scene_types:
             print(f"[bold red]ERROR[/bold red]: scene_type {config['scene_type']} must be a value in {valid_scene_types}")
             exit(1)
-                
+    
+    if "translate_scene_x" not in config:
+        config["translate_scene_x"] = 0.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_x not in config, setting to {config['translate_scene_x']}")
+    
+    if "translate_scene_y" not in config:
+        config["translate_scene_y"] = 0.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_y not in config, setting to {config['translate_scene_y']}")
+    
+    if "translate_scene_z" not in config:
+        config["translate_scene_z"] = 0.0
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_z not in config, setting to {config['translate_scene_z']}")
+            
     if "rotate_scene_x_axis_deg" not in config:
         config["rotate_scene_x_axis_deg"] = 0.0
         if verbose:
@@ -96,6 +112,7 @@ def load_llff(
     # print(reconstruction.summary())
 
     point_cloud = read_points3D(reconstruction)
+    # point_cloud[:, 2] += config["translate_scene_z"]
     
     # get point cloud mean
     # point_cloud_mean = np.mean(point_cloud, axis=0)
@@ -147,19 +164,32 @@ def load_llff(
     #     print("poses", poses.shape)
         
     #     global_transform = transform
-        
+    
     # read images
     # images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
     poses_all = []
     pbar = tqdm(cameras_meta, desc="images", ncols=100)
     for i, camera in enumerate(pbar):
         
+        traslation = camera["translation"]
+        # traslation[2] += config["translate_scene_z"]
+        
         w2c = np.eye(4)
         w2c[:3, :3] = camera["rotation"]
-        w2c[:3, 3] = camera["translation"]
+        w2c[:3, 3] = traslation
         c2w = np.linalg.inv(w2c)
         pose = c2w
         poses_all.append(pose)
+        
+    # center scene in the average camera position
+    # scene_center = np.mean([np.mean(poses_all, axis=0)[:3, 3]], axis=0)
+    # print("scene_center", scene_center)
+    
+    # poses_all_ = []
+    # for pose in poses_all:
+    #     pose_ = copy.deepcopy(pose)
+    #     pose_[:3, 3] -= scene_center
+    #     poses_all_.append(pose_)
     
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
@@ -174,11 +204,24 @@ def load_llff(
     # scene scale such that furthest away camera is at target distance
     scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
     
+    # # scene center as the point cloud center
+    # point_cloud_ = point_cloud * scene_scale_mult
+    # point_cloud_ -= np.mean(point_cloud_, axis=0)
+    # points_norms = np.linalg.norm(point_cloud_, axis=1)
+    # point_cloud_ = point_cloud_[points_norms < 0.5]
+    # scene_center = np.mean(point_cloud_, axis=0)
+    # scene_center[2] += config["translate_scene_z"]
+    
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    # translate
+    translation_matrix = np.eye(4)
+    translation_matrix[:3, 3] = [config["translate_scene_x"], config["translate_scene_y"], config["translate_scene_z"]]
+    
+    global_transform = translation_matrix @ global_transform
     
     # local transform
     local_transform = np.eye(4)
