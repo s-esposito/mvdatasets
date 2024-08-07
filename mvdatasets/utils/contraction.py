@@ -63,9 +63,9 @@ def uncontract_points(points):
     # compute points norm
     if isinstance(points, np.ndarray):
         points_norm = np.linalg.norm(points*scale, axis=1)[:, np.newaxis]  # (N, 1)
-        return np.where(points_norm < 1.0, points, 1.0/(2-points_norm)*points/points_norm)
+        return np.where(points_norm < 1.0, points, 1.0/(2-points_norm)*(points/points_norm))
     elif isinstance(points, torch.Tensor):
         points_norm = torch.norm(points*scale, dim=1, keepdim=True)
-        return torch.where(points_norm < 1.0, points, 1.0/(2-points_norm)*points/points_norm)
+        return torch.where(points_norm < 1.0, points, 1.0/(2-points_norm)*(points/points_norm))
     else:
         raise ValueError("points must be a numpy array or a torch tensor")

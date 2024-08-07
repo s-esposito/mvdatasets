@@ -131,46 +131,6 @@ def opengl_projection_matrix_from_intrinsics(K, width, height, near, far):
     # Transpose to column-major order for OpenGL
     return projection_matrix
 
-# def create_model_view_matrix(c2w):
-#     # Invert the camera-to-world matrix to get the world-to-camera (view) matrix
-#     w2c = np.linalg.inv(c2w)
-#     # OpenGL requires column-major order
-#     return w2c.T
-
-# def opencv_to_opengl_intrinsics(intrinsics, width, height, near, far):
-#     """
-#     Convert OpenCV intrinsic matrix to OpenGL projection matrix.
-    
-#     Args:
-#     - intrinsics: A 3x3 np.ndarray representing the camera's intrinsic matrix.
-#     - width: image plane width
-#     - height: image plane height
-#     - near: Near clipping plane distance.
-#     - far: Far clipping plane distance.
-    
-#     Returns:
-#     - A 4x4 np.ndarray representing the OpenGL projection matrix.
-#     """
-    
-#     # OpenGL projection matrix
-#     proj = np.zeros((4, 4))
-
-#     # Parameters for OpenGL projection matrix
-#     fx = intrinsics[0, 0]
-#     fy = intrinsics[1, 1]
-#     cx = intrinsics[0, 2]
-#     cy = intrinsics[1, 2]
-
-#     # Calculate OpenGL projection matrix
-#     proj[0, 0] = 2 * fx / width
-#     proj[1, 1] = 2 * fy / height
-#     proj[2, 0] = 2 * (cx / width) - 1
-#     proj[2, 1] = 2 * (cy / height) - 1
-#     proj[2, 2] = -(far + near) / (far - near)
-#     proj[2, 3] = -2 * far * near / (far - near)
-#     proj[3, 2] = -1
-    
-#     return proj
 
 def is_valid_pose(c2w):
     if not isinstance(c2w, np.ndarray):
@@ -327,19 +287,7 @@ def inv_perspective_projection(intrinsics_inv, points_2d_screen):
     return augmented_points_3d_camera
 
 
-def project_points_3d_to_2d(camera, points_3d):
-    """Project 3D points to 2D
-    args:
-        points_3d (np.ndarray) : (N, 3) points in world space
-        c2w (np.ndarray) : (4, 4) camera pose in world space
-        intrinsics (np.ndarray) : (3, 3) camera intrinsics
-    out:
-        points_2d (np.ndarray or torch.tensor) : (N, 2) points in screen space
-    """
-
-    # get camera data
-    intrinsics = camera.get_intrinsics()
-    c2w = camera.get_pose()
+def project_points_3d_to_2d_from_intrinsics_and_c2w(intrinsics, c2w, points_3d):
     
     if isinstance(points_3d, torch.Tensor):
         # convert data to torch.tensor
@@ -358,16 +306,65 @@ def project_points_3d_to_2d(camera, points_3d):
 
     # convert homogeneous coordinates to 2d coordinates
     points_2d_s = perspective_projection(intrinsics, points_3d_c)
-    # print("points_2d_s", points_2d_s)
-
-    # proj = camera.get_projection()
-    # augmented_points_3d = euclidean_to_augmented(points_3d)
-    # homogeneous_points_2d_s = (proj @ augmented_points_3d.T).T
-    # augmented_points_2d_s = homogeneous_to_augmented(homogeneous_points_2d_s)
-    # points_2d_s = augmented_to_euclidean(augmented_points_2d_s)
-    # print("points_2d_s", points_2d_s)
 
     return points_2d_s
+
+
+def project_points_3d_to_2d(camera, points_3d):
+    """Project 3D points to 2D
+    args:
+        points_3d (np.ndarray) : (N, 3) points in world space
+        c2w (np.ndarray) : (4, 4) camera pose in world space
+        intrinsics (np.ndarray) : (3, 3) camera intrinsics
+    out:
+        points_2d (np.ndarray or torch.tensor) : (N, 2) points in screen space
+    """
+
+    # get camera data
+    intrinsics = camera.get_intrinsics()
+    c2w = camera.get_pose()
+    
+    return project_points_3d_to_2d_from_intrinsics_and_c2w(intrinsics, c2w, points_3d)
+
+
+def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d_s, depth):
+    
+    # convert data to torch.tensor
+    if isinstance(points_2d_s, np.ndarray):
+        inv_intrinsics = np.linalg.inv(intrinsics)
+    elif isinstance(points_2d_s, torch.Tensor):
+        intrinsics = torch.tensor(intrinsics, dtype=torch.float32, device=points_2d_s.device)
+        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_2d_s.device)
+        # inverse intrinsics for back-projection
+        inv_intrinsics = torch.inverse(intrinsics)
+    else:
+        print("[bold red]ERROR[/bold red]: points_2d_s must be torch.tensor or np.ndarray")
+        exit(1)
+
+    points_3d_c = inv_perspective_projection(inv_intrinsics, points_2d_s)
+    points_3d_c *= depth
+
+    # Transform points from camera space to world space
+    points_3d_w = apply_transformation_3d(points_3d_c, c2w)
+
+    return points_3d_w
+
+
+def unproject_points_2d_to_3d(camera, points_2d_s, depth):
+    """Unproject 2D points to 3D
+    args:
+        points_2d (np.ndarray or torch.tensor) : (N, 2) points in screen space
+        depth (np.ndarray or torch.tensor): (N, 1) depth values for each point
+        camera (Camera): Camera object with intrinsics and pose
+    out:
+        points_3d (np.ndarray or torch.tensor) : (N, 3) points in world space
+    """
+
+    # get camera data
+    intrinsics = camera.get_intrinsics()
+    c2w = camera.get_pose()
+
+    return unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d_s, depth)
 
 
 def camera_to_points_3d_distance(camera, points_3d):

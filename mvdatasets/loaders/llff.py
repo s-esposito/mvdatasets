@@ -76,7 +76,7 @@ def load_llff(
         config["target_cameras_max_distance"] = 1.0
     # if unbounded, scene content extends beyond the foreground bounding sphere
     elif config["scene_type"] == "unbounded":
-        config["target_cameras_max_distance"] = 0.3
+        config["target_cameras_max_distance"] = 0.5
     # if forward_facing, scene content is in front of the camera
     elif config["scene_type"] == "forward_facing":
         print("[bold red]ERROR[/bold red]: forward_facing scene type not implemented yet")
@@ -96,6 +96,7 @@ def load_llff(
     # print(reconstruction.summary())
 
     point_cloud = read_points3D(reconstruction)
+    
     # get point cloud mean
     # point_cloud_mean = np.mean(point_cloud, axis=0)
     # only shift along z axis

@@ -86,8 +86,10 @@ def get_dataset_test_preset(dataset_name):
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
-        scene_name = "garden"  # "bicycle", "garden"
+        # "bicycle", "garden", "bonsai", "counter", "kitchen", "room", "stump" 
+        scene_name = "stump"
         pc_paths = []
+        # pc_paths = ["debug/point_clouds/mipnerf360/garden.ply"]
         
         # dataset specific config
         config = {
@@ -100,5 +102,15 @@ def get_dataset_test_preset(dataset_name):
             config["rotate_scene_x_axis_deg"] = -104
         if scene_name == "garden":
             config["rotate_scene_x_axis_deg"] = -120
+        if scene_name == "bonsai":
+            config["rotate_scene_x_axis_deg"] = -130
+        if scene_name == "counter":
+            config["rotate_scene_x_axis_deg"] = -125
+        if scene_name == "kitchen":
+            config["rotate_scene_x_axis_deg"] = -130
+        if scene_name == "room":
+            config["rotate_scene_x_axis_deg"] = -115
+        if scene_name == "stump":
+            config["rotate_scene_x_axis_deg"] = -140
     
     return scene_name, pc_paths, config

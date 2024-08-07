@@ -111,7 +111,7 @@ if __name__ == "__main__":
     # scene_type = config.get("scene_type", None)
     # if scene_type == "unbounded":
     #     draw_contraction_spheres = True
-    draw_contraction_spheres = False
+    draw_contraction_spheres = True
 
     # # Visualize cameras
     # fig = plot_cameras(
@@ -145,6 +145,7 @@ if __name__ == "__main__":
     fig = plot_cameras(
         mv_data["test"],
         points_3d=point_cloud,
+        points_3d_color="black",
         bounding_boxes=bounding_boxes,
         bounding_spheres=bounding_spheres,
         azimuth_deg=20,

@@ -505,6 +505,7 @@ def _draw_cameras(
 def plot_cameras(
     cameras,
     points_3d=None,
+    points_3d_color=None,
     bounding_boxes=[],
     bounding_spheres=[],
     nr_rays=0,
@@ -550,7 +551,7 @@ def plot_cameras(
         _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
 
     # draw points
-    _draw_point_cloud(ax, points_3d, max_nr_points=1000, up=up, scene_radius=scene_radius)
+    _draw_point_cloud(ax, points_3d, color=points_3d_color, max_nr_points=1000, up=up, scene_radius=scene_radius)
 
     # draw bounding cube
     if draw_bounding_cube:
