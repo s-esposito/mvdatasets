@@ -204,8 +204,8 @@ class MVDataset:
             # apply global transform
             pc = apply_transformation_3d(point_cloud, self.global_transform)
             # apply contraction function
-            if self.scene_type == "unbounded":
-                pc = contract_points(pc)
+            # if self.scene_type == "unbounded":
+            #     pc = contract_points(pc)
             transformed_point_clouds.append(pc)
         self.point_clouds = transformed_point_clouds
         

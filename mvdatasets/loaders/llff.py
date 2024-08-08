@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from mvdatasets.scenes.camera import Camera
 from mvdatasets.utils.geometry import rot_x_3d, deg2rad, get_min_max_cameras_distances
+from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.pycolmap import read_points3D, read_cameras
 
 
@@ -212,19 +213,23 @@ def load_llff(
     # scene_center = np.mean(point_cloud_, axis=0)
     # scene_center[2] += config["translate_scene_z"]
     
-    # global transform
-    global_transform = np.eye(4)
+    scene_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    scene_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
     # translate
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [config["translate_scene_x"], config["translate_scene_y"], config["translate_scene_z"]]
+    scene_transform = translation_matrix @ scene_transform
     
-    global_transform = translation_matrix @ global_transform
+    # global transform
+    global_transform = np.eye(4)
     
     # local transform
     local_transform = np.eye(4)
+    
+    # apply global transform
+    point_cloud = apply_transformation_3d(point_cloud, scene_transform)
     
     # build cameras
     cameras_all = []
@@ -232,6 +237,21 @@ def load_llff(
     for i, camera in enumerate(pbar):
         
         pose = poses_all[i]
+        
+        # transform camera pose with scene transform
+        pose = scene_transform @ pose
+        
+        # normalize pose
+        # pose[:3, :3] = pose[:3, :3] / np.linalg.norm(pose[:3, :3])
+
+        # # extract rotation matrix and translation vector
+        # R = pose[:3, :3]
+        # t = pose[:3, 3]
+        
+        # # new camera pose
+        # pose = np.eye(4)
+        # pose[:3, :3] = R
+        # pose[:3, 3] = t
         
         # params
         params = camera["params"]

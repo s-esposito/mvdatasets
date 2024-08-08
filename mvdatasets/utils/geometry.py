@@ -1,7 +1,7 @@
 import torch
 
 # from nerfstudio
-
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -340,12 +340,57 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d
     else:
         print("[bold red]ERROR[/bold red]: points_2d_s must be torch.tensor or np.ndarray")
         exit(1)
+    
+    # ray origin is just the camera center
+    rays_o = c2w[:3, -1].unsqueeze(0).expand(points_2d_s.shape[0], -1)
 
-    points_3d_c = inv_perspective_projection(inv_intrinsics, points_2d_s)
-    points_3d_c *= depth
+    # pixels have height, width order
+    points_3d_c = inv_perspective_projection(
+        inv_intrinsics,
+        points_2d_s[:, [1, 0]]  # pixels have h, w order but we need x, y
+    )
+    # points_3d_unprojected have all z=1
+    
+    # rotate points to world space
+    points_3d_w = (c2w[:3, :3] @ points_3d_c.T).T
+    
+    # normalize rays
+    rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
 
+    # scale rays by depth
+    points_3d_w = rays_d * depth
+    
+    # add ray origin to points
+    points_3d_w += rays_o
+
+    # # points_3d_c = inv_perspective_projection(inv_intrinsics, points_2d_s)
+    # # points_3d_c *= depth
+    
+    # ray_d = inv_perspective_projection(inv_intrinsics, points_2d_s)
+    
+    # # normalize ray direction
+    # if torch.is_tensor(ray_d):
+    #     ray_d = ray_d / torch.norm(ray_d, dim=-1, keepdim=True)
+    # elif isinstance(ray_d, np.ndarray):
+    #     ray_d = ray_d / np.linalg.norm(ray_d, axis=-1, keepdims=True)
+    # else:
+    #     raise ValueError("ray_d must be torch.tensor or np.ndarray")
+        
+    # points_3d_c = ray_d * depth
+
+    # # plot points_2d_s and points_depth
+    # plt.figure()
+    # plt.scatter(points_3d_c[:, 0], points_3d_c[:, 1], c=np.log(depth[:, 0] + 1), cmap='viridis')
+    # # upper left origin
+    # plt.gca().invert_yaxis()
+    # # axis equal
+    # plt.colorbar()
+    # plt.axis('equal')
+    # plt.show()
+    
     # Transform points from camera space to world space
-    points_3d_w = apply_transformation_3d(points_3d_c, c2w)
+    # points_3d_w = apply_transformation_3d(points_3d_c, c2w)
+    # points_3d_w = points_3d_c
 
     return points_3d_w
 
