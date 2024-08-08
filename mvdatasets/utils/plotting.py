@@ -321,6 +321,8 @@ def _draw_image_plane(ax, camera, up="z", scene_radius=1.0):
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
         torch.from_numpy(corner_points_2d_screen).float()
     )
+    # normalise to unit length
+    corner_points_d = corner_points_d / torch.norm(corner_points_d, dim=1, keepdim=True)
     corner_points_d = corner_points_d.cpu().numpy()
 
     corner_points_3d_world = camera.get_center() + corner_points_d * scale
@@ -385,6 +387,8 @@ def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
         torch.from_numpy(image_plane_vertices_2d).float()
     )
+    # normalise to unit length
+    rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
 
@@ -646,6 +650,8 @@ def _draw_camera_rays(
     scene_radius=1.0,
 ):
     rays_o, rays_d, points_2d = get_camera_rays(camera, device="cpu")
+    # normalise to unit length
+    rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     

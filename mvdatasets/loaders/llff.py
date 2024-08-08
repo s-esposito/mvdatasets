@@ -216,7 +216,7 @@ def load_llff(
     scene_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    scene_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
     # translate
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [config["translate_scene_x"], config["translate_scene_y"], config["translate_scene_z"]]
@@ -229,6 +229,7 @@ def load_llff(
     local_transform = np.eye(4)
     
     # apply global transform
+    point_cloud *= scene_scale_mult
     point_cloud = apply_transformation_3d(point_cloud, scene_transform)
     
     # build cameras
@@ -237,6 +238,8 @@ def load_llff(
     for i, camera in enumerate(pbar):
         
         pose = poses_all[i]
+        
+        pose[:3, 3] *= scene_scale_mult
         
         # transform camera pose with scene transform
         pose = scene_transform @ pose

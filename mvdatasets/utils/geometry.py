@@ -342,12 +342,16 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d
         exit(1)
     
     # ray origin is just the camera center
-    rays_o = c2w[:3, -1].unsqueeze(0).expand(points_2d_s.shape[0], -1)
+    rays_o = c2w[:3, -1]
+    # unsqueeze 0
+    rays_o = rays_o[None, ...]
+    
+    print("rays_o", rays_o.shape)
 
     # pixels have height, width order
     points_3d_c = inv_perspective_projection(
         inv_intrinsics,
-        points_2d_s[:, [1, 0]]  # pixels have h, w order but we need x, y
+        points_2d_s,  # y, x
     )
     # points_3d_unprojected have all z=1
     
@@ -355,10 +359,18 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d
     points_3d_w = (c2w[:3, :3] @ points_3d_c.T).T
     
     # normalize rays
-    rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
-
+    if torch.is_tensor(points_3d_w):
+        rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
+    elif isinstance(points_3d_w, np.ndarray):
+        rays_d = points_3d_w / np.linalg.norm(points_3d_w, axis=-1, keepdims=True)
+    else:
+        raise ValueError("points_3d_w must be torch.tensor or np.ndarray")
+    
     # scale rays by depth
     points_3d_w = rays_d * depth
+    
+    print("points_3d_w", points_3d_w.shape)
+    print("rays_o", rays_o.shape)
     
     # add ray origin to points
     points_3d_w += rays_o

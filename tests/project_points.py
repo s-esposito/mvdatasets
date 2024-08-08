@@ -69,14 +69,14 @@ if __name__ == "__main__":
         # dataset has not debug point cloud
         exit(0)
         
-    points_2d = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
-    print("points_2d", points_2d.shape)
+    points_2d_s = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
+    print("points_2d_s", points_2d_s.shape)
 
     # 3d points distance from camera center
     camera_points_dists = camera_to_points_3d_distance(camera, point_cloud)
     print("camera_points_dist", camera_points_dists.shape)
     
-    fig = plot_points_2d_on_image(camera, points_2d, points_norms=camera_points_dists)
+    fig = plot_points_2d_on_image(camera, points_2d_s, points_norms=camera_points_dists)
 
     # plt.show()
     # plt.savefig(os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
@@ -85,15 +85,17 @@ if __name__ == "__main__":
     # reproject to 3D
     
     # filter out points outside image range
-    points_mask = points_2d[:, 0] >= 0
-    points_mask *= points_2d[:, 1] >= 0
-    points_mask *= points_2d[:, 0] < camera.width
-    points_mask *= points_2d[:, 1] < camera.height
-    points_2d = points_2d[points_mask]
+    points_mask = points_2d_s[:, 0] >= 0
+    points_mask *= points_2d_s[:, 1] >= 0
+    points_mask *= points_2d_s[:, 0] < camera.width
+    points_mask *= points_2d_s[:, 1] < camera.height
+    points_2d_s = points_2d_s[points_mask]
     camera_points_dists = camera_points_dists[points_mask]
     point_cloud = point_cloud[points_mask]
     
-    points_3d = unproject_points_2d_to_3d(camera=camera, points_2d_s=points_2d, depth=camera_points_dists[..., np.newaxis])
+    # points_2d_s[:, [1, 0]]  # pixels have h, w order but we need x, y
+    
+    points_3d = unproject_points_2d_to_3d(camera=camera, points_2d_s=points_2d_s, depth=camera_points_dists[..., np.newaxis])
     print("points_3d", points_3d.shape)
     
     # filter out random number of points
