@@ -87,7 +87,7 @@ def get_dataset_test_preset(dataset_name):
     # test mipnerf360
     if dataset_name == "mipnerf360":
         # "bicycle", "garden", "bonsai", "counter", "kitchen", "room", "stump" 
-        scene_name = "stump"
+        scene_name = "garden"
         pc_paths = []
         # pc_paths = ["debug/point_clouds/mipnerf360/garden.ply"]
         
@@ -99,30 +99,37 @@ def get_dataset_test_preset(dataset_name):
         
         # scene specific config
         if scene_name == "bicycle":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -104
             config["translate_scene_z"] = 0.1
             
         if scene_name == "garden":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -120
             config["translate_scene_z"] = 0.2
             
         if scene_name == "bonsai":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -130
             config["translate_scene_z"] = 0.25
             
         if scene_name == "counter":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -125
             config["translate_scene_y"] = -0.1
             config["translate_scene_z"] = 0.25
             
         if scene_name == "kitchen":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -130
             config["translate_scene_z"] = 0.2
             
         if scene_name == "room":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -115
             
         if scene_name == "stump":
+            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -137
             config["translate_scene_z"] = 0.25
     

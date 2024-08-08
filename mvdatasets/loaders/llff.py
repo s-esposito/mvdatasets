@@ -83,7 +83,7 @@ def load_llff(
             raise ValueError(f"subsample_factor {config['subsample_factor']} must be a value in {valid_subsample_factors}")
 
     if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.5
+        config["init_sphere_scale"] = 0.1
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
