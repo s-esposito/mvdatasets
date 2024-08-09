@@ -105,7 +105,7 @@ def load_dtu(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
-    config["target_cameras_max_distance"] = 1.0
+    config["target_cameras_max_distance"] = 2.0
     
     if verbose:
         print("load_dtu config:")
