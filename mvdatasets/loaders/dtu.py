@@ -63,7 +63,7 @@ def load_dtu(
     
     # CONFIG -----------------------------------------------------------------
     
-    config["scene_type"] = "bounded"
+    config["scene_type"] = "unbounded"
     
     if "load_mask" not in config:
         config["load_mask"] = True
@@ -101,7 +101,7 @@ def load_dtu(
     #         print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
     
     if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.25
+        config["init_sphere_scale"] = 0.001
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
     
