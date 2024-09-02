@@ -25,32 +25,44 @@ def bilinear_upscale(img_np, times=1):
 
 def get_pixel_corners(uv_pix_nn):
     """returns pix corners in non-normalised uv space"""
-    uv_coords_0 = uv_pix_nn  # 0, 0
-    uv_coords_1 = uv_pix_nn + torch.tensor([1, 0], device=uv_pix_nn.device)  # 0, 1
-    uv_coords_2 = uv_pix_nn + torch.tensor([0, 1], device=uv_pix_nn.device)  # 1, 0
-    uv_coords_3 = uv_pix_nn + torch.tensor([1, 1], device=uv_pix_nn.device)  # 1, 1
+    # top left (0, 0)
+    uv_coords_0 = uv_pix_nn
+    # top right (1, 0)
+    uv_coords_1 = uv_pix_nn + torch.tensor([1, 0], device=uv_pix_nn.device)
+    # bottom left (0, 1)
+    uv_coords_2 = uv_pix_nn + torch.tensor([0, 1], device=uv_pix_nn.device)
+    # bottom right (1, 1)
+    uv_coords_3 = uv_pix_nn + torch.tensor([1, 1], device=uv_pix_nn.device)
     uv_interp_corners_nn = torch.stack([uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1)
     return uv_interp_corners_nn
 
 
-def normalize_uv_coord(uv_coords, res):
-    uv_coords = uv_coords / torch.flip(res, dims=[0])
+def normalize_uv_coord(uv_coords, res, flip=True):
+    if flip:
+        uv_coords = uv_coords / torch.flip(res, dims=[0])
+    else:
+        uv_coords = uv_coords / res
     return uv_coords
 
 
-def non_normalize_uv_coord(uv_coords, res):
-    uv_coords = uv_coords * torch.flip(res, dims=[0])
+def non_normalize_uv_coord(uv_coords, res, flip=True):
+    if flip:
+        # width, height
+        uv_coords = uv_coords * torch.flip(res, dims=[0])
+    else:
+        # height, width
+        uv_coords = uv_coords * res
     return uv_coords
 
 
-def uv_coord_to_pix(uv_coord, res):
+def uv_coord_to_pix(uv_coord, res, flip=True):
     # convert uv to pixel coordinates
-    uv_pix = non_normalize_uv_coord(uv_coord, res).floor().long()
+    uv_pix = non_normalize_uv_coord(uv_coord, res, flip).floor().long()
     return uv_pix
 
 
 def non_normalized_uv_coord_to_interp_corners(uv_coord_nn):
-    # print("uv_coord_nn", uv_coord_nn)
+    # uv coords are non-normalized (width, height)
     # shifted space (where center of pixel is at upper left corner of each texel)
     uv_coord_shifted = uv_coord_nn - 0.5
     # print("uv_coord_shifted", uv_coord_shifted)
@@ -63,23 +75,50 @@ def non_normalized_uv_coord_to_interp_corners(uv_coord_nn):
     return uv_corners_coords_nn
 
 
-def pix_to_texel_center_uv_coord(uv_pix, res):
+def pix_to_texel_center_uv_coord(uv_pix, res, flip=True):
     # convert pixel coordinates to uv normalized coordinates of the texel center
-    uv_coords = (uv_pix + 0.5) / torch.flip(res, dims=[0])
+    uv_coords = (uv_pix.float() + 0.5)
+    # print(torch.max(uv_coords[:, 0]), torch.max(uv_coords[:, 1]))
+    # print(res)
+    if flip:
+        uv_coords /= torch.flip(res, dims=[0])
+    else:
+        uv_coords /= res
+    # print(torch.max(uv_coords[:, 0]), torch.max(uv_coords[:, 1]))
     return uv_coords
 
 
 def non_normalized_uv_coord_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn):
+    # Ensure uv_coords_nn is float type
+    # uv_coords_nn = uv_coords_nn.float()
+    
+    # Get uv coords fractional part
+    # diff = uv_coords_nn - uv_coords_nn.round()
+    # print("diff:", diff)
+    
     diff = uv_coords_nn - uv_corners_coords_nn[:, 0, :]
+    
     lerp_weights = torch.zeros((uv_coords_nn.shape[0], 4), device=uv_coords_nn.device)
-    # 0, 0
-    lerp_weights[:, 0] = (1.0 - diff[:, 1]) * (1.0 - diff[:, 0])
-    # 0, 1
-    lerp_weights[:, 1] = (1.0 - diff[:, 1]) * diff[:, 0]
-    # 1, 0
-    lerp_weights[:, 2] = diff[:, 1] * (1.0 - diff[:, 0])
-    # 1, 1
-    lerp_weights[:, 3] = diff[:, 1] * diff[:, 0]
+    
+    # Top-left texel weight
+    lerp_weights[:, 0] = (1.0 - diff[:, 0]) * (1.0 - diff[:, 1])
+    
+    # Top-right texel weight
+    lerp_weights[:, 1] = diff[:, 0] * (1.0 - diff[:, 1])
+    
+    # Bottom-left texel weight
+    lerp_weights[:, 2] = (1.0 - diff[:, 0]) * diff[:, 1]
+    
+    # Bottom-right texel weight
+    lerp_weights[:, 3] = diff[:, 0] * diff[:, 1]
+    
+    # print("sum lerp weights:", torch.min(lerp_weights.sum(dim=1)))
+    
+    # # Ensure weights sum to 1 (optional check)
+    # assert torch.allclose(lerp_weights.sum(dim=1), torch.ones_like(lerp_weights[:, 0])), "Weights do not sum to 1"
+
+    # TODO: what's happening here?
+    
     return lerp_weights.unsqueeze(-1)
 
 
