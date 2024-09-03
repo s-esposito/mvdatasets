@@ -55,18 +55,18 @@ def non_normalize_uv_coord(uv_coords, res, flip=True):
     return uv_coords
 
 
-def uv_coord_to_pix(uv_coord, res, flip=True):
+def uv_coords_to_pix(uv_coords, res, flip=True):
     # convert uv to pixel coordinates
-    uv_pix = non_normalize_uv_coord(uv_coord, res, flip).floor().long()
+    uv_pix = non_normalize_uv_coord(uv_coords, res, flip).floor().long()
     return uv_pix
 
 
-def non_normalized_uv_coord_to_interp_corners(uv_coord_nn):
+def non_normalized_uv_coords_to_interp_corners(uv_coords_nn):
     # uv coords are non-normalized (width, height)
     # shifted space (where center of pixel is at upper left corner of each texel)
-    uv_coord_shifted = uv_coord_nn - 0.5
-    # print("uv_coord_shifted", uv_coord_shifted)
-    uv_pix_shifted = uv_coord_shifted.floor()
+    uv_coords_shifted = uv_coords_nn - 0.5
+    # print("uv_coords_shifted", uv_coords_shifted)
+    uv_pix_shifted = uv_coords_shifted.floor()
     # print("uv_pix_shifted", uv_pix_shifted)
     uv_corners_coords_shifted = get_pixel_corners(uv_pix_shifted)
     # print(uv_corners_coords_shifted)
@@ -88,7 +88,7 @@ def pix_to_texel_center_uv_coord(uv_pix, res, flip=True):
     return uv_coords
 
 
-def non_normalized_uv_coord_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn):
+def non_normalized_uv_coords_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn):
     # Ensure uv_coords_nn is float type
     # uv_coords_nn = uv_coords_nn.float()
     
