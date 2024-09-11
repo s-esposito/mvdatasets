@@ -18,6 +18,7 @@ def load_llff(
     scene_path,
     splits,
     config,
+    pose_only=False,
     verbose=False
 ):
     """llff data format loader
@@ -87,7 +88,7 @@ def load_llff(
         config["init_sphere_scale"] = 0.1
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
-    
+
     # if bounded, all scene content can be represented in the foreground bounding box
     if config["scene_type"] == "bounded":
         config["target_cameras_max_distance"] = 1.0
@@ -99,6 +100,18 @@ def load_llff(
         print("[bold red]ERROR[/bold red]: forward_facing scene type not implemented yet")
         exit(1)
     
+    if "pose_only" not in config:
+        config["pose_only"] = False
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
+    else:
+        if config["pose_only"]:
+            if verbose:
+                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
+                # not implemented error
+                print("[bold red]ERROR[/bold red]: pose_only is not implemented yet")
+                exit()
+        
     if verbose:
         print("load_llff config:")
         for k, v in config.items():

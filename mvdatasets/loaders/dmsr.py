@@ -23,6 +23,7 @@ def load_dmsr(
     scene_path,
     splits,
     config,
+    pose_only=False,
     verbose=False,
 ):
     """dmsr data format loader
@@ -95,6 +96,18 @@ def load_dmsr(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
 
+    if "pose_only" not in config:
+        config["pose_only"] = False
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
+    else:
+        if config["pose_only"]:
+            if verbose:
+                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
+                # not implemented error
+                print("[bold red]ERROR[/bold red]: pose_only is not implemented yet")
+                exit()
+    
     if verbose:
         print("load_dmsr config:")
         for k, v in config.items():

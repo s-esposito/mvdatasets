@@ -89,6 +89,15 @@ def load_blender(
         if verbose:
             print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
 
+    if "pose_only" not in config:
+        config["pose_only"] = False
+        if verbose:
+            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
+    else:
+        if config["pose_only"]:
+            if verbose:
+                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
+
     if verbose:
         print("load_blender config:")
         for k, v in config.items():
@@ -161,57 +170,72 @@ def load_blender(
         # iterate over images and load them
         pbar = tqdm(frames_list, desc=split, ncols=100)
         for frame in pbar:
+            
             # get image name
             im_name = frame[0]
             # camera_pose = frame[1]
-            # load PIL image
-            img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
-            img_np = image_to_numpy(img_pil, use_uint8=True)
-            
-            # TODO: subsample image
-            # if subsample_factor > 1:
-            #   subsample image
-            
-            # override H, W
-            if height is None or width is None:
-                height, width = img_np.shape[:2]
-            
-            if config["load_mask"]:
-                # use alpha channel as mask
-                # (nb: this is only resonable for synthetic data)
-                mask_np = img_np[..., -1, None]
-                if config["use_binary_mask"]:
-                    mask_np = mask_np > 0
-                    mask_np = mask_np.astype(np.uint8) * 255
-            else:
-                mask_np = None
-            
-            # apply white background, else black
-            if config["white_bg"]:
-                if img_np.dtype == np.uint8:
-                    # values in [0, 255], cast to [0, 1], run operation, cast back
-                    img_np = image_uint8_to_float32(img_np)
-                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
-                    img_np = image_float32_to_uint8(img_np)
-                else:
-                    # values in [0, 1]
-                    img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
-            else:
-                img_np = img_np[..., :3]
             
             # get frame idx and pose
             idx = int(frame[0].split('.')[0].split('_')[-1])
             
-            # get images
-            cam_imgs = img_np[None, ...]
-            # print(cam_imgs.shape)
-            
-            # get mask (optional)
-            if config["load_mask"]:
-                cam_masks = mask_np[None, ...]
-                # print(cam_masks.shape)
-            else:
+            if config["pose_only"]:
+                
+                # do not load images
+                cam_imgs = None
                 cam_masks = None
+                
+                # only read first image to get image size
+                if height is None or width is None:
+                    img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
+                    width, height = img_pil.size
+            
+            else:
+                
+                # load PIL image
+                img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
+                img_np = image_to_numpy(img_pil, use_uint8=True)
+                
+                # TODO: subsample image
+                # if subsample_factor > 1:
+                #   subsample image
+                
+                # override H, W
+                if height is None or width is None:
+                    height, width = img_np.shape[:2]
+            
+                if config["load_mask"]:
+                    # use alpha channel as mask
+                    # (nb: this is only resonable for synthetic data)
+                    mask_np = img_np[..., -1, None]
+                    if config["use_binary_mask"]:
+                        mask_np = mask_np > 0
+                        mask_np = mask_np.astype(np.uint8) * 255
+                else:
+                    mask_np = None
+            
+                # apply white background, else black
+                if config["white_bg"]:
+                    if img_np.dtype == np.uint8:
+                        # values in [0, 255], cast to [0, 1], run operation, cast back
+                        img_np = image_uint8_to_float32(img_np)
+                        img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
+                        img_np = image_float32_to_uint8(img_np)
+                    else:
+                        # values in [0, 1]
+                        img_np = img_np[..., :3] * img_np[..., -1:] + (1 - img_np[..., -1:])
+                else:
+                    img_np = img_np[..., :3]
+                
+                # get images
+                cam_imgs = img_np[None, ...]
+                # print(cam_imgs.shape)
+            
+                # get mask (optional)
+                if config["load_mask"]:
+                    cam_masks = mask_np[None, ...]
+                    # print(cam_masks.shape)
+                else:
+                    cam_masks = None
         
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
@@ -229,6 +253,8 @@ def load_blender(
                 rgbs=cam_imgs,
                 masks=cam_masks,
                 camera_idx=idx,
+                width=width,
+                height=height,
                 subsample_factor=int(config["subsample_factor"]),
             )
 

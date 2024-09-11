@@ -39,11 +39,14 @@ class MVDataset:
         # auto_center_method="none",  # "poses", "focus", "none"
         # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
         # profiler=None,
+        pose_only=False,  # if set, does not load images
         verbose=False
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
         # self.profiler = profiler
+        
+        config["pose_only"] = pose_only
 
         # datasets_path/dataset_name/scene_name
         data_path = os.path.join(datasets_path, dataset_name, scene_name)
@@ -91,7 +94,7 @@ class MVDataset:
                 or self.dataset_name == "blendernerf"
                 or self.dataset_name == "refnerf"
                 or self.dataset_name == "shelly"
-            ):
+        ):
             res = load_blender(
                 data_path,
                 splits,
@@ -170,11 +173,13 @@ class MVDataset:
         # config
         self.scene_type = res["config"]["scene_type"]
         
+        # SDF sphere init radius
+        # for SDF reconstruction
         self.init_sphere_radius = (
-            self.min_camera_distance \
-            * self.scene_scale_mult \
+            self.min_camera_distance
+            * self.scene_scale_mult
             * res["config"]["init_sphere_scale"]
-        )  # SDF sphere init radius
+        )  
         # round to 2 decimals
         self.init_sphere_radius = round(self.init_sphere_radius, 2)
         print("init_sphere_radius:", self.init_sphere_radius)
