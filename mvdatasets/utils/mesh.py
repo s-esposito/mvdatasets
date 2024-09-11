@@ -51,17 +51,17 @@ class Mesh:
         # vertices
         self.vertices = np.asarray(mesh.vertices).astype(np.float32)
         if verbose:
-            print(f"[INFO] mesh vertices: {self.vertices.shape}")
+            print(f"[bold blue]INFO[/bold blue]: mesh vertices: {self.vertices.shape}")
 
         # faces
         self.faces = np.asarray(mesh.triangles).astype(np.int32)
         if verbose:
-            print(f"[INFO] mesh faces: {self.faces.shape}")
+            print(f"[bold blue]INFO[/bold blue]: mesh faces: {self.faces.shape}")
         
         # normals
         self.normals = np.asarray(mesh.vertex_normals).astype(np.float32)
         if verbose:
-            print(f"[INFO] mesh normals: {self.normals.shape}")
+            print(f"[bold blue]INFO[/bold blue]: mesh normals: {self.normals.shape}")
 
         # uvs (if any)
         triangle_uvs = np.asarray(mesh.triangle_uvs).astype(np.float32)
@@ -77,16 +77,19 @@ class Mesh:
             self.has_uvs = True
         if verbose:
             print(
-                f"[INFO] mesh vertices uvs: {self.vertices_uvs.shape if self.vertices_uvs is not None else None}"
+                f"[bold blue]INFO[/bold blue]: mesh vertices uvs: {self.vertices_uvs.shape if self.vertices_uvs is not None else None}"
             )
 
         # load texture
         if len(textures_meta) > 0:
             assert self.has_uvs, "mesh must have uvs to load texture"
-            if len(textures_meta) == 1:
-                self.texture = RGBATexture(textures_meta[0], verbose=verbose)
-            else:
-                self.texture = SHTexture(textures_meta, verbose=verbose)
+            # TODO: support RGBATexture
+            # if len(textures_meta) == 1:
+            #     print("[bold blue]INFO[/bold blue]: loading RGBATexture")
+            #     self.texture = RGBATexture(textures_meta[0], verbose=verbose)
+            # else:
+            print("[bold blue]INFO[/bold blue]: loading SHTexture")
+            self.texture = SHTexture(textures_meta, verbose=verbose)
             self.has_texture = True
         else:
             self.texture = None

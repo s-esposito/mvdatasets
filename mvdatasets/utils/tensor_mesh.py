@@ -14,9 +14,9 @@ class TensorMesh:
         if mesh.vertices_uvs is not None:
             self.vertices_uvs = torch.from_numpy(mesh.vertices_uvs).to(device)
         
-        self.texture = None
-        if mesh.texture is not None:
-            self.texture = torch.from_numpy(mesh.texture.image).to(device)
+        # self.texture = None
+        # if mesh.texture is not None:
+        #     self.texture = torch.from_numpy(mesh.texture.image).to(device)
         
         # for visualization only
         
