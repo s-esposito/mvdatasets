@@ -33,9 +33,6 @@ class TensorTexture():
             texture_pil = Image.open(texture_path).convert('RGBA')
             texture_np = np.array(texture_pil) / 255.0
         
-        # TODO: necessary?
-        texture_np = np.flipud(texture_np).copy()
-        
         self.data = torch.from_numpy(texture_np).float().to(self.device)
         
         if res is not None:
