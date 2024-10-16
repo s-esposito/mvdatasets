@@ -60,34 +60,86 @@ def scale_3d(scale):
     return np.array([[scale, 0, 0], [0, scale, 0], [0, 0, scale]])
 
 
-def rot_x_3d(theta):
-    return np.array(
-        [
-            [1, 0, 0],
-            [0, np.cos(theta), -np.sin(theta)],
-            [0, np.sin(theta), np.cos(theta)],
-        ]
-    )
+def rot_x_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ], 
+            dtype=np.float32
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
 
 
-def rot_y_3d(theta):
-    return np.array(
-        [
-            [np.cos(theta), 0, np.sin(theta)],
-            [0, 1, 0],
-            [-np.sin(theta), 0, np.cos(theta)],
-        ]
-    )
+def rot_y_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ],
+            dtype=np.float32,
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
 
 
-def rot_z_3d(theta):
-    return np.array(
-        [
-            [np.cos(theta), -np.sin(theta), 0],
-            [np.sin(theta), np.cos(theta), 0],
-            [0, 0, 1],
-        ]
-    )
+def rot_z_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
+
+
+def rot_euler_3d(theta_x, theta_y, theta_z, device=None):
+    """angles are in radians"""
+    return rot_z_3d(theta_z, device) @ rot_y_3d(theta_y, device) @ rot_x_3d(theta_x, device)
+
+
+def rot_euler_3d_deg(theta_x, theta_y, theta_z, device=None):
+    """angles are in degrees"""
+    return rot_euler_3d(deg2rad(theta_x), deg2rad(theta_y), deg2rad(theta_z), device)
 
 
 def opengl_matrix_world_from_w2c(w2c):
@@ -167,6 +219,30 @@ def pose_global_rotation(pose, rotation):
     return rotation_transform @ pose
 
 
+def apply_rotation_3d(points_3d, rot):
+    """apply rotation to points
+    args:
+        points_3d (np.ndarray or torch.tensor) : (N, 3)
+        rot (np.ndarray or torch.tensor) : (3, 3)
+    out: points (np.ndarray or torch.tensor) : (N, 3)
+    """
+    out_as_np = False
+    # check if points_3d is torch.tensor
+    if not torch.is_tensor(points_3d) and torch.is_tensor(rot):
+        # convert data to torch.tensor
+        points_3d = torch.tensor(points_3d, dtype=torch.float32, device=rot.device)
+        out_as_np = True
+    # check if rot is torch.tensor
+    if not torch.is_tensor(rot) and torch.is_tensor(points_3d):
+        # convert data to torch.tensor
+        rot = torch.tensor(rot, dtype=torch.float32, device=points_3d.device)
+    rotated_points = (rot @ points_3d.T).T
+    # should convert back to numpy (?)
+    if out_as_np:
+        rotated_points = rotated_points.cpu().numpy()
+    return rotated_points
+
+
 def apply_transformation_3d(points_3d, transform):
     """apply linear transformation to points
     args:
@@ -174,12 +250,8 @@ def apply_transformation_3d(points_3d, transform):
         transform (4, 4)
     out: points (N, 3)
     """
-    # print("points_3d", points_3d)
-    # print("transform", transform)
     augmented_points_3d = euclidean_to_augmented(points_3d)
     homogeneous_points_3d = (transform @ augmented_points_3d.T).T
-    # augmented_points_3d = homogeneous_points_3d / homogeneous_points_3d[:, 3:]
-    # points_3d = augmented_points_3d[:, :3]
     augmented_points_3d = homogeneous_to_augmented(homogeneous_points_3d)
     points_3d = augmented_to_euclidean(augmented_points_3d)
     return points_3d

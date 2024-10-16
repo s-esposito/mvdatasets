@@ -215,3 +215,21 @@ def save_numpy_as_png(img_np, save_dir_path, img_filename, append_format=True):
     if append_format:
         save_path += ".png"
     img_pil.save(save_path)
+    
+
+def load_image_as_tensor(image_path, channels='RGB', device="cpu"):
+    """Load an image from a file path and convert it to a torch tensor."""
+    # load image
+    pil_image = Image.open(image_path).convert(channels)
+    # convert to tensor
+    tensor = image_to_tensor(pil_image, device=device)
+    return tensor
+
+
+def load_image_as_numpy(image_path, channels='RGB'):
+    """Load an image from a file path and convert it to a numpy array."""
+    # load image
+    pil_image = Image.open(image_path).convert(channels)
+    # convert to numpy
+    np_array = image_to_numpy(pil_image)
+    return np_array

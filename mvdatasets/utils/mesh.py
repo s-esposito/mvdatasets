@@ -2,7 +2,7 @@ import os
 import numpy as np
 import open3d as o3d
 from rich import print
-from volsurfs_py.utils.texture import RGBATexture, SHTexture
+from mvdatasets.utils.texture import RGBATexture, SHTexture
 
 
 def triangle_to_vertices_uvs_conversion(triangle_uvs, faces, vertices):
