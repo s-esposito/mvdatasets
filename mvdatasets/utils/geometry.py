@@ -3,6 +3,65 @@ import torch
 # from nerfstudio
 import matplotlib.pyplot as plt
 import numpy as np
+import torch.nn.functional as F
+
+
+def convert_6d_to_rotation_matrix(cont_6d):
+    """
+    :param 6d vector (*, 6)
+    :returns matrix (*, 3, 3)
+    """
+    # Extract the two 3D components from the 6D input
+    x1 = cont_6d[..., 0:3]
+    y1 = cont_6d[..., 3:6]
+
+    # Normalize the first component to create the x-axis of the rotation
+    x = F.normalize(x1, dim=-1)
+    # Orthogonalize y1 to x to ensure orthogonality and normalize it
+    y = F.normalize(y1 - (y1 * x).sum(dim=-1, keepdim=True) * x, dim=-1)
+    # Compute the cross product to get the z-axis
+    z = torch.linalg.cross(x, y, dim=-1)
+    
+    return torch.stack([x, y, z], dim=-1)
+
+
+# def convert_6d_to_quaternion(cont_6d):
+#     """
+#     :param 6d vector (*, 6)
+#     :returns quaternion (*, 4)
+#     """
+#     # Extract the two 3D components from the 6D input
+#     x1 = cont_6d[..., 0:3]
+#     y1 = cont_6d[..., 3:6]
+    
+#     # Normalize the first component to create the x-axis of the rotation
+#     x = F.normalize(x1, dim=-1)  # First axis
+    
+#     # Orthogonalize y1 to x to ensure orthogonality and normalize it
+#     y = F.normalize(y1 - (y1 * x).sum(dim=-1, keepdim=True) * x, dim=-1)  # Second axis
+    
+#     # Compute the cross product to get the z-axis
+#     z = torch.linalg.cross(x, y, dim=-1)  # Third axis
+    
+#     # Use the orthogonal vectors (x, y, z) to compute a quaternion
+#     # We can compute the quaternion using geometric relationships
+#     # Let's start by defining quaternion based on axis and angle
+#     # Using a reference vector (the z-axis, for example), we can define a rotation quaternion
+
+#     # Quaternion calculation using x and y directly (based on geometric insights)
+
+#     qw = torch.sqrt(1.0 + x[..., 0] + y[..., 1] + z[..., 2]) / 2.0
+#     qx = (z[..., 1] - y[..., 2]) / (4.0 * qw)
+#     qy = (x[..., 2] - z[..., 0]) / (4.0 * qw)
+#     qz = (y[..., 0] - x[..., 1]) / (4.0 * qw)
+    
+#     # Combine into a quaternion tensor
+#     quats = torch.stack([qw, qx, qy, qz], dim=-1)
+    
+#     # Normalize the quaternion to ensure it's a valid unit quaternion
+#     quats = quats / torch.norm(quats, dim=-1, keepdim=True)
+    
+#     return quats
 
 
 def get_min_max_cameras_distances(poses):
@@ -432,7 +491,7 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d
     
     # normalize rays
     if torch.is_tensor(points_3d_w):
-        rays_d = torch.nn.functional.normalize(points_3d_w, dim=-1)
+        rays_d = F.normalize(points_3d_w, dim=-1)
     elif isinstance(points_3d_w, np.ndarray):
         rays_d = points_3d_w / np.linalg.norm(points_3d_w, axis=-1, keepdims=True)
     else:
