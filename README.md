@@ -43,6 +43,7 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 conda create -n mv_datasets python=3.8
 conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
 conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
+pip install -r requirements.txt
 pip install pycolmap==0.4.0
 pip install -e .
 ```
