@@ -129,15 +129,15 @@ if __name__ == "__main__":
         title="training cameras",
     )
 
-    plt.show()
-    # plt.savefig(
-    #     os.path.join("plots", f"{dataset_name}_training_cameras.png"),
-    #     transparent=True,
-    #     bbox_inches="tight",
-    #     pad_inches=0,
-    #     dpi=300
-    # )
-    # plt.close()
+    # plt.show()
+    plt.savefig(
+        os.path.join("plots", f"{dataset_name}_training_cameras.png"),
+        transparent=True,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
+    plt.close()
 
     # Visualize cameras
     fig = plot_cameras(
@@ -158,14 +158,14 @@ if __name__ == "__main__":
         title="test cameras",
     )
 
-    plt.show()
-    # plt.savefig(
-    #     os.path.join("plots", f"{dataset_name}_test_cameras.png"),
-    #     transparent=True,
-    #     bbox_inches="tight",
-    #     pad_inches=0,
-    #     dpi=300
-    # )
-    # plt.close()
+    # plt.show()
+    plt.savefig(
+        os.path.join("plots", f"{dataset_name}_test_cameras.png"),
+        transparent=True,
+        bbox_inches="tight",
+        pad_inches=0,
+        dpi=300
+    )
+    plt.close()
     
     print("done")

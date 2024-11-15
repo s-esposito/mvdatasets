@@ -1,4 +1,5 @@
 from rich import print
+from pathlib import Path
 import os
 import json
 from glob import glob
@@ -20,11 +21,16 @@ from mvdatasets.utils.geometry import (
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_dmsr(scene_path, splits, config, verbose=False):
+def load_dmsr(
+    scene_path: Path,
+    splits: list,
+    config: dict = {},
+    verbose: bool = False
+):
     """DMSR data format loader.
 
     Args:
-        scene_path (str): Path to the dataset scene folder.
+        scene_path (Path): Path to the dataset scene folder.
         splits (list): Splits to load (e.g., ["train", "test"]).
         config (dict): Dictionary of configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.

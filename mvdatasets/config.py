@@ -1,7 +1,8 @@
+from pathlib import Path
 from mvdatasets.utils.printing import print_error
 
 
-datasets_path = "/home/stefano/Data"
+datasets_path = Path("/home/stefano/Data")
 
 
 def is_dataset_supported(dataset_name):

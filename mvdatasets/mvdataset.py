@@ -1,6 +1,7 @@
 from rich import print
 import os
 import numpy as np
+from pathlib import Path
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
 from mvdatasets.loaders.ingp import load_ingp
@@ -12,8 +13,7 @@ from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.contraction import contract_points
 from mvdatasets.utils.printing import print_error, print_warning
 
-
-def get_poses_all(cameras):
+def get_poses_all(cameras: list) -> np.ndarray:
     poses = []
     for camera in cameras:
         poses.append(camera.get_pose())
@@ -29,31 +29,26 @@ class MVDataset:
 
     def __init__(
         self,
-        dataset_name,
-        scene_name,
-        datasets_path,
-        splits=["train", "test"],  # ["train", "test"]
-        point_clouds_paths=[],
-        config={},  # if not specified, use default config
-        # meshes_paths=[],
-        # auto_orient_method="none",  # "up", "none"
-        # auto_center_method="none",  # "poses", "focus", "none"
-        # auto_scale_poses=False,  # scale the poses to fit in +/- 1 bounding box
-        # profiler=None,
-        pose_only=False,  # if set, does not load images
-        verbose=False
+        dataset_name: str,
+        scene_name: str,
+        datasets_path: Path,
+        splits: list = ["train", "test"],
+        point_clouds_paths: list = [],
+        config: dict = {},  # if not specified, use default config
+        pose_only: bool = False,  # if set, does not load images
+        verbose: bool = False
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
-        # self.profiler = profiler
         
+        # default config
         config["pose_only"] = pose_only
 
         # datasets_path/dataset_name/scene_name
-        data_path = os.path.join(datasets_path, dataset_name, scene_name)
+        data_path = Path(datasets_path) / dataset_name / scene_name
 
         # check if path exists
-        if not os.path.exists(data_path):
+        if not data_path.exists():
             print_error(f"data path {data_path} does not exist")
 
         # load scene cameras
@@ -211,7 +206,7 @@ class MVDataset:
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
                     
-    def has_masks(self):
+    def has_masks(self) -> bool:
         for split, cameras in self.data.items():
             for camera in cameras:
                 # assumption: if one camera has masks, all cameras have masks
@@ -219,7 +214,7 @@ class MVDataset:
                     return True
         return False
     
-    def get_width(self, split="train", camera_id=0):
+    def get_width(self, split: str = "train", camera_id: int = 0) -> int:
         """Returns the width of a camera
 
         Args:
@@ -237,7 +232,7 @@ class MVDataset:
         else:
             print_error(f"split {split} does not exist, available splits: {list(self.data.keys())}")
             
-    def get_height(self, split="train", camera_id=0):
+    def get_height(self, split: str = "train", camera_id: int = 0) -> int:
         """Returns the height of a camera
 
         Args:
@@ -255,7 +250,7 @@ class MVDataset:
         else:
             print_error(f"split {split} does not exist, available splits: {list(self.data.keys())}")
             
-    def get_resolution(self, split="train", camera_id=0):
+    def get_resolution(self, split="train", camera_id=0) -> tuple:
         """Returns the resolution (width, height) of a camera
 
         Args:
@@ -267,5 +262,6 @@ class MVDataset:
         """
         return (self.get_width(split, camera_id), self.get_height(split, camera_id))
                     
-    def __getitem__(self, split):
+    def __getitem__(self, split: str) -> list:
+        """Returns the list of cameras for a split"""
         return self.data[split]

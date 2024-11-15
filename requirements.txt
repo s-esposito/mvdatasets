@@ -96,3 +96,5 @@ widgetsnbextension==4.0.9
 zipp==3.17.0
 rich
 imageio
+sphinx
+furo

@@ -1,4 +1,5 @@
 from rich import print
+from pathlib import Path
 import os
 from glob import glob
 import numpy as np
@@ -44,11 +45,16 @@ def load_K_Rt_from_P(filename, P=None):
     return intrinsics, pose
 
 
-def load_dtu(scene_path, splits, config, verbose=False):
+def load_dtu(
+    scene_path: Path,
+    splits: list,
+    config: dict = {},
+    verbose: bool = False
+):
     """DTU data format loader.
 
     Args:
-        scene_path (str): Path to the dataset scene folder.
+        scene_path (Path): Path to the dataset scene folder.
         splits (list): Splits to load (e.g., ["train", "test"]).
         config (dict): Dictionary of configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.

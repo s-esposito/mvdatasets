@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import cv2 as cv
+from typing import Union
 
 from mvdatasets.utils.geometry import (
     apply_transformation_3d,
@@ -21,21 +22,21 @@ class Camera:
 
     def __init__(
         self,
-        intrinsics,
-        pose,
-        rgbs=None,
-        masks=None,
-        normals=None,
-        depths=None,
-        instance_masks=None,
-        semantic_masks=None,
-        global_transform=None,
-        local_transform=None,
-        camera_idx=0,
-        width=None,
-        height=None,
-        temporal_dim=1,
-        subsample_factor=1,
+        intrinsics: np.ndarray,
+        pose: np.ndarray,
+        rgbs: np.ndarray = None,
+        masks: np.ndarray = None,
+        normals: np.ndarray = None,
+        depths: np.ndarray = None,
+        instance_masks: np.ndarray = None,
+        semantic_masks: np.ndarray = None,
+        global_transform: np.ndarray = None,
+        local_transform: np.ndarray = None,
+        camera_idx: int = 0,
+        width: int = None,
+        height: int = None,
+        temporal_dim: int = 1,
+        subsample_factor: int = 1,
     ):
         """
         Initialize a Camera object.
@@ -114,7 +115,7 @@ class Camera:
         if subsample_factor > 1:
             self.resize(subsample_factor)
     
-    def _validate_modalities(self):
+    def _validate_modalities(self) -> None:
         """Validate that all modalities have consistent dimensions."""
         for key, modality in self.modalities.items():
             if modality is None:
@@ -133,7 +134,7 @@ class Camera:
             if key in ["masks", "depths", "instance_masks", "semantic_masks"] and modality.shape[-1] != 1:
                 raise ValueError(f"Modality `{key}` must have 1 channel; found {modality.shape[-1]}.")
 
-    def scale_intrinsics(self, scale):
+    def _scale_intrinsics(self, scale: float) -> None:
         """scales the intrinsics matrix"""
         self.intrinsics[0, 0] *= scale
         self.intrinsics[1, 1] *= scale
@@ -141,15 +142,15 @@ class Camera:
         self.intrinsics[1, 2] *= scale
         self.intrinsics_inv = np.linalg.inv(self.intrinsics)
 
-    def get_intrinsics(self):
+    def get_intrinsics(self) -> np.ndarray:
         """return camera intrinsics"""
         return self.intrinsics
 
-    def get_intrinsics_inv(self):
+    def get_intrinsics_inv(self) -> np.ndarray:
         """return inverse of camera intrinsics"""
         return self.intrinsics_inv
     
-    def get_projection(self):
+    def get_projection(self) -> np.ndarray:
         """return 4x4 camera projection matrix"""
         # get camera data
         intrinsics = self.get_intrinsics()
@@ -161,7 +162,7 @@ class Camera:
         proj = np.concatenate([proj, np.zeros((1, 4))], axis=0)  # (4, 4)
         return proj
     
-    def get_opengl_projection_matrix(self, near=0.1, far=100.0):
+    def get_opengl_projection_matrix(self, near: float = 0.1, far: float = 100.0) -> np.ndarray:
         # opengl standard
         projection_matrix = opengl_projection_matrix_from_intrinsics(
             self.get_intrinsics(),
@@ -172,131 +173,131 @@ class Camera:
         )  # (4, 4)
         return projection_matrix
     
-    def get_opengl_matrix_world(self):
+    def get_opengl_matrix_world(self) -> np.ndarray:
         w2c = self.get_pose_inv()
         matrix_world = opengl_matrix_world_from_w2c(w2c)
         return matrix_world
 
-    def has_rgbs(self):
+    def has_rgbs(self) -> bool:
         """check if rgbs exists"""
         return self.modalities["rgbs"] is not None
     
-    def get_rgbs(self):
+    def get_rgbs(self) -> np.ndarray:
         """return, if exists, all camera frames"""
         if not self.has_rgbs():
             print_error("camera has no rgb frames")
         return self.modalities["rgbs"]
 
-    def get_rgb(self, frame_idx=0):
+    def get_rgb(self, frame_idx: int = 0) -> np.ndarray:
         """returns, if exists, rgb at frame_idx"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_rgbs()[frame_idx]
 
-    def has_masks(self):
+    def has_masks(self) -> bool:
         """check if masks exists"""
         return self.modalities["masks"] is not None
     
-    def get_masks(self):
+    def get_masks(self) -> np.ndarray:
         """return, if exists, all camera masks, else None"""
         if not self.has_masks():
             print_error("camera has no mask frames")
         return self.modalities["masks"]
 
-    def get_mask(self, frame_idx=0):
+    def get_mask(self, frame_idx: int = 0) -> np.ndarray:
         """return, if exists, a mask at frame_idx, else None"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_masks()[frame_idx]
     
-    def has_normals(self):
+    def has_normals(self) -> bool:
         """check if normals exists"""
         return self.modalities["normals"] is not None
     
-    def get_normals(self):
+    def get_normals(self) -> np.ndarray:
         """return, if exists, all camera normal maps, else None"""
         if not self.has_normals():
             print_error("camera has no normal frames")
         return self.modalities["normals"]
     
-    def get_normal(self, frame_idx=0):
+    def get_normal(self, frame_idx: int = 0) -> np.ndarray:
         """return, if exists, the normal map at frame_idx, else None"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_normals()[frame_idx]
     
-    def has_depths(self):
+    def has_depths(self) -> bool:
         """check if depths exists"""
         return self.modalities["depths"] is not None
     
-    def get_depths(self):
+    def get_depths(self) -> np.ndarray:
         """return, if exists, all camera depth maps, else None"""
         if not self.has_depths():
             print_error("camera has no depth frames")
         return self.modalities["depths"]
     
-    def get_depth(self, frame_idx=0):
+    def get_depth(self, frame_idx: int = 0) -> np.ndarray:
         """return, if exists, the depth map at frame_idx, else None"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_depths()[frame_idx]
     
-    def has_instance_masks(self):
+    def has_instance_masks(self) -> bool:
         """check if instance_masks exists"""
         return self.modalities["instance_masks"] is not None
     
-    def get_instance_masks(self):
+    def get_instance_masks(self) -> np.ndarray:
         """return, if exists, all camera instance masks, else None"""
         if not self.has_instance_masks():
             print_error("camera has no instance mask frames")
         return self.modalities["instance_masks"]
     
-    def get_instance_mask(self, frame_idx=0):
+    def get_instance_mask(self, frame_idx: int = 0) -> np.ndarray:
         """return, if exists, the instance mask at frame_idx, else None"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_instance_masks()[frame_idx]
     
-    def has_semantic_masks(self):
+    def has_semantic_masks(self) -> bool:
         """check if semantic_masks exists"""
         return self.modalities["semantic_masks"] is not None
     
-    def get_semantic_masks(self):
+    def get_semantic_masks(self) -> np.ndarray:
         """return, if exists, all camera semantic masks, else None"""
         if not self.has_semantic_masks():
             print_error("camera has no semantic mask frames")
         return self.modalities["semantic_masks"]
     
-    def get_semantic_mask(self, frame_idx=0):
+    def get_semantic_mask(self, frame_idx: int = 0) -> np.ndarray:
         """return, if exists, the semantic mask at frame_idx, else None"""
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_semantic_masks()[frame_idx]
 
-    def get_pose(self):
+    def get_pose(self) -> np.ndarray:
         """returns camera pose in world space"""
         pose = self.global_transform @ self.pose @ self.local_transform
         return pose
     
-    def get_pose_inv(self):
+    def get_pose_inv(self) -> np.ndarray:
         """returns camera pose in world space"""
         pose = self.get_pose()
         pose_inv = np.linalg.inv(pose)
         return pose_inv
     
-    def get_rotation(self):
+    def get_rotation(self) -> np.ndarray:
         """returns camera rotation in world space"""
         pose = self.get_pose()
         rotation = pose[:3, :3]
         return rotation
     
-    def get_center(self):
+    def get_center(self) -> np.ndarray:
         """returns camera center in world space"""
         pose = self.get_pose()
         center = pose[:3, 3]
         return center
 
-    def resize(self, subsample_factor, verbose=False):
+    def resize(self, subsample_factor, verbose=False) -> None:
         """make frames smaller by scaling them by scale factor (inplace operation)
         Args:
             subsample_factor (float): inverse of scale factor
@@ -307,14 +308,14 @@ class Camera:
         new_height = int(self.height * scale)
         new_width = int(self.width * scale)
         for modality_name in self.modalities.keys():
-            self.subsample_modality(modality_name, scale=scale)
+            self._subsample_modality(modality_name, scale=scale)
         self.height, self.width = new_height, new_width
         # scale intrinsics accordingly
-        self.scale_intrinsics(scale)
+        self._scale_intrinsics(scale)
         if verbose:
             print(f"camera image plane resized from {old_height}, {old_width} to {self.height}, {self.width}")
     
-    def subsample_modality(self, modality_name, scale):
+    def _subsample_modality(self, modality_name: str, scale: float) -> None:
         """subsample camera frames of given modality (inplace operation)"""
         
         if self.modalities[modality_name] is None:
@@ -336,7 +337,10 @@ class Camera:
             new_frames.append(new_frame)
         self.modalities[modality_name] = np.stack(new_frames)
 
-    def project_points_3d_to_2d(self, points_3d):
+    def project_points_3d_to_2d(
+        self,
+        points_3d: Union[np.ndarray, torch.tensor]
+    ) -> Union[np.ndarray, torch.tensor]:
         """
         Projects 3D points to 2D screen space using a camera object.
         
@@ -354,7 +358,11 @@ class Camera:
         # Delegate to the helper function
         return project_points_3d_to_2d_from_intrinsics_and_c2w(intrinsics, c2w, points_3d)
     
-    def unproject_points_2d_to_3d(self, points_2d_s, depth):
+    def unproject_points_2d_to_3d(
+        self,
+        points_2d_s: Union[np.array, torch.tensor],
+        depth: Union[np.array, torch.tensor],
+    ) -> Union[np.ndarray, torch.tensor]:
         """
         Unprojects 2D screen points to 3D world space using a camera object.
         
@@ -383,7 +391,10 @@ class Camera:
         # Delegate to the helper function
         return unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d_s, depth)
 
-    def camera_to_points_3d_distance(self, points_3d):
+    def camera_to_points_3d_distance(
+        self,
+        points_3d: Union[np.array, torch.tensor]
+    ) -> Union[np.ndarray, torch.tensor]:
         """
         Computes the distance from the camera to 3D points.
         
@@ -424,7 +435,7 @@ class Camera:
 
         return points_3d_norm
     
-    def __str__(self):
+    def __str__(self) -> str:
         """print camera information"""
         string = ""
         string += f"intrinsics ({self.intrinsics.dtype}):\n"

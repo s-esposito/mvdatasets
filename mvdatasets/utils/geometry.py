@@ -1,9 +1,10 @@
 import torch
 import numpy as np
 import torch.nn.functional as F
+from typing import Union
 
 
-def convert_6d_to_rotation_matrix(cont_6d):
+def convert_6d_to_rotation_matrix(cont_6d: torch.tensor) -> torch.tensor:
     """
     :param 6d vector (*, 6)
     :returns matrix (*, 3, 3)
@@ -22,7 +23,7 @@ def convert_6d_to_rotation_matrix(cont_6d):
     return torch.stack([x, y, z], dim=-1)
 
 
-def get_min_max_cameras_distances(poses):
+def get_min_max_cameras_distances(poses: list) -> tuple:
     """
     return maximum pose distance from origin
 
@@ -43,7 +44,7 @@ def get_min_max_cameras_distances(poses):
     return min_dist, max_dist
 
 
-def rotation_matrix(a, b):
+def rotation_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Compute the rotation matrix that rotates vector a to vector b.
 
     Args:
@@ -69,15 +70,15 @@ def rotation_matrix(a, b):
     )
 
 
-def deg2rad(deg):
+def deg2rad(deg: Union[float, np.ndarray, torch.tensor]) -> Union[float, np.ndarray, torch.tensor]:
     return deg * np.pi / 180
 
 
-def scale_3d(scale):
+def scale_3d(scale: float) -> np.ndarray:
     return np.array([[scale, 0, 0], [0, scale, 0], [0, 0, scale]])
 
 
-def rot_x_3d(theta, device=None):
+def rot_x_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -101,7 +102,7 @@ def rot_x_3d(theta, device=None):
         )
 
 
-def rot_y_3d(theta, device=None):
+def rot_y_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -125,7 +126,7 @@ def rot_y_3d(theta, device=None):
         )
 
 
-def rot_z_3d(theta, device=None):
+def rot_z_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -149,17 +150,17 @@ def rot_z_3d(theta, device=None):
         )
 
 
-def rot_euler_3d(theta_x, theta_y, theta_z, device=None):
+def rot_euler_3d(theta_x: float, theta_y: float, theta_z: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
     """angles are in radians"""
     return rot_z_3d(theta_z, device) @ rot_y_3d(theta_y, device) @ rot_x_3d(theta_x, device)
 
 
-def rot_euler_3d_deg(theta_x, theta_y, theta_z, device=None):
+def rot_euler_3d_deg(theta_x: float, theta_y: float, theta_z: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
     """angles are in degrees"""
     return rot_euler_3d(deg2rad(theta_x), deg2rad(theta_y), deg2rad(theta_z), device)
 
 
-def opengl_matrix_world_from_w2c(w2c):
+def opengl_matrix_world_from_w2c(w2c: np.ndarray) -> np.ndarray:
     """
     Convert OpenCV camera-to-world pose to OpenGL camera pose.
     
@@ -184,7 +185,13 @@ def opengl_matrix_world_from_w2c(w2c):
     return c2w
 
 
-def opengl_projection_matrix_from_intrinsics(K, width, height, near, far):
+def opengl_projection_matrix_from_intrinsics(
+    K: np.ndarray,
+    width: int,
+    height: int,
+    near: int,
+    far: int
+) -> np.ndarray:
     fx = K[0, 0]
     fy = K[1, 1]
     cx = K[0, 2]
@@ -201,7 +208,10 @@ def opengl_projection_matrix_from_intrinsics(K, width, height, near, far):
     return projection_matrix
 
 
-def pose_local_rotation(pose, rotation):
+def pose_local_rotation(
+    pose: Union[np.ndarray, torch.tensor],
+    rotation: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Applies a local rotation to the pose frame using a rotation matrix.
     
@@ -238,7 +248,10 @@ def pose_local_rotation(pose, rotation):
     return pose @ rotation_transform
 
 
-def pose_global_rotation(pose, rotation):
+def pose_global_rotation(
+    pose: Union[np.ndarray, torch.tensor],
+    rotation: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Applies a global rotation to the pose frame using a rotation matrix.
     
@@ -279,7 +292,10 @@ def pose_global_rotation(pose, rotation):
     return rotation_transform @ pose
 
 
-def apply_rotation_3d(points_3d, rot):
+def apply_rotation_3d(
+    points_3d: Union[np.ndarray, torch.tensor],
+    rot: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Applies a 3D rotation to a set of points.
     
@@ -314,7 +330,10 @@ def apply_rotation_3d(points_3d, rot):
     return rotated_points
 
 
-def apply_transformation_3d(points_3d, transform):
+def apply_transformation_3d(
+    points_3d: Union[np.ndarray, torch.tensor],
+    transform: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Applies a 3D affine transformation to a set of points.
     
@@ -360,7 +379,7 @@ def apply_transformation_3d(points_3d, transform):
     return points_3d
 
 
-def pad_matrix(matrix):
+def pad_matrix(matrix: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
     """
     Pads a transformation matrix with a homogeneous bottom row [0, 0, 0, 1].
     
@@ -399,7 +418,7 @@ def pad_matrix(matrix):
     return padded_matrix
 
 
-def unpad_matrix(matrix):
+def unpad_matrix(matrix: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
     """
     Removes the homogeneous bottom row from a padded transformation matrix.
     
@@ -424,7 +443,7 @@ def unpad_matrix(matrix):
         raise ValueError("Unsupported matrix dimensionality, should be 2D or 3D.")
 
 
-def euclidean_to_homogeneous(points):
+def euclidean_to_homogeneous(points: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
     """
     Converts Euclidean coordinates to homogeneous coordinates by appending a column of ones.
     
@@ -452,7 +471,7 @@ def euclidean_to_homogeneous(points):
         raise TypeError("`points` must be either a numpy.ndarray or torch.Tensor.")
 
 
-def homogeneous_to_euclidean(vectors):
+def homogeneous_to_euclidean(vectors: Union[np.ndarray, torch.tensor]) -> Union[np.ndarray, torch.tensor]:
     """
     Converts homogeneous coordinates to Euclidean coordinates by dividing by the last coordinate.
     
@@ -474,7 +493,10 @@ def homogeneous_to_euclidean(vectors):
     return vectors[..., :-1] / vectors[..., -1:]
 
 
-def perspective_projection(intrinsics, points_3d):
+def perspective_projection(
+    intrinsics: Union[np.ndarray, torch.tensor],
+    points_3d: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Apply perspective projection to 3D points.
     
@@ -508,7 +530,10 @@ def perspective_projection(intrinsics, points_3d):
     return points_2d
 
 
-def inv_perspective_projection(intrinsics_inv, points_2d_screen):
+def inv_perspective_projection(
+    intrinsics_inv: Union[np.ndarray, torch.tensor],
+    points_2d_screen: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Apply inverse perspective projection to 2D screen points.
     
@@ -533,7 +558,11 @@ def inv_perspective_projection(intrinsics_inv, points_2d_screen):
     return augmented_points_3d_camera
 
 
-def project_points_3d_to_2d_from_intrinsics_and_c2w(intrinsics, c2w, points_3d):
+def project_points_3d_to_2d_from_intrinsics_and_c2w(
+    intrinsics: Union[np.ndarray, torch.tensor],
+    c2w: Union[np.ndarray, torch.tensor],
+    points_3d: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Projects 3D points to 2D screen space using camera intrinsics and pose.
     
@@ -568,7 +597,12 @@ def project_points_3d_to_2d_from_intrinsics_and_c2w(intrinsics, c2w, points_3d):
     return points_2d_s
 
 
-def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d_s, depth):
+def unproject_points_2d_to_3d_from_intrinsics_and_c2w(
+    intrinsics: Union[np.ndarray, torch.tensor],
+    c2w: Union[np.ndarray, torch.tensor],
+    points_2d_s: Union[np.ndarray, torch.tensor],
+    depth: Union[np.ndarray, torch.tensor]
+) -> Union[np.ndarray, torch.tensor]:
     """
     Unprojects 2D screen points to 3D world space using camera intrinsics and pose.
     
@@ -674,7 +708,7 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(intrinsics, c2w, points_2d
 #     return rotation
 
 
-def look_at(camera_origin, target_point, up):
+def look_at(camera_origin: np.ndarray, target_point: np.ndarray, up: np.ndarray) -> np.ndarray:
     """Compute camera pose from look at vectors
     args:
         camera_origin (np.ndarray) : (3,) camera position
@@ -714,7 +748,7 @@ def look_at(camera_origin, target_point, up):
 ####################################################
 # https://github.com/nerfstudio-project/nerfstudio/blob/main/nerfstudio/data/utils/colmap_parsing_utils.py#L454
 
-def qvec2rotmat(qvec):
+def qvec2rotmat(qvec: np.ndarray) -> np.ndarray:
     return np.array(
         [
             [
@@ -736,7 +770,7 @@ def qvec2rotmat(qvec):
     )
 
 
-def rotmat2qvec(R):
+def rotmat2qvec(R: np.ndarray) -> np.ndarray:
     Rxx, Ryx, Rzx, Rxy, Ryy, Rzy, Rxz, Ryz, Rzz = R.flat
     K = (
         np.array(
