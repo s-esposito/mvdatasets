@@ -295,6 +295,7 @@ def apply_rotation_3d(points_3d, rot):
     if not torch.is_tensor(rot) and torch.is_tensor(points_3d):
         # convert data to torch.tensor
         rot = torch.tensor(rot, dtype=torch.float32, device=points_3d.device)
+    
     rotated_points = (rot @ points_3d.T).T
     # should convert back to numpy (?)
     if out_as_np:
