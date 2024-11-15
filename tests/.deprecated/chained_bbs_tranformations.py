@@ -22,18 +22,19 @@ from mvdatasets.utils.point_clouds import load_point_cloud
 from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.config import datasets_path
 
+
 def test():
-    
+
     # load data
-    
+
     data_path = "tests/assets/assetsnerf/chair.npy"
     data = np.load(data_path, allow_pickle=True).item()
     print(data["chair"].keys())
-    
+
     # create bounding boxes
     bounding_boxes = []
     point_clouds = []
-    
+
     bb_data = data["chair"].pop("bb")
     bb_pose = np.eye(4)
     bb_pose[:3, 3] = bb_data["center"]
@@ -46,14 +47,14 @@ def test():
         line_width=5.0,
     )
     bounding_boxes.append(father_bb)
-    
+
     # load point cloud from ply
     points_3d = load_point_cloud("tests/assets/assetsnerf/5.ply")
     point_clouds.append(points_3d)
-    
+
     # test save
     father_bb.save_as_ply(".", father_bb.label)
-    
+
     for bb_key, bb_data in data["chair"].items():
         print("instance:", bb_key)
         bb = BoundingBox(
@@ -69,7 +70,7 @@ def test():
         # align to father pc (in world space)
         points_3d = apply_transformation_3d(points_3d, bb_data["transformation"])
         point_clouds.append(points_3d)
-    
+
     # bb_pose = np.eye(4)
     # bb_pose[:3, 3] = np.array([1.0, 0.0, 0.0])
     # bb_scale = np.array([0.7, 0.8, 0.9])
@@ -80,7 +81,7 @@ def test():
     #     father_bb=father_bb,
     # )
     # bounding_boxes.append(bb)
-    
+
     # bb_pose = np.eye(4)
     # bb_pose[:3, 3] = np.array([-0.5, 0.5, 0.0])
     # bb_scale = np.array([0.4, 0.3, 0.2])
@@ -91,7 +92,7 @@ def test():
     #     father_bb=father_bb,
     # )
     # bounding_boxes.append(bb)
-    
+
     # visualize bounding boxes
     fig = plot_bounding_boxes(
         bounding_boxes=bounding_boxes,
@@ -106,13 +107,13 @@ def test():
         title="",
     )
     # plt.show()
-    
+
     plt.savefig(
         os.path.join("plots", f"bbs.png"),
         transparent=False,
         bbox_inches="tight",
         pad_inches=0,
-        dpi=300
+        dpi=300,
     )
     plt.close()
 
@@ -134,5 +135,5 @@ if __name__ == "__main__":
 
     # Set default tensor type
     torch.set_default_dtype(torch.float32)
-    
+
     test()

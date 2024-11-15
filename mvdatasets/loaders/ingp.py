@@ -15,21 +15,13 @@ from mvdatasets.utils.geometry import (
     rot_y_3d,
     pose_local_rotation,
     pose_global_rotation,
-    get_min_max_cameras_distances
+    get_min_max_cameras_distances,
 )
-from mvdatasets.utils.images import (
-    image_uint8_to_float32,
-    image_float32_to_uint8
-)
+from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_ingp(
-    scene_path: Path,
-    splits: list,
-    config: dict = {},
-    verbose: bool = False
-):
+def load_ingp(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
     """INGP data format loader.
 
     Args:
@@ -60,7 +52,7 @@ def load_ingp(
             config[key] = default_value
             if verbose:
                 print_warning(f"{key} not in config, setting to {default_value}")
-    
+
     # Check for unimplemented features
     if config.get("pose_only"):
         if verbose:
@@ -73,63 +65,67 @@ def load_ingp(
             print(f"\t{k}: {v}")
 
     # -------------------------------------------------------------------------
-    
+
     # load camera params
     with open(os.path.join(scene_path, "transforms.json"), "r") as fp:
         metas = json.load(fp)
-    
+
     # height, width = metas["h"], metas["w"]
     intrinsics = np.eye(3, dtype=np.float32)
     intrinsics[0, 0] = metas["fl_x"]
     intrinsics[1, 1] = metas["fl_y"]
     intrinsics[0, 2] = metas["cx"]
     intrinsics[1, 2] = metas["cy"]
-    
+
     # read all poses
     poses_all = []
     for frame in metas["frames"]:
         pose = np.array(frame["transform_matrix"], dtype=np.float32)
         poses_all.append(pose)
-        
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
-    
+
     # define scene scale
     scene_scale = max_camera_distance  # (1/metas["aabb_scale"])
     # round to 2 decimals
     scene_scale = round(scene_scale, 2)
-    
+
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
-    
+    scene_scale_mult = config["target_cameras_max_distance"] / (
+        max_camera_distance + 1e-2
+    )
+
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(
+        deg2rad(rotate_scene_x_axis_deg)
+    )
+
     # local transform
     local_transform = np.eye(4)
     local_transform[:3, :3] = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
-    
+
     # cameras objects
     cameras_all = []
     for i, frame in enumerate(metas["frames"]):
-        
+
         pose = poses_all[i]
         img_path = os.path.join(scene_path, frame["file_path"])
-        
+
         # check if file exists
         if not os.path.exists(img_path):
             print(f"[bold yellow]WARNING[/bold yellow]: {img_path} does not exist")
             continue
-        
-        idx = int(img_path.split('/')[-1].split('.')[0])
-        
+
+        idx = int(img_path.split("/")[-1].split(".")[0])
+
         # load PIL image
         img_pil = Image.open(img_path)
         img_np = image_to_numpy(img_pil, use_uint8=True)[:, :, :3]
-                
+
         camera = Camera(
             intrinsics=intrinsics,
             pose=pose,
@@ -142,7 +138,7 @@ def load_ingp(
         )
 
         cameras_all.append(camera)
-    
+
     # split cameras into train and test
     train_test_overlap = config["train_test_overlap"]
     test_camera_freq = config["test_camera_freq"]

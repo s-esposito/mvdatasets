@@ -16,7 +16,7 @@ from mvdatasets.utils.geometry import (
     rot_y_3d,
     pose_local_rotation,
     pose_global_rotation,
-    get_min_max_cameras_distances
+    get_min_max_cameras_distances,
 )
 from mvdatasets.utils.printing import print_error, print_warning
 
@@ -45,12 +45,7 @@ def load_K_Rt_from_P(filename, P=None):
     return intrinsics, pose
 
 
-def load_dtu(
-    scene_path: Path,
-    splits: list,
-    config: dict = {},
-    verbose: bool = False
-):
+def load_dtu(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
     """DTU data format loader.
 
     Args:
@@ -83,7 +78,7 @@ def load_dtu(
             config[key] = default_value
             if verbose:
                 print_warning(f"{key} not in config, setting to {default_value}")
-    
+
     # Check for unimplemented features
     if config.get("pose_only"):
         if verbose:
@@ -94,9 +89,9 @@ def load_dtu(
         print("load_dtu config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
-    
+
     # -------------------------------------------------------------------------
-    
+
     # load images to cpu as numpy arrays
     imgs = []
     images_list = sorted(glob(os.path.join(scene_path, "image/*.png")))
@@ -118,13 +113,11 @@ def load_dtu(
             mask_np = image_to_numpy(mask_pil, use_uint8=True)
             mask_np = mask_np[:, :, 0, None]
             masks.append(mask_np)
-    
+
     # load camera params
     camera_dict = np.load(os.path.join(scene_path, "cameras_sphere.npz"))
     # world_mat is a projection matrix from world to image
-    world_mats_np = [
-        camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))
-    ]
+    world_mats_np = [camera_dict[f"world_mat_{idx}"] for idx in range(len(images_list))]
     # scale_mat: used for coordinate normalization,
     # we assume the scene to render is inside a unit sphere at origin.
     scale_mats_np = [
@@ -140,36 +133,40 @@ def load_dtu(
         projection_np = world_mat_np @ scale_mat_np
         projection_np = projection_np[:3, :4]
         intrinsics, pose = load_K_Rt_from_P(None, projection_np)
-        
+
         intrinsics_all.append(intrinsics)
         poses_all.append(pose)
-        
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
-    
+
     # define scene scale
     scene_scale = max_camera_distance * config["scene_radius_mult"]
     # round to 2 decimals
     scene_scale = round(scene_scale, 2)
-    
+
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
-    
+    scene_scale_mult = config["target_cameras_max_distance"] / (
+        max_camera_distance + 1e-2
+    )
+
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    
+    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(
+        deg2rad(rotate_scene_x_axis_deg)
+    )
+
     # local transform
     local_transform = np.eye(4)
     local_transform[:3, :3] = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     cameras_all = []
     for idx, params in enumerate(zip(intrinsics_all, poses_all)):
-        
+
         intrinsics, pose = params
-        
+
         # get images
         cam_imgs = imgs[idx][None, ...]
 

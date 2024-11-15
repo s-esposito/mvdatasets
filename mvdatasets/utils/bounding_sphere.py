@@ -14,40 +14,40 @@ def _intersect_sphere(rays_o, rays_d, center, radius):
         rays_d (torch.tensor): (N, 3)
         center (torch.tensor): (3,)
         radius (float)
-    Out: 
+    Out:
         is_hit (torch.tensor): (N,)
         t_near (torch.tensor): (N,)
         t_far (torch.tensor): (N,)
     """
-    
+
     if rays_o.device != center.device:
         raise ValueError("rays and bounding sphere must be on the same device")
-    
+
     # general case: camera eye outside sphere
     oc = rays_o - center
     a = torch.sum(rays_d * rays_d, dim=1)
     b = 2.0 * torch.sum(oc * rays_d, dim=1)
-    c = torch.sum(oc * oc, dim=1) - radius*radius
-    discriminants = b*b - 4*a*c
-    invalid_discriminats = (discriminants < 0)
+    c = torch.sum(oc * oc, dim=1) - radius * radius
+    discriminants = b * b - 4 * a * c
+    invalid_discriminats = discriminants < 0
 
     discriminants[invalid_discriminats] = 0
     sqrt_discriminants = torch.sqrt(discriminants)
-    t_near = (-b - sqrt_discriminants) / (2.0*a)
-    t_far = (-b + sqrt_discriminants) / (2.0*a)
-    
+    t_near = (-b - sqrt_discriminants) / (2.0 * a)
+    t_far = (-b + sqrt_discriminants) / (2.0 * a)
+
     t_near[t_near < 0] = 0.0
     is_hit = (t_near <= t_far) & (~invalid_discriminats)
-    
+
     # special case: camera eye inside sphere
     # check if rays_o distance from center is less than radius
     is_inside = torch.norm(rays_o - center, dim=1) < radius
     is_hit[is_inside] = True
     t_near[is_inside] = 0.0
-    
+
     t_near[~is_hit] = 0.0
     t_far[~is_hit] = 0.0
-    
+
     # oc = rays_o - center
     # a = torch.sum(rays_d * rays_d, dim=1)
     # b = 2.0 * torch.sum(oc * rays_d, dim=1)
@@ -78,17 +78,17 @@ def _intersect_sphere(rays_o, rays_d, center, radius):
 
 
 class BoundingSphere:
-    
+
     def __init__(
-            self,
-            pose=np.eye(4),
-            local_scale=np.array([1, 1, 1]),
-            label=None,
-            color=None,
-            line_width=1.0,
-            device="cpu",
-            verbose=True
-        ):
+        self,
+        pose=np.eye(4),
+        local_scale=np.array([1, 1, 1]),
+        label=None,
+        color=None,
+        line_width=1.0,
+        device="cpu",
+        verbose=True,
+    ):
         """Bounding Sphere class.
 
         Args:
@@ -99,38 +99,40 @@ class BoundingSphere:
             line_width (float, optional): Defaults to 1.0.
             device (str, optional): Defaults to "cpu".
         """
-        
+
         if isinstance(local_scale, (int, float)):
             local_scale = np.array([local_scale, local_scale, local_scale])
-        
+
         assert local_scale.shape == (3,)
-        assert local_scale[0] == local_scale[1] == local_scale[2], "only isotropic scaling is currently supported for spheres"
-        
+        assert (
+            local_scale[0] == local_scale[1] == local_scale[2]
+        ), "only isotropic scaling is currently supported for spheres"
+
         self.pose = torch.tensor(pose, dtype=torch.float32, device=device)
         self.local_scale = torch.tensor(local_scale, dtype=torch.float32, device=device)
         self.device = device
-        
+
         # mostly useful for visualization
         self.label = label
         self.color = color  # matplotlib color
         self.line_width = line_width
-        
+
         if verbose:
             print(f"created sphere with local radius : {self.local_scale[0].item()}")
-        
+
     def get_pose(self):
         return self.pose
-    
+
     def get_center(self):
         pose = self.get_pose()
         return pose[:3, 3]
-    
+
     def get_radius(self):
         return self.local_scale[0].item()
-    
+
     def get_max_traversable_distance(self):
         return self.get_radius() * 2.0
-    
+
     def intersect(self, rays_o, rays_d):
         """
         Args:
@@ -144,26 +146,24 @@ class BoundingSphere:
             p_near (torch.tensor): (N, 3)
             p_far (torch.tensor): (N, 3)
         """
-        
+
         # pose in world space
         pose = self.get_pose()
-        
+
         if self.pose.device != rays_o.device:
             raise ValueError("rays and bounding sphere must be on the same device")
-        
+
         center = pose[:3, 3]
         radius = self.local_scale[0]
-        
+
         # rays are already in world space
-        
-        is_hit, t_near, t_far = _intersect_sphere(
-            rays_o, rays_d, center, radius
-        )
+
+        is_hit, t_near, t_far = _intersect_sphere(rays_o, rays_d, center, radius)
         p_near = rays_o + rays_d * t_near[:, None]
         p_far = rays_o + rays_d * t_far[:, None]
-        
+
         return is_hit, t_near, t_far, p_near, p_far
-    
+
     @torch.no_grad()
     def get_random_points_inside(self, nr_points, padding=0.0):
         # points in local space
@@ -178,7 +178,7 @@ class BoundingSphere:
         z = torch.sin(azimuth_rad) * torch.cos(elevation_rad) * radius
         points = torch.column_stack((x, y, z))
         return points
-    
+
     @torch.no_grad()
     def get_random_points_on_surface(self, nr_points):
         # points in local space
@@ -192,13 +192,13 @@ class BoundingSphere:
         z = torch.sin(azimuth_rad) * torch.cos(elevation_rad) * radius
         points = torch.column_stack((x, y, z))
         return points
-    
+
     @torch.no_grad()
     def check_points_inside(self, points):
         points_ = points - self.get_center()
         # get l2 norm of points
         points_norm = torch.norm(points_, dim=1)
-        return (points_norm < self.get_radius())
-    
+        return points_norm < self.get_radius()
+
     def save_as_ply():
         print_error("saving as ply is not currently implemented for BoundingSphere")

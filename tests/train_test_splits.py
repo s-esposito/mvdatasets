@@ -24,7 +24,7 @@ from mvdatasets.config import datasets_path
 
 
 if __name__ == "__main__":
-    
+
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-    
+
     # Get dataset test preset
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
@@ -59,12 +59,12 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
-    
+
     print("scene_radius:", mv_data.scene_radius)
     print("init_sphere_radius:", mv_data.init_sphere_radius)
-    
+
     if mv_data.init_sphere_radius > mv_data.scene_radius:
         print_error("init_sphere_radius > scene_radius, this can't be true")
 
@@ -72,18 +72,18 @@ if __name__ == "__main__":
         point_cloud = mv_data.point_clouds[0]
     else:
         point_cloud = np.array([[0, 0, 0]])
-        
+
     # create bounding primitives
     bounding_boxes = []
     bounding_spheres = []
-    
+
     # scene
     if mv_data.scene_type == "bounded":
         bb = BoundingBox(
             pose=np.eye(4),
-            local_scale=mv_data.scene_radius*2,
+            local_scale=mv_data.scene_radius * 2,
             line_width=2.0,
-            device=device
+            device=device,
         )
         bounding_boxes.append(bb)
     elif mv_data.scene_type == "unbounded":
@@ -91,20 +91,26 @@ if __name__ == "__main__":
             pose=np.eye(4),
             local_scale=0.5,  # outer primitive
             device=device,
-            verbose=True
+            verbose=True,
         )
         bounding_spheres.append(bs)
-    
+
     # sdf init
-    
+
     bs = BoundingSphere(
         pose=np.eye(4),
-        local_scale=np.array([mv_data.init_sphere_radius, mv_data.init_sphere_radius, mv_data.init_sphere_radius]),  # outer primitive
+        local_scale=np.array(
+            [
+                mv_data.init_sphere_radius,
+                mv_data.init_sphere_radius,
+                mv_data.init_sphere_radius,
+            ]
+        ),  # outer primitive
         device=device,
-        verbose=True
+        verbose=True,
     )
     bounding_spheres.append(bs)
-    
+
     draw_contraction_spheres = False
     scene_type = config.get("scene_type", None)
     if scene_type == "unbounded":
@@ -135,7 +141,7 @@ if __name__ == "__main__":
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,
-        dpi=300
+        dpi=300,
     )
     plt.close()
 
@@ -164,8 +170,8 @@ if __name__ == "__main__":
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,
-        dpi=300
+        dpi=300,
     )
     plt.close()
-    
+
     print("done")

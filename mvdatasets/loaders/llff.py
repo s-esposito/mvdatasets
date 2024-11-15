@@ -16,12 +16,7 @@ from mvdatasets.utils.pycolmap import read_points3D, read_cameras
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_llff(
-    scene_path: Path,
-    splits: list,
-    config: dict = {},
-    verbose: bool = False
-):
+def load_llff(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
     """LLFF data format loader.
 
     Args:
@@ -60,7 +55,7 @@ def load_llff(
             config[key] = default_value
             if verbose:
                 print_warning(f"{key} not in config, setting to {default_value}")
-                
+
     # Validate specific keys
     for key, valid in valid_values.items():
         if key in config and config[key] not in valid:
@@ -84,18 +79,18 @@ def load_llff(
         print("load_llff config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
-        
+
     # -------------------------------------------------------------------------
-    
+
     # read colmap data
-    
+
     reconstruction_path = os.path.join(scene_path, "sparse/0")
     reconstruction = pycolmap.Reconstruction(reconstruction_path)
     # print(reconstruction.summary())
 
     point_cloud = read_points3D(reconstruction)
     # point_cloud[:, 2] += config["translate_scene_z"]
-    
+
     # get point cloud mean
     # point_cloud_mean = np.mean(point_cloud, axis=0)
     # only shift along z axis
@@ -107,17 +102,17 @@ def load_llff(
     # o3d_point_cloud.points = o3d.utility.Vector3dVector(point_cloud)
     # o3d.io.write_point_cloud(os.path.join("tests/assets/point_clouds/mipnerf360", "garden.ply"), o3d_point_cloud)
     # exit()
-    
+
     images_path = os.path.join(scene_path, "images")
-    
+
     if config["subsample_factor"] > 1:
         subsample_factor = int(config["subsample_factor"])
         images_path += f"_{subsample_factor}"
     else:
         subsample_factor = 1
-    
+
     cameras_meta = read_cameras(reconstruction, images_path)
-    
+
     # # open poses_bounds.npy
     # poses_bounds_path = os.path.join(scene_path, "poses_bounds.npy")
     # # check if file exists
@@ -126,12 +121,12 @@ def load_llff(
     #     bounds = poses_arr[:, -2:]
     # else:
     #     bounds = np.array([0.01, 1.])
-    
+
     # poses = []
     # for camera in cameras_meta:
     #     poses.append(camera["pose"])
     # poses = np.array(poses)
-    
+
     # # TODO: forward_facing specific
     # if config["scene_type"] == "forward_facing":
     #     pass
@@ -144,48 +139,50 @@ def load_llff(
 
     #     print("transform", transform)
     #     print("poses", poses.shape)
-        
+
     #     global_transform = transform
-    
+
     # read images
     # images_list = sorted(os.listdir(images_path), key=lambda x: int(re.search(r'\d+', x).group()))
     poses_all = []
     pbar = tqdm(cameras_meta, desc="images", ncols=100)
     for i, camera in enumerate(pbar):
-        
+
         traslation = camera["translation"]
         # traslation[2] += config["translate_scene_z"]
-        
+
         w2c = np.eye(4)
         w2c[:3, :3] = camera["rotation"]
         w2c[:3, 3] = traslation
         c2w = np.linalg.inv(w2c)
         pose = c2w
         poses_all.append(pose)
-        
+
     # center scene in the average camera position
     # scene_center = np.mean([np.mean(poses_all, axis=0)[:3, 3]], axis=0)
     # print("scene_center", scene_center)
-    
+
     # poses_all_ = []
     # for pose in poses_all:
     #     pose_ = copy.deepcopy(pose)
     #     pose_[:3, 3] -= scene_center
     #     poses_all_.append(pose_)
-    
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
     # print("min_camera_distance:", min_camera_distance)
     # print("max_camera_distance:", max_camera_distance)
-    
+
     # define scene scale
     scene_scale = max_camera_distance
     # round to 2 decimals
     scene_scale = round(scene_scale, 2)
-    
+
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (max_camera_distance + 1e-2)
-    
+    scene_scale_mult = config["target_cameras_max_distance"] / (
+        max_camera_distance + 1e-2
+    )
+
     # # scene center as the point cloud center
     # point_cloud_ = point_cloud * scene_scale_mult
     # point_cloud_ -= np.mean(point_cloud_, axis=0)
@@ -193,50 +190,54 @@ def load_llff(
     # point_cloud_ = point_cloud_[points_norms < 0.5]
     # scene_center = np.mean(point_cloud_, axis=0)
     # scene_center[2] += config["translate_scene_z"]
-    
+
     scene_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
     # translate
     translation_matrix = np.eye(4)
-    translation_matrix[:3, 3] = [config["translate_scene_x"], config["translate_scene_y"], config["translate_scene_z"]]
+    translation_matrix[:3, 3] = [
+        config["translate_scene_x"],
+        config["translate_scene_y"],
+        config["translate_scene_z"],
+    ]
     scene_transform = translation_matrix @ scene_transform
-    
+
     # global transform
     global_transform = np.eye(4)
-    
+
     # local transform
     local_transform = np.eye(4)
-    
+
     # apply global transform
     point_cloud *= scene_scale_mult
     point_cloud = apply_transformation_3d(point_cloud, scene_transform)
-    
+
     # build cameras
     cameras_all = []
     pbar = tqdm(cameras_meta, desc="images", ncols=100)
     for i, camera in enumerate(pbar):
-        
+
         pose = poses_all[i]
-        
+
         pose[:3, 3] *= scene_scale_mult
-        
+
         # transform camera pose with scene transform
         pose = scene_transform @ pose
-        
+
         # normalize pose
         # pose[:3, :3] = pose[:3, :3] / np.linalg.norm(pose[:3, :3])
 
         # # extract rotation matrix and translation vector
         # R = pose[:3, :3]
         # t = pose[:3, 3]
-        
+
         # # new camera pose
         # pose = np.eye(4)
         # pose[:3, :3] = R
         # pose[:3, 3] = t
-        
+
         # params
         params = camera["params"]
         intrinsics = np.eye(3)
@@ -244,10 +245,10 @@ def load_llff(
         intrinsics[1, 1] = params["fy"] / subsample_factor
         intrinsics[0, 2] = params["cx"] / subsample_factor
         intrinsics[1, 2] = params["cy"] / subsample_factor
-        
+
         idx = camera["id"]
         cam_imgs = camera["img"][None, ...]
-        
+
         camera = Camera(
             intrinsics=intrinsics,
             pose=pose,
@@ -257,7 +258,7 @@ def load_llff(
             camera_idx=idx,
         )
         cameras_all.append(camera)
-    
+
     # split cameras into train and test
     train_test_overlap = config["train_test_overlap"]
     test_camera_freq = config["test_camera_freq"]
@@ -278,7 +279,7 @@ def load_llff(
             for i, camera in enumerate(cameras_all):
                 if i % test_camera_freq == 0:
                     cameras_splits[split].append(camera)
-    
+
     return {
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,

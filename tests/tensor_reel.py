@@ -18,7 +18,7 @@ from mvdatasets.utils.bounding_box import BoundingBox
 
 
 if __name__ == "__main__":
-    
+
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
@@ -56,17 +56,17 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
-    
+
     # create bounding boxes
     bounding_boxes = []
-    
+
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=mv_data.scene_radius*2,
+        local_scale=mv_data.scene_radius * 2,
         line_width=2.0,
-        device=device
+        device=device,
     )
     bounding_boxes.append(bb)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             profiler.end("get_next_rays_batch")
 
         if not benchmark:
-        
+
             gt_rgb = vals["rgb"]
             if "mask" in vals:
                 gt_mask = vals["mask"]
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             if gt_mask is not None:
                 print("gt_mask", gt_mask.shape, gt_mask.device, gt_mask.dtype)
             print("frame_idx", frame_idx.shape, frame_idx.device, frame_idx.dtype)
-            
+
             fig = plot_current_batch(
                 mv_data["train"],
                 camera_idx,
@@ -144,11 +144,7 @@ if __name__ == "__main__":
             # plt.show()
             frame_path = os.path.join("plots", f"{dataset_name}_batch_{i}.png")
             plt.savefig(
-                frame_path,
-                bbox_inches="tight",
-                pad_inches=0,
-                dpi=72,
-                transparent=True
+                frame_path, bbox_inches="tight", pad_inches=0, dpi=72, transparent=True
             )
             plt.close()
             frames_paths.append(frame_path)
@@ -156,6 +152,6 @@ if __name__ == "__main__":
             # update azimuth every 2 iterations
             if i % 2 != 0:
                 azimuth_deg += azimuth_deg_delta
-            
+
     if profiler is not None:
         profiler.print_avg_times()

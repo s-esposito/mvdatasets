@@ -60,20 +60,20 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
 
     # create bounding boxes
     bounding_boxes = []
-    
+
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=mv_data.scene_radius*2,
+        local_scale=mv_data.scene_radius * 2,
         line_width=2.0,
-        device=device
+        device=device,
     )
     bounding_boxes.append(bb)
-    
+
     # only available for object centric datasets
     if not mv_data.cameras_on_hemisphere:
         exit(0)
@@ -82,19 +82,19 @@ if __name__ == "__main__":
         point_cloud = mv_data.point_clouds[0]
     else:
         point_cloud = np.array([[0, 0, 0]])
-    
+
     intrinsics = mv_data["train"][0].get_intrinsics()
     width = mv_data["train"][0].width
     height = mv_data["train"][0].height
     camera_center = mv_data["train"][0].get_center()
     camera_radius = np.linalg.norm(camera_center)
-    
+
     sampled_cameras = sample_cameras_on_hemisphere(
         intrinsics=intrinsics,
         width=width,
         height=height,
         radius=camera_radius,
-        nr_cameras=100
+        nr_cameras=100,
     )
 
     # Visualize cameras
@@ -115,14 +115,14 @@ if __name__ == "__main__":
         transparent=True,
         bbox_inches="tight",
         pad_inches=0,
-        dpi=300
+        dpi=300,
     )
     plt.close()
     print("saved plot")
-    
+
     # Create tensor reel
     tensor_reel = TensorReel(sampled_cameras, width=width, height=height, device=device)
-    
+
     benchmark = False
     batch_size = 512
     nr_iterations = 10
@@ -146,18 +146,19 @@ if __name__ == "__main__":
             _,
             _,
         ) = tensor_reel.get_next_rays_batch(
-            batch_size=batch_size, cameras_idx=cameras_idx,
+            batch_size=batch_size,
+            cameras_idx=cameras_idx,
         )
 
         if profiler is not None:
             profiler.end("get_next_rays_batch")
 
         if not benchmark:
-        
+
             print("camera_idx", camera_idx.shape, camera_idx.device)
             print("rays_o", rays_o.shape, rays_o.device)
             print("rays_d", rays_d.shape, rays_d.device)
-            
+
             fig = plot_current_batch(
                 sampled_cameras,
                 camera_idx,
@@ -174,13 +175,11 @@ if __name__ == "__main__":
             )
 
             # plt.show()
-            frame_path = os.path.join("plots", f"{dataset_name}_sampled_cameras_batch_{i}.png")
+            frame_path = os.path.join(
+                "plots", f"{dataset_name}_sampled_cameras_batch_{i}.png"
+            )
             plt.savefig(
-                frame_path,
-                bbox_inches="tight",
-                pad_inches=0,
-                dpi=72,
-                transparent=True
+                frame_path, bbox_inches="tight", pad_inches=0, dpi=72, transparent=True
             )
             plt.close()
             frames_paths.append(frame_path)
@@ -188,6 +187,6 @@ if __name__ == "__main__":
             # update azimuth every 2 iterations
             if i % 2 != 0:
                 azimuth_deg += azimuth_deg_delta
-            
+
     if profiler is not None:
         profiler.print_avg_times()

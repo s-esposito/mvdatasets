@@ -10,7 +10,9 @@ def bilinear_downscale(img_np, times=1):
     for _ in range(times):
         # Get the dimensions of the input image
         height, width = img_np.shape[:2]
-        img_np = cv2.resize(img_np, (width // 2, height // 2), interpolation=cv2.INTER_LINEAR)
+        img_np = cv2.resize(
+            img_np, (width // 2, height // 2), interpolation=cv2.INTER_LINEAR
+        )
     return img_np
 
 
@@ -19,7 +21,9 @@ def bilinear_upscale(img_np, times=1):
     for _ in range(times):
         # Get the dimensions of the input image
         height, width = img_np.shape[:2]
-        img_np = cv2.resize(img_np, (width * 2, height * 2), interpolation=cv2.INTER_LINEAR)
+        img_np = cv2.resize(
+            img_np, (width * 2, height * 2), interpolation=cv2.INTER_LINEAR
+        )
     return img_np
 
 
@@ -33,7 +37,9 @@ def get_pixel_corners(uv_pix_nn):
     uv_coords_2 = uv_pix_nn + torch.tensor([0, 1], device=uv_pix_nn.device)
     # bottom right (1, 1)
     uv_coords_3 = uv_pix_nn + torch.tensor([1, 1], device=uv_pix_nn.device)
-    uv_interp_corners_nn = torch.stack([uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1)
+    uv_interp_corners_nn = torch.stack(
+        [uv_coords_0, uv_coords_1, uv_coords_2, uv_coords_3], dim=1
+    )
     return uv_interp_corners_nn
 
 
@@ -77,7 +83,7 @@ def non_normalized_uv_coords_to_interp_corners(uv_coords_nn):
 
 def pix_to_texel_center_uv_coord(uv_pix, res, flip=True):
     # convert pixel coordinates to uv normalized coordinates of the texel center
-    uv_coords = (uv_pix.float() + 0.5)
+    uv_coords = uv_pix.float() + 0.5
     # print(torch.max(uv_coords[:, 0]), torch.max(uv_coords[:, 1]))
     # print(res)
     if flip:
@@ -91,29 +97,29 @@ def pix_to_texel_center_uv_coord(uv_pix, res, flip=True):
 def non_normalized_uv_coords_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn):
     # Ensure uv_coords_nn is float type
     # uv_coords_nn = uv_coords_nn.float()
-    
-    # Get uv coords fractional part    
+
+    # Get uv coords fractional part
     diff = uv_coords_nn - uv_corners_coords_nn[:, 0, :]
-    
+
     lerp_weights = torch.zeros((uv_coords_nn.shape[0], 4), device=uv_coords_nn.device)
-    
+
     # Top-left texel weight
     lerp_weights[:, 0] = (1.0 - diff[:, 0]) * (1.0 - diff[:, 1])
-    
+
     # Top-right texel weight
     lerp_weights[:, 1] = diff[:, 0] * (1.0 - diff[:, 1])
-    
+
     # Bottom-left texel weight
     lerp_weights[:, 2] = (1.0 - diff[:, 0]) * diff[:, 1]
-    
+
     # Bottom-right texel weight
     lerp_weights[:, 3] = diff[:, 0] * diff[:, 1]
-    
+
     return lerp_weights.unsqueeze(-1)
 
 
 def image_uint8_to_float32(tensor):
-    """converts uint8 tensor to float32"""    
+    """converts uint8 tensor to float32"""
     if torch.is_tensor(tensor):
         if tensor.dtype == torch.float32:
             return tensor
@@ -205,9 +211,9 @@ def save_numpy_as_png(img_np, save_dir_path, img_filename, append_format=True):
     if append_format:
         save_path += ".png"
     img_pil.save(save_path)
-    
 
-def load_image_as_tensor(image_path, channels='RGB', device="cpu"):
+
+def load_image_as_tensor(image_path, channels="RGB", device="cpu"):
     """Load an image from a file path and convert it to a torch tensor."""
     # load image
     pil_image = Image.open(image_path).convert(channels)
@@ -216,7 +222,7 @@ def load_image_as_tensor(image_path, channels='RGB', device="cpu"):
     return tensor
 
 
-def load_image_as_numpy(image_path, channels='RGB'):
+def load_image_as_numpy(image_path, channels="RGB"):
     """Load an image from a file path and convert it to a numpy array."""
     # load image
     pil_image = Image.open(image_path).convert(channels)

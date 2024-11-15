@@ -53,11 +53,13 @@ if __name__ == "__main__":
     for mesh_file in files:
         o3d_mesh = o3d.io.read_triangle_mesh(os.path.join(scene_dir, mesh_file))
         o3d_mesh_vertices = np.asarray(o3d_mesh.vertices)
-        o3d_mesh_vertices = apply_transformation_3d(o3d_mesh_vertices, mv_data.global_transform)
+        o3d_mesh_vertices = apply_transformation_3d(
+            o3d_mesh_vertices, mv_data.global_transform
+        )
         o3d_mesh.vertices = o3d.utility.Vector3dVector(o3d_mesh_vertices)
         o3d_mesh.compute_vertex_normals()
         o3d_scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(o3d_mesh))
-        
+
     # render mesh
     splits = ["test", "train"]
     for split in splits:

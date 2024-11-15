@@ -40,13 +40,18 @@ class Profiler:
             self.history[name] = state
         else:
             # create new state
-            self.history[name] = {"count": 1, "last": elapsed, "sum": elapsed, "avg": elapsed}
+            self.history[name] = {
+                "count": 1,
+                "last": elapsed,
+                "sum": elapsed,
+                "avg": elapsed,
+            }
 
         if self.verbose:
             print(f"{name} took {elapsed} seconds")
 
         self.active.pop(name)
-        
+
     def get_last_time(self, name):
         """
         Returns the last time for the given timer.
@@ -56,7 +61,7 @@ class Profiler:
             state = self.history[name]
             last = state["last"]
         return last
-    
+
     def get_avg_time(self, name):
         """
         Returns the average time for the given timer.

@@ -40,31 +40,31 @@ def read_cameras_params(reconstruction):
 
 
 def read_cameras(reconstruction, images_path):
-    
+
     cameras_params = read_cameras_params(reconstruction)
-    
+
     cameras_meta = []
     for image_id, image in reconstruction.images.items():
 
         rotation = qvec2rotmat(image.qvec)
         translation = image.tvec
-        
+
         params = cameras_params[str(image.camera_id)]
-        
+
         # load PIL image
         img_pil = Image.open(os.path.join(images_path, image.name))
         img_np = image_to_numpy(img_pil, use_uint8=True)
-        
+
         cameras_meta.append(
             {
                 "id": image_id,
                 "rotation": rotation,
                 "translation": translation,
                 "params": params,
-                "img": img_np
+                "img": img_np,
             }
         )
-        
+
     # order by "id"
     cameras_meta = sorted(cameras_meta, key=lambda x: x["id"])
 

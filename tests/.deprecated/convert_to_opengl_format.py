@@ -23,7 +23,7 @@ from mvdatasets.utils.data_converter import convert_to_ingp_format
 
 
 if __name__ == "__main__":
-    
+
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
@@ -61,16 +61,13 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
-    
+
     scene = {}
     scene["resolution"] = [mv_data.get_width(), mv_data.get_height()]
     scene["meshes"] = []
-    scene["cameras"] = {
-        "test": {},
-        "train": {}
-    }
+    scene["cameras"] = {"test": {}, "train": {}}
     for camera in mv_data["test"]:
         camera_idx = camera.camera_idx
         projectionMatrix = camera.get_opengl_projection_matrix(near=0.1, far=100.0)
@@ -79,7 +76,7 @@ if __name__ == "__main__":
             "projectionMatrix": projectionMatrix.tolist(),
             "matrixWorld": matrixWorld.tolist(),  # c2w
         }
-    
+
     # Save the projections as a json file
     with open("out/scene.json", "w") as f:
         json.dump(scene, f, indent=4)

@@ -40,7 +40,7 @@ if __name__ == "__main__":
     profiler = Profiler()  # nb: might slow down the code
 
     # Get dataset test preset
-    
+
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
     else:
@@ -55,22 +55,22 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
-    
+
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
     # shoot rays from camera
     rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
-    
+
     # bounding box
     scene_radius = mv_data.scene_radius
     scene_diameter = scene_radius * 2
     bounding_volume = BoundingBox(
         pose=np.eye(4),
         local_scale=np.array([scene_diameter, scene_diameter, scene_diameter]),
-        device=device
+        device=device,
     )
     # bounding_volume intersection test
     is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
@@ -81,18 +81,20 @@ if __name__ == "__main__":
     # apply the colormap
     hit_range = color_map(hit_range)[:, :, :3]
     # print("hit range", hit_range)
-    
+
     img_np = ((camera.get_rgb() / 255.0) * 0.5) + (hit_range * 0.5)
     plt.imshow(img_np)
-    
-    plt.savefig(os.path.join("plots", f"{dataset_name}_bounding_box.png"), transparent=True, dpi=300)
+
+    plt.savefig(
+        os.path.join("plots", f"{dataset_name}_bounding_box.png"),
+        transparent=True,
+        dpi=300,
+    )
     plt.close()
-    
+
     # bounding sphere
     bounding_volume = BoundingSphere(
-        pose=np.eye(4),
-        local_scale=scene_radius,
-        device=device
+        pose=np.eye(4), local_scale=scene_radius, device=device
     )
     # bounding_volume intersection test
     is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
@@ -103,13 +105,17 @@ if __name__ == "__main__":
     # apply the colormap
     hit_range = color_map(hit_range)[:, :, :3]
     # print("hit range", hit_range)
-    
+
     img_np = ((camera.get_rgb() / 255.0) * 0.5) + (hit_range * 0.5)
     plt.imshow(img_np)
-    
-    plt.savefig(os.path.join("plots", f"{dataset_name}_bounding_sphere.png"), transparent=True, dpi=300)
+
+    plt.savefig(
+        os.path.join("plots", f"{dataset_name}_bounding_sphere.png"),
+        transparent=True,
+        dpi=300,
+    )
     plt.close()
-    
+
     # points_3d = bounding_volume.get_random_points_on_surface(100000)
     # points_2d = camera.project_points_3d_to_2d(points_3d=points_3d)
     # # 3d points distance from camera center

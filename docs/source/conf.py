@@ -6,25 +6,25 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'MVDatasets'
-copyright = '2024, Stefano Esposito, Andreas Geiger'
-author = 'Stefano Esposito, Andreas Geiger'
+project = "MVDatasets"
+copyright = "2024, Stefano Esposito, Andreas Geiger"
+author = "Stefano Esposito, Andreas Geiger"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    "sphinx.ext.duration",
+    "sphinx.ext.doctest",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
 ]
 
-templates_path = ['../_templates']
-exclude_patterns = ['../_build', 'Thumbs.db', '.DS_Store']
+templates_path = ["../_templates"]
+exclude_patterns = ["../_build", "Thumbs.db", ".DS_Store"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'furo'
-html_static_path = ['../_static']
+html_theme = "furo"
+html_static_path = ["../_static"]
