@@ -25,27 +25,28 @@ class Mesh:
         if o3d_mesh is not None and mesh_meta is not None:
             print_error("only one of o3d_mesh and mesh_meta should be provided")
 
-            
         # at least one of o3d_mesh and mesh_meta should be provided
         if o3d_mesh is None and mesh_meta is None:
             print_error("at least one of o3d_mesh and mesh_meta should be provided")
-            
+
         if o3d_mesh is not None:
-            
+
             mesh = o3d_mesh
             textures_meta = []
-        
+
         else:
-        
+
             self.mesh_path = mesh_meta["mesh_path"]
             textures_meta = mesh_meta.get("textures", [])
 
             # make sure mesh_path exists
-            assert os.path.exists(self.mesh_path), f"mesh path {self.mesh_path} does not exist"
-        
+            assert os.path.exists(
+                self.mesh_path
+            ), f"mesh path {self.mesh_path} does not exist"
+
             # load mesh
             mesh = o3d.io.read_triangle_mesh(self.mesh_path, print_progress=False)
-        
+
         mesh.compute_vertex_normals()
 
         # vertices
@@ -57,7 +58,7 @@ class Mesh:
         self.faces = np.asarray(mesh.triangles).astype(np.int32)
         if verbose:
             print(f"[bold blue]INFO[/bold blue]: mesh faces: {self.faces.shape}")
-        
+
         # normals
         self.normals = np.asarray(mesh.vertex_normals).astype(np.float32)
         if verbose:
@@ -97,13 +98,11 @@ class Mesh:
 
         # sample a random color for each mesh face (for visualization)
         self.faces_color = np.random.rand(self.faces.shape[0], 3).astype(np.float32)
-    
+
     @property
     def uv_idx(self):
         return self.faces
-    
+
     @property
     def uv(self):
         return self.vertices_uvs
-    
-    

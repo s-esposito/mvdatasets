@@ -8,9 +8,9 @@ from rich.progress import (
     TimeRemainingColumn,
     ProgressColumn,
     Task,
-    filesize
+    filesize,
 )
-from rich.text import Text 
+from rich.text import Text
 
 
 def print_error(message):
@@ -25,7 +25,7 @@ def print_warning(message):
 def print_info(message):
     print(f"[bold blue]INFO[/bold blue] {message}")
 
-    
+
 def print_log(message):
     print(f"[bold purple]LOG[/bold purple] {message}")
 
@@ -52,7 +52,7 @@ class RateColumn(ProgressColumn):
 
 
 def progress_bar(name):
-    
+
     # Define custom progress bar
     progress_bar = Progress(
         # name of the task
@@ -74,5 +74,5 @@ def progress_bar(name):
         TextColumn("•"),
         RateColumn(),
     )
-    
+
     return progress_bar

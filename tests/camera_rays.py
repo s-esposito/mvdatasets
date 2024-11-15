@@ -22,7 +22,7 @@ if __name__ == "__main__":
     seed = 42
     torch.manual_seed(seed)
     np.random.seed(seed)
-    
+
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
         device = "cuda"
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
 
     if len(mv_data.point_clouds) > 0:
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         bbox_inches="tight",
         pad_inches=0,
         dpi=300,
-        transparent=True
+        transparent=True,
     )
     plt.close()
 

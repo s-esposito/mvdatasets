@@ -39,6 +39,6 @@ if __name__ == "__main__":
     plt.imshow(imgs["depth"])
     plt.colorbar()
     plt.show()
-    
+
     # plt.savefig(os.path.join("plots", f"{dataset_name}_mesh_depth.png"), transparent=True, dpi=300)
     # plt.close()

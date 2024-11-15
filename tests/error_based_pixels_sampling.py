@@ -11,7 +11,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
 from mvdatasets.utils.plotting import plot_points_2d_on_image
-from mvdatasets.utils.raycasting import get_camera_rays, get_points_2d_from_pixels, get_random_pixels, get_random_pixels_from_error_map
+from mvdatasets.utils.raycasting import (
+    get_camera_rays,
+    get_points_2d_from_pixels,
+    get_random_pixels,
+    get_random_pixels_from_error_map,
+)
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.config import get_dataset_test_preset
@@ -49,13 +54,13 @@ if __name__ == "__main__":
         scene_name,
         datasets_path,
         point_clouds_paths=pc_paths,
-        splits=["train", "test"]
+        splits=["train", "test"],
     )
 
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
-    
+
     # # resize camera
     # taget_dim = 100
     # min_dim = min(camera.width, camera.height)
@@ -68,64 +73,58 @@ if __name__ == "__main__":
 
     jitter_pixels = False
     nr_rays = 4096
-    
+
     # gen rays (uniform sampling)
     for i in range(10000):
         profiler.start("uniform_sampling")
-        pixels = get_random_pixels(
-            camera.height, camera.width, nr_rays, device=device
+        pixels = get_random_pixels(camera.height, camera.width, nr_rays, device=device)
+        points_2d = get_points_2d_from_pixels(
+            pixels, jitter_pixels, camera.height, camera.width
         )
-        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, camera.height, camera.width)
         rays_o, rays_d, points_2d = get_camera_rays(
             camera, points_2d=points_2d, device=device
         )
         profiler.end("uniform_sampling")
-    
+
     points_2d = points_2d.cpu().numpy()
-    
+
     fig = plot_points_2d_on_image(
-        camera,
-        points_2d[:, [1, 0]],
-        show_ticks=False,
-        figsize=(15, 15)
+        camera, points_2d[:, [1, 0]], show_ticks=False, figsize=(15, 15)
     )
     plt.savefig(
-        os.path.join("plots", "ray_sampling_uniform.png"),
-        transparent=True,
-        dpi=300
+        os.path.join("plots", "ray_sampling_uniform.png"), transparent=True, dpi=300
     )
     plt.close()
-    
+
     # load error map
     error_map_pil = Image.open("tests/assets/error_maps/plushy_test_0.png")
     error_map = image_to_tensor(error_map_pil, device=device)
-    
+
     # gen rays (uniform sampling)
     for i in range(10000):
         profiler.start("error_map_sampling")
         pixels = get_random_pixels_from_error_map(
             error_map, camera.height, camera.width, nr_rays, device=device
         )
-        
-        points_2d = get_points_2d_from_pixels(pixels, jitter_pixels, camera.height, camera.width)
+
+        points_2d = get_points_2d_from_pixels(
+            pixels, jitter_pixels, camera.height, camera.width
+        )
         rays_o, rays_d, points_2d = get_camera_rays(
             camera, points_2d=points_2d, device=device
         )
         profiler.end("error_map_sampling")
-    
+
     points_2d = points_2d.cpu().numpy()
-    
+
     fig = plot_points_2d_on_image(
-        camera,
-        points_2d[:, [1, 0]],
-        show_ticks=False,
-        figsize=(15, 15)
+        camera, points_2d[:, [1, 0]], show_ticks=False, figsize=(15, 15)
     )
     plt.savefig(
         os.path.join("plots", "ray_sampling_error_proportional.png"),
         transparent=True,
-        dpi=300
+        dpi=300,
     )
     plt.close()
-    
+
     profiler.print_avg_times()

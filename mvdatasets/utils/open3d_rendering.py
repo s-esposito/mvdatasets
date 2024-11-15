@@ -70,9 +70,8 @@ def render_o3d_scene(camera, o3d_scene):
     normals = (normals + 1.0) * 0.5
     normals = normals.reshape(camera.height, camera.width, 3)
     normals = normals * hits
-    
+
     geom_ids = ans["geometry_ids"].numpy()
     geom_ids = geom_ids.reshape(camera.height, camera.width, 1)
-    
-    return {"hits": hits, "depth": depth, "normals": normals, "geom_ids": geom_ids}
 
+    return {"hits": hits, "depth": depth, "normals": normals, "geom_ids": geom_ids}

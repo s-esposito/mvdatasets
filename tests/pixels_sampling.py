@@ -50,13 +50,13 @@ if __name__ == "__main__":
         scene_name,
         datasets_path,
         point_clouds_paths=pc_paths,
-        splits=["train", "test"]
+        splits=["train", "test"],
     )
 
     # random camera index
     rand_idx = 2  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["train"][rand_idx])
-    
+
     # resize camera
     taget_dim = 100
     min_dim = min(camera.width, camera.height)
@@ -70,15 +70,12 @@ if __name__ == "__main__":
     # gen rays
     rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=True)
     fig = plot_points_2d_on_image(
-        camera,
-        points_2d[:, [1, 0]],
-        show_ticks=True,
-        figsize=(15, 15)
+        camera, points_2d[:, [1, 0]], show_ticks=True, figsize=(15, 15)
     )
     plt.savefig(
         os.path.join("plots", f"{dataset_name}_screen_space_sampling_jittered.png"),
         transparent=True,
-        dpi=300
+        dpi=300,
     )
     plt.close()
 
@@ -86,14 +83,11 @@ if __name__ == "__main__":
     rays_o, rays_d, points_2d = get_camera_rays(camera, jitter_pixels=False)
 
     fig = plot_points_2d_on_image(
-        camera,
-        points_2d[:, [1, 0]],
-        show_ticks=True,
-        figsize=(15, 15)
+        camera, points_2d[:, [1, 0]], show_ticks=True, figsize=(15, 15)
     )
     plt.savefig(
         os.path.join("plots", f"{dataset_name}_screen_space_sampling.png"),
         transparent=True,
-        dpi=300
+        dpi=300,
     )
     plt.close()

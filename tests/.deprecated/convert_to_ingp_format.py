@@ -22,7 +22,7 @@ from mvdatasets.utils.data_converter import convert_to_ingp_format
 
 
 if __name__ == "__main__":
-    
+
     # Set a random seed for reproducibility
     seed = 42
     torch.manual_seed(seed)
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
-        verbose=True
+        verbose=True,
     )
-    
+
     # convert_to_ingp_format(mv_data, f"/home/stefano/Data/{dataset_name}_ingp")

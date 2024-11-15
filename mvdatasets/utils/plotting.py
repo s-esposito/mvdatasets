@@ -19,8 +19,10 @@ from mvdatasets.utils.raycasting import (
 # def f(azimuth_deg=5):
 #     plot_fn(..., azimuth_deg=azimuth_deg, ...)
 
+
 def _scene_radius_to_scale(scene_radius):
     return scene_radius * 0.1
+
 
 def _scene_radius(poses):
     """
@@ -66,10 +68,20 @@ def _draw_bounding_cube(ax):
             ax.plot3D(*zip(s, e), color="black")
 
 
-def _draw_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_lenght=None, up="z", scene_radius=1.0):
+def _draw_rays(
+    ax,
+    rays_o,
+    rays_d,
+    rgb=None,
+    mask=None,
+    max_nr_rays=None,
+    ray_lenght=None,
+    up="z",
+    scene_radius=1.0,
+):
     if rays_o is None or rays_d is None:
         return
-    
+
     # subsample
     if max_nr_rays is not None:
         if max_nr_rays < rays_o.shape[0]:
@@ -80,10 +92,10 @@ def _draw_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_le
                 rgb = rgb[idx]
             if mask is not None:
                 mask = mask[idx]
-    
+
     if ray_lenght is None:
         ray_lenght = 2 * scene_radius
-    
+
     # draw rays
     for i, (ray_o, ray_d) in enumerate(zip(rays_o, rays_d)):
         start_point = ray_o
@@ -93,25 +105,43 @@ def _draw_rays(ax, rays_o, rays_d, rgb=None, mask=None, max_nr_rays=None, ray_le
         # plot line segment
         ax.plot(
             [start_point[0], end_point[0]],
-            [start_point[1], end_point[1]] if up == "z" else [start_point[2], end_point[2]],
-            [start_point[2], end_point[2]] if up == "z" else [start_point[1], end_point[1]],
+            (
+                [start_point[1], end_point[1]]
+                if up == "z"
+                else [start_point[2], end_point[2]]
+            ),
+            (
+                [start_point[2], end_point[2]]
+                if up == "z"
+                else [start_point[1], end_point[1]]
+            ),
             color=color,
             alpha=0.3 * float(alpha),
         )
 
 
-def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, label=None, max_nr_points=None, up="z", scene_radius=1.0):
+def _draw_point_cloud(
+    ax,
+    points_3d,
+    size=None,
+    color=None,
+    marker=None,
+    label=None,
+    max_nr_points=None,
+    up="z",
+    scene_radius=1.0,
+):
     if points_3d is None:
         return
-    
+
     # subsample
     if max_nr_points is not None:
         if max_nr_points < points_3d.shape[0]:
             idx = np.random.permutation(points_3d.shape[0])[:max_nr_points]
             points_3d = points_3d[idx]
-    
+
     scale = _scene_radius_to_scale(scene_radius)
-    
+
     if color is None:
         # random matplotlib color
         color = np.random.rand(3)
@@ -119,18 +149,34 @@ def _draw_point_cloud(ax, points_3d, size=None, color=None, marker=None, label=N
         size = 10
     if marker is None:
         marker = "o"
-    
+
     # draw points
     if up == "z":
-        ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], s=scale*size, color=color, marker=marker, label=label)
+        ax.scatter(
+            points_3d[:, 0],
+            points_3d[:, 1],
+            points_3d[:, 2],
+            s=scale * size,
+            color=color,
+            marker=marker,
+            label=label,
+        )
     else:  # up = "y"
-        ax.scatter(points_3d[:, 0], points_3d[:, 2], points_3d[:, 1], s=scale*size, color=color, marker=marker, label=label)
+        ax.scatter(
+            points_3d[:, 0],
+            points_3d[:, 2],
+            points_3d[:, 1],
+            s=scale * size,
+            color=color,
+            marker=marker,
+            label=label,
+        )
 
 
 def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     if pose is None:
         return
-    
+
     scale = _scene_radius_to_scale(scene_radius)
 
     # get axis directions (normalized)
@@ -140,10 +186,10 @@ def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     y_dir /= np.linalg.norm(y_dir)
     z_dir = pose[:3, 2]
     z_dir /= np.linalg.norm(z_dir)
-    
+
     # frame center
     pos = pose[:3, 3]
-    
+
     # draw bb frame
     ax.quiver(
         pos[0],  # x
@@ -180,7 +226,7 @@ def _draw_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
         pos[0] + eps,  # x
         pos[1] + eps if up == "z" else pos[2] + eps,  # y
         pos[2] + eps if up == "z" else pos[1] + eps,  # z
-        str(idx)
+        str(idx),
     )
 
 
@@ -191,109 +237,130 @@ def _draw_cartesian_axis(ax, up="z", scene_radius=1.0):
 def _draw_bounding_box(ax, bb, idx=0, up="z", scene_radius=1.0, draw_frame=False):
     if bb is None:
         return
-    
+
     scale = _scene_radius_to_scale(scene_radius)
-    
+
     # draw bounding box
-    segments_indices = np.array([
-        [0, 1],
-        [0, 2],
-        [0, 4],
-        [1, 3],
-        [1, 5],
-        [2, 3],
-        [2, 6],
-        [3, 7],
-        [4, 5],
-        [4, 6],
-        [5, 7],
-        [6, 7]
-    ])
-    
+    segments_indices = np.array(
+        [
+            [0, 1],
+            [0, 2],
+            [0, 4],
+            [1, 3],
+            [1, 5],
+            [2, 3],
+            [2, 6],
+            [3, 7],
+            [4, 5],
+            [4, 6],
+            [5, 7],
+            [6, 7],
+        ]
+    )
+
     # get bb pose
     pose = bb.get_pose()
     pose = pose.cpu().numpy()
-    
+
     # get vertices and pairs of vertices for plotting
     vertices = bb.get_vertices(in_world_space=True)
     vertices = vertices.cpu().numpy()
-    
+
     vertices_pairs = vertices[segments_indices]
-    
+
     if bb.color is not None:
         color = bb.color
     else:
         color = "black"
-    
+
     # visualize min, max vertices
     min_vertex = vertices[0]
     max_vertex = vertices[7]
-    ax.scatter(min_vertex[0], min_vertex[1], min_vertex[2], s=scale*50, color=color, marker="o")
-    ax.scatter(max_vertex[0], max_vertex[1], max_vertex[2], s=scale*50, color=color, marker="o")
-    
+    ax.scatter(
+        min_vertex[0],
+        min_vertex[1],
+        min_vertex[2],
+        s=scale * 50,
+        color=color,
+        marker="o",
+    )
+    ax.scatter(
+        max_vertex[0],
+        max_vertex[1],
+        max_vertex[2],
+        s=scale * 50,
+        color=color,
+        marker="o",
+    )
+
     # plot line segments
     for pair in vertices_pairs:
         ax.plot3D(
             *zip(
                 pair[0] if up == "z" else pair[0][[0, 2, 1]],
-                pair[1] if up == "z" else pair[1][[0, 2, 1]]
+                pair[1] if up == "z" else pair[1][[0, 2, 1]],
             ),
             color=color,
             linewidth=bb.line_width,
             alpha=0.2
         )
-    
+
     if bb.label is not None:
         label = bb.label
     else:
         label = idx
-    
+
     # draw bb frame
     if draw_frame:
         _draw_frame(ax, pose, idx=label, up=up, scene_radius=scene_radius)
 
 
-def _draw_bounding_boxes(ax, bounding_boxes, up="z", scene_radius=1.0, draw_frame=False):
+def _draw_bounding_boxes(
+    ax, bounding_boxes, up="z", scene_radius=1.0, draw_frame=False
+):
     if bounding_boxes is None:
         return
-    
+
     # draw bounding boxes
     for i, bb in enumerate(bounding_boxes):
-        _draw_bounding_box(ax, bb, idx=i, up=up, scene_radius=scene_radius, draw_frame=draw_frame)
+        _draw_bounding_box(
+            ax, bb, idx=i, up=up, scene_radius=scene_radius, draw_frame=draw_frame
+        )
 
 
-def _draw_bounding_sphere(ax, sphere, idx=0, up="z", scene_radius=1.0, draw_frame=False):
+def _draw_bounding_sphere(
+    ax, sphere, idx=0, up="z", scene_radius=1.0, draw_frame=False
+):
     if sphere is None:
         return
-    
+
     # scale = _scene_radius_to_scale(scene_radius)
-    
+
     # draw sphere at origin
     radius = sphere.get_radius()
-    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-    x = np.cos(u)*np.sin(v)*radius
-    y = np.sin(u)*np.sin(v)*radius
-    z = np.cos(v)*radius
+    u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 10j]
+    x = np.cos(u) * np.sin(v) * radius
+    y = np.sin(u) * np.sin(v) * radius
+    z = np.cos(v) * radius
     ax.plot_wireframe(x, y, z, color="black", alpha=0.1)
-    
+
     if sphere.label is not None:
         label = sphere.label
     else:
         label = idx
-    
+
     # get bb pose
     pose = sphere.get_pose()
-    
+
     # draw bb frame
     if draw_frame:
         _draw_frame(ax, pose, idx=label, up=up, scene_radius=scene_radius)
-    
 
 
 def _draw_bounding_spheres(ax, bounding_spheres, up="z", scene_radius=1.0):
     if bounding_spheres is None:
         return
-    
+
     # draw bounding spheres
     for i, sphere in enumerate(bounding_spheres):
         _draw_bounding_sphere(ax, sphere, idx=i, up=up, scene_radius=scene_radius)
@@ -308,64 +375,58 @@ def _draw_image_plane(ax, camera, up="z", scene_radius=1.0):
     # get image plane corner points in 3D
     # from screen coordinates
     corner_points_2d_screen = np.array(
-                                    [
-                                        [0, 0],
-                                        [camera.height, 0],
-                                        [0, camera.width],
-                                        [camera.height, camera.width]
-                                    ]
-                                )
-    
+        [[0, 0], [camera.height, 0], [0, camera.width], [camera.height, camera.width]]
+    )
+
     _, corner_points_d = get_camera_rays_per_points_2d(
         torch.from_numpy(camera.get_pose()).float(),
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
-        torch.from_numpy(corner_points_2d_screen).float()
+        torch.from_numpy(corner_points_2d_screen).float(),
     )
     # normalise to unit length
     corner_points_d = corner_points_d / torch.norm(corner_points_d, dim=1, keepdim=True)
     corner_points_d = corner_points_d.cpu().numpy()
 
     corner_points_3d_world = camera.get_center() + corner_points_d * scale
-    
+
     for i, j in combinations(range(4), 2):
         if up == "z":
             ax.plot3D(
-                        *zip(
-                            corner_points_3d_world[i],
-                            corner_points_3d_world[j]),
-                        color="black",
-                        linewidth=1.0,
-                        alpha=0.5
-                    )
+                *zip(corner_points_3d_world[i], corner_points_3d_world[j]),
+                color="black",
+                linewidth=1.0,
+                alpha=0.5
+            )
         else:
             ax.plot3D(
-                        *zip(
-                            corner_points_3d_world[:, [0, 2, 1]][i],
-                            corner_points_3d_world[:, [0, 2, 1]][j]),
-                        color="black",
-                        linewidth=1.0,
-                        alpha=0.5
-                    )
+                *zip(
+                    corner_points_3d_world[:, [0, 2, 1]][i],
+                    corner_points_3d_world[:, [0, 2, 1]][j],
+                ),
+                color="black",
+                linewidth=1.0,
+                alpha=0.5
+            )
 
 
 def _draw_contraction_spheres(ax):
-    
+
     # draw sphere at origin
     radius = 1.0
-    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-    x = np.cos(u)*np.sin(v)*radius
-    y = np.sin(u)*np.sin(v)*radius
-    z = np.cos(v)*radius
+    u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 10j]
+    x = np.cos(u) * np.sin(v) * radius
+    y = np.sin(u) * np.sin(v) * radius
+    z = np.cos(v) * radius
     ax.plot_wireframe(x, y, z, color="orange", alpha=0.1)
-    
+
     # draw sphere at origin
     radius = 0.5
-    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-    x = np.cos(u)*np.sin(v)*radius
-    y = np.sin(u)*np.sin(v)*radius
-    z = np.cos(v)*radius
+    u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 10j]
+    x = np.cos(u) * np.sin(v) * radius
+    y = np.sin(u) * np.sin(v) * radius
+    z = np.cos(v) * radius
     ax.plot_wireframe(x, y, z, color="orange", alpha=0.1)
-    
+
 
 def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
     if camera is None:
@@ -374,18 +435,13 @@ def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
     # get image plane corner points in 3D
     # from screen coordinates
     image_plane_vertices_2d = np.array(
-                                    [
-                                        [0, 0],
-                                        [camera.height, 0],
-                                        [0, camera.width],
-                                        [camera.height, camera.width]
-                                    ]
-                                )
-    
+        [[0, 0], [camera.height, 0], [0, camera.width], [camera.height, camera.width]]
+    )
+
     rays_o, rays_d = get_camera_rays_per_points_2d(
         torch.from_numpy(camera.get_pose()).float(),
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
-        torch.from_numpy(image_plane_vertices_2d).float()
+        torch.from_numpy(image_plane_vertices_2d).float(),
     )
     # normalise to unit length
     rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
@@ -398,16 +454,16 @@ def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
         rays_d,
         rgb=np.zeros((rays_o.shape[0], 3)),
         up=up,
-        scene_radius=scene_radius
+        scene_radius=scene_radius,
     )
 
 
 def _draw_camera_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     if pose is None:
         return
-    
+
     scale = _scene_radius_to_scale(scene_radius)
-    
+
     # get axis directions (normalized)
     x_dir = pose[:3, 0]
     x_dir /= np.linalg.norm(x_dir)
@@ -417,7 +473,7 @@ def _draw_camera_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
     z_dir /= np.linalg.norm(z_dir)
     # frame center
     pos = pose[:3, 3]
-    
+
     # draw camera frame
     ax.quiver(
         pos[0],  # x
@@ -453,27 +509,27 @@ def _draw_camera_frame(ax, pose, idx=0, up="z", scene_radius=1.0):
         pos[0],  # x
         pos[1] if up == "z" else pos[2],  # y
         pos[2] if up == "z" else pos[1],  # z
-        str(idx)
+        str(idx),
     )
-    
 
-def _draw_point_clouds(
-    ax,
-    point_clouds,
-    max_nr_points=1000,
-    up="z",
-    scene_radius=1.0
-):
+
+def _draw_point_clouds(ax, point_clouds, max_nr_points=1000, up="z", scene_radius=1.0):
     if not isinstance(point_clouds, list):
         point_clouds_ = [point_clouds]
     else:
         point_clouds_ = point_clouds
-    
+
     if len(point_clouds_) > 0:
         max_nr_points_per_pc = max_nr_points // len(point_clouds_)
         for pc in point_clouds_:
             if max_nr_points_per_pc > 0:
-                _draw_point_cloud(ax, pc, max_nr_points=max_nr_points_per_pc, up=up, scene_radius=scene_radius)
+                _draw_point_cloud(
+                    ax,
+                    pc,
+                    max_nr_points=max_nr_points_per_pc,
+                    up=up,
+                    scene_radius=scene_radius,
+                )
 
 
 def _draw_cameras(
@@ -483,27 +539,35 @@ def _draw_cameras(
     up="z",
     scene_radius=1.0,
     draw_image_planes=True,
-    draw_cameras_frustums=True
+    draw_cameras_frustums=True,
 ):
     if not isinstance(cameras, list):
         cameras_ = [cameras]
     else:
         cameras_ = cameras
-    
+
     if len(cameras_) > 0:
         nr_rays_per_camera = nr_rays // len(cameras_)
-        
+
         # draw camera frames
         for camera in cameras_:
             pose = camera.get_pose()
             camera_idx = camera.camera_idx
-            _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
+            _draw_camera_frame(
+                ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius
+            )
             if draw_image_planes:
                 _draw_image_plane(ax, camera, up=up, scene_radius=scene_radius)
             if draw_cameras_frustums:
                 _draw_frustum(ax, camera, up=up, scene_radius=scene_radius)
             if nr_rays_per_camera > 0:
-                _draw_camera_rays(ax, camera, nr_rays=nr_rays_per_camera, up=up, scene_radius=scene_radius)
+                _draw_camera_rays(
+                    ax,
+                    camera,
+                    nr_rays=nr_rays_per_camera,
+                    up=up,
+                    scene_radius=scene_radius,
+                )
 
 
 def plot_cameras(
@@ -523,7 +587,7 @@ def plot_cameras(
     draw_cameras_frustums=False,
     draw_contraction_spheres=False,
     figsize=(15, 15),
-    title=None
+    title=None,
 ):
     """
     out:
@@ -548,14 +612,21 @@ def plot_cameras(
         scene_radius=scene_radius,
         up=up,
         elevation_deg=elevation_deg,
-        azimuth_deg=azimuth_deg
+        azimuth_deg=azimuth_deg,
     )
 
     if draw_origin:
         _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
 
     # draw points
-    _draw_point_cloud(ax, points_3d, color=points_3d_color, max_nr_points=1000, up=up, scene_radius=scene_radius)
+    _draw_point_cloud(
+        ax,
+        points_3d,
+        color=points_3d_color,
+        max_nr_points=1000,
+        up=up,
+        scene_radius=scene_radius,
+    )
 
     # draw bounding cube
     if draw_bounding_cube:
@@ -569,18 +640,18 @@ def plot_cameras(
         up=up,
         scene_radius=scene_radius,
         draw_image_planes=draw_image_planes,
-        draw_cameras_frustums=draw_cameras_frustums
+        draw_cameras_frustums=draw_cameras_frustums,
     )
-    
+
     # plot bounding boxes (if given)
     _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
-    
+
     # plot bounding sphere (if given)
     _draw_bounding_spheres(ax, bounding_spheres, up=up, scene_radius=scene_radius)
 
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)
-    
+
     return fig
 
 
@@ -596,7 +667,7 @@ def plot_bounding_boxes(
     draw_origin=True,
     draw_frame=False,
     figsize=(15, 15),
-    title=None
+    title=None,
 ):
     """
     out:
@@ -616,28 +687,26 @@ def plot_bounding_boxes(
         scene_radius=scene_radius,
         up=up,
         elevation_deg=elevation_deg,
-        azimuth_deg=azimuth_deg
+        azimuth_deg=azimuth_deg,
     )
 
     # draw world origin
     if draw_origin:
         _draw_cartesian_axis(ax, up=up, scene_radius=scene_radius)
-    
+
     # plot bounding boxes (if given)
     _draw_bounding_boxes(
-        ax,
-        bounding_boxes,
-        up=up,
-        scene_radius=scene_radius,
-        draw_frame=draw_frame
+        ax, bounding_boxes, up=up, scene_radius=scene_radius, draw_frame=draw_frame
     )
-    
+
     # draw points
-    _draw_point_clouds(ax, point_clouds, max_nr_points=max_nr_points, up=up, scene_radius=scene_radius)
-    
+    _draw_point_clouds(
+        ax, point_clouds, max_nr_points=max_nr_points, up=up, scene_radius=scene_radius
+    )
+
     # draw cameras
     _draw_cameras(ax, cameras, up=up, scene_radius=scene_radius)
-    
+
     return fig
 
 
@@ -654,7 +723,7 @@ def _draw_camera_rays(
     rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
-    
+
     if not camera.has_rgbs():
         # color rays with their uv coordinates
         xy = points_2d[:, [1, 0]]
@@ -667,7 +736,7 @@ def _draw_camera_rays(
         rgb = camera.get_rgb(frame_idx=frame_idx)
         vals = get_camera_frames_per_points_2d(points_2d, rgb=rgb)
         rgb = vals["rgb"]
-        
+
     if not camera.has_masks():
         # set to ones
         mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
@@ -685,7 +754,7 @@ def _draw_camera_rays(
         mask=mask,
         max_nr_rays=nr_rays,
         up=up,
-        scene_radius=scene_radius
+        scene_radius=scene_radius,
     )
 
 
@@ -704,7 +773,7 @@ def plot_current_batch(
     draw_origin=True,
     draw_bounding_cube=True,
     figsize=(15, 15),
-    title=None
+    title=None,
 ):
     """
     out:
@@ -732,7 +801,7 @@ def plot_current_batch(
 
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)
-    
+
     # get all unique camera poses
     poses = []
     for idx in unique_cameras_idx:
@@ -748,7 +817,7 @@ def plot_current_batch(
         scene_radius=scene_radius,
         up=up,
         elevation_deg=elevation_deg,
-        azimuth_deg=azimuth_deg
+        azimuth_deg=azimuth_deg,
     )
 
     if draw_origin:
@@ -761,7 +830,7 @@ def plot_current_batch(
     # plot unique camera poses
     for pose, camera_idx in zip(poses, unique_cameras_idx):
         _draw_camera_frame(ax, pose, idx=camera_idx, up=up, scene_radius=scene_radius)
-    
+
     # draw rays
     _draw_rays(
         ax,
@@ -771,9 +840,9 @@ def plot_current_batch(
         mask=mask,
         max_nr_rays=None,
         up=up,
-        scene_radius=scene_radius
+        scene_radius=scene_radius,
     )
-    
+
     # plot bounding boxes (if given)
     _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
 
@@ -787,7 +856,7 @@ def plot_points_2d_on_image(
     frame_idx=0,
     show_ticks=False,
     figsize=(15, 15),
-    title=None
+    title=None,
 ):
     """
 
@@ -801,33 +870,33 @@ def plot_points_2d_on_image(
     """
     if not camera.has_rgbs():
         raise ValueError("camera has no rgb modality")
-    
+
     rgb = camera.get_rgb(frame_idx=frame_idx) / 255.0
     mask = None
     if camera.has_masks():
         mask = camera.get_mask(frame_idx=frame_idx) / 255.0
         rgb = rgb * np.clip(mask + 0.2, 0, 1)
     # print("rgb", rgb.shape)
-    
+
     # init figure
     fig = plt.figure(figsize=figsize)
     if title is not None:
         fig.suptitle(title)
-        
+
     plt.imshow(rgb, alpha=0.8, resample=True)
-    
+
     # filter out points outside image range
     points_mask = points_2d[:, 0] >= 0
     points_mask *= points_2d[:, 1] >= 0
     points_mask *= points_2d[:, 0] < camera.width
     points_mask *= points_2d[:, 1] < camera.height
     points_2d = points_2d[points_mask]
-    
+
     if points_norms is not None:
         points_norms = points_norms[points_mask]
         print("min dist", np.min(points_norms))
         print("max dist", np.max(points_norms))
-    
+
     # points_2d = points_2d[points_2d[:, 0] >= 0]
     # points_2d = points_2d[points_2d[:, 1] >= 0]
     # points_2d = points_2d[points_2d[:, 0] < camera.width]
@@ -840,24 +909,31 @@ def plot_points_2d_on_image(
     else:
         # apply cmap to points norms
         from matplotlib import cm
+
         norm = plt.Normalize(vmin=np.min(points_norms), vmax=np.max(points_norms))
         cmap = cm.get_cmap("jet")
         rgb = cmap(norm(points_norms))
     points_2d -= 0.5  # to avoid imshow shift
     plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
-    
+
     if show_ticks:
         plt.xticks(np.arange(-0.5, camera.width, 1), minor=True)
         plt.yticks(np.arange(-0.5, camera.height, 1), minor=True)
-        plt.xticks(np.arange(-0.5, camera.width, 20), labels=np.arange(0.0, camera.width+1, 20))
-        plt.yticks(np.arange(-0.5, camera.height, 20), labels=np.arange(0.0, camera.height+1, 20))
+        plt.xticks(
+            np.arange(-0.5, camera.width, 20),
+            labels=np.arange(0.0, camera.width + 1, 20),
+        )
+        plt.yticks(
+            np.arange(-0.5, camera.height, 20),
+            labels=np.arange(0.0, camera.height + 1, 20),
+        )
         plt.grid(which="minor", alpha=0.2)
         plt.grid(which="major", alpha=0.2)
-    
+
     # if points_norms is not None:
     #     plt.colorbar()
-    
+
     plt.xlabel("x")
     plt.ylabel("y")
 
@@ -869,7 +945,7 @@ def plot_rays_samples(
     rays_d,
     t_near,
     t_far,
-    camera = None,
+    camera=None,
     bounding_boxes=[],
     bounding_spheres=[],
     points_samples=[],
@@ -884,20 +960,26 @@ def plot_rays_samples(
     draw_contraction_spheres=True,
     draw_near_far_points=True,
     figsize=(15, 15),
-    title=None
+    title=None,
 ):
     """
     out:
         matplotlib figure
     """
-    
+
     if not (up == "z" or up == "y"):
         raise ValueError("up must be either 'y' or 'z'")
 
-    assert rays_o.shape[0] == rays_d.shape[0], "ray_o and ray_d must have the same length"
-    assert t_near.shape[0] == t_far.shape[0], "t_near and t_far must have the same length"
-    assert rays_o.shape[0] == t_near.shape[0], "ray_o and t_near must have the same length"
-    
+    assert (
+        rays_o.shape[0] == rays_d.shape[0]
+    ), "ray_o and ray_d must have the same length"
+    assert (
+        t_near.shape[0] == t_far.shape[0]
+    ), "t_near and t_far must have the same length"
+    assert (
+        rays_o.shape[0] == t_near.shape[0]
+    ), "ray_o and t_near must have the same length"
+
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111, projection="3d")
@@ -908,7 +990,7 @@ def plot_rays_samples(
         scene_radius=scene_radius,
         up=up,
         elevation_deg=elevation_deg,
-        azimuth_deg=azimuth_deg
+        azimuth_deg=azimuth_deg,
     )
 
     if draw_origin:
@@ -916,44 +998,43 @@ def plot_rays_samples(
 
     # draw camera
     if camera is not None:
-        _draw_cameras(ax, [camera], up=up, scene_radius=scene_radius, draw_image_planes=True, draw_cameras_frustums=True)
+        _draw_cameras(
+            ax,
+            [camera],
+            up=up,
+            scene_radius=scene_radius,
+            draw_image_planes=True,
+            draw_cameras_frustums=True,
+        )
 
     # plot bounding box
     for bb in bounding_boxes:
-        _draw_bounding_box(
-            ax,
-            bb,
-            up=up,
-            scene_radius=scene_radius,
-            draw_frame=False
-        )
-        
+        _draw_bounding_box(ax, bb, up=up, scene_radius=scene_radius, draw_frame=False)
+
     # plot bounding spheres
     for sphere in bounding_spheres:
         _draw_bounding_sphere(
-            ax,
-            sphere,
-            up=up,
-            scene_radius=scene_radius,
-            draw_frame=False
+            ax, sphere, up=up, scene_radius=scene_radius, draw_frame=False
         )
-    
+
     if draw_near_far_points:
         # draw t_near, t_far points
         p_near = rays_o + rays_d * t_near
         p_far = rays_o + rays_d * t_far
-        
+
         # edge case of a single ray
         if p_near.dim() == 1:
             p_near = p_near.unsqueeze(1)
             p_far = p_far.unsqueeze(1)
-        
+
         rays_o = rays_o.cpu().numpy()
         rays_d = rays_d.cpu().numpy()
         p_near = p_near.cpu().numpy()
         p_far = p_far.cpu().numpy()
-        
-        p_boundaries = np.concatenate([p_near[:, np.newaxis, :], p_far[:, np.newaxis, :]], axis=1)
+
+        p_boundaries = np.concatenate(
+            [p_near[:, np.newaxis, :], p_far[:, np.newaxis, :]], axis=1
+        )
 
         for i in range(p_boundaries.shape[0]):
             # draw t_near, t_far points
@@ -964,27 +1045,33 @@ def plot_rays_samples(
                 color="black",
                 marker="x",
                 up=up,
-                scene_radius=scene_radius
+                scene_radius=scene_radius,
             )
-    
+
     # draw points
     for i, samples in enumerate(points_samples):
-        
+
         size = None
         if len(points_samples_sizes) > 0:
-            assert len(points_samples) == len(points_samples_sizes), "points_samples and points_samples_sizes must have the same length"
+            assert len(points_samples) == len(
+                points_samples_sizes
+            ), "points_samples and points_samples_sizes must have the same length"
             size = points_samples_sizes[i]
-        
+
         color = None
         if len(points_samples_colors) > 0:
-            assert len(points_samples) == len(points_samples_colors), "points_samples and points_samples_colors must have the same length"
+            assert len(points_samples) == len(
+                points_samples_colors
+            ), "points_samples and points_samples_colors must have the same length"
             color = points_samples_colors[i]
-            
+
         label = None
         if len(points_samples_labels) > 0:
-            assert len(points_samples) == len(points_samples_labels), "points_samples and points_samples_labels must have the same length"
+            assert len(points_samples) == len(
+                points_samples_labels
+            ), "points_samples and points_samples_labels must have the same length"
             label = points_samples_labels[i]
-        
+
         # draw sampling points
         _draw_point_cloud(
             ax,
@@ -993,7 +1080,7 @@ def plot_rays_samples(
             color=color,
             up=up,
             scene_radius=scene_radius,
-            label=label
+            label=label,
         )
 
     if draw_contraction_spheres:

@@ -137,5 +137,5 @@ def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
     # TODO: update code after latest changes
     cameras_splits = {"train": cameras, "test": cameras}
     global_transform = None
-    
+
     return cameras_splits, global_transform
