@@ -141,6 +141,28 @@ def rot_x_3d(theta, device=None):
             device=device,
             dtype=torch.float32,
         )
+def rot_x_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ], 
+            dtype=np.float32
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
 
 
 def rot_y_3d(theta, device=None):
@@ -165,8 +187,62 @@ def rot_y_3d(theta, device=None):
             device=device,
             dtype=torch.float32,
         )
+def rot_y_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ],
+            dtype=np.float32,
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
 
 
+def rot_z_3d(theta, device=None):
+    if device is None:
+        # numpy
+        return np.array(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ],
+            dtype=np.float32,
+        )
+    else:
+        # torch
+        return torch.tensor(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
+
+
+def rot_euler_3d(theta_x, theta_y, theta_z, device=None):
+    """angles are in radians"""
+    return rot_z_3d(theta_z, device) @ rot_y_3d(theta_y, device) @ rot_x_3d(theta_x, device)
+
+
+def rot_euler_3d_deg(theta_x, theta_y, theta_z, device=None):
+    """angles are in degrees"""
+    return rot_euler_3d(deg2rad(theta_x), deg2rad(theta_y), deg2rad(theta_z), device)
 def rot_z_3d(theta, device=None):
     if device is None:
         # numpy
