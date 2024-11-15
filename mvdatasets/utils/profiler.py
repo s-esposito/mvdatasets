@@ -96,6 +96,3 @@ class Profiler:
         for name, state in processed.items():
             print(f"{name} took {state['avg']} s")
         print("")
-
-
-# profiler = Profiler(verbose=True)

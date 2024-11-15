@@ -4,6 +4,7 @@ import numpy as np
 
 # from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.geometry import deg2rad
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 def _intersect_sphere(rays_o, rays_d, center, radius):
@@ -92,12 +93,15 @@ class BoundingSphere:
 
         Args:
             pose (np.ndarray, optional): Defaults to np.eye(4).
-            local_scale (np.ndarray, optional): Defaults to np.array([1, 1, 1]).
+            local_scale (int, float or np.ndarray, optional): Defaults to np.array([1, 1, 1]).
             label (str, optional): Defaults to None.
             color (str, optional): Defaults to None.
             line_width (float, optional): Defaults to 1.0.
             device (str, optional): Defaults to "cpu".
         """
+        
+        if isinstance(local_scale, (int, float)):
+            local_scale = np.array([local_scale, local_scale, local_scale])
         
         assert local_scale.shape == (3,)
         assert local_scale[0] == local_scale[1] == local_scale[2], "only isotropic scaling is currently supported for spheres"
@@ -197,4 +201,4 @@ class BoundingSphere:
         return (points_norm < self.get_radius())
     
     def save_as_ply():
-        print("[bold yellow]WARNING[/bold yellow]: saving as ply is not currently supported for BoundingSphere")
+        print_error("saving as ply is not currently implemented for BoundingSphere")

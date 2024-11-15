@@ -11,7 +11,7 @@ from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.open3d_rendering import render_o3d_scene
 from mvdatasets.utils.geometry import apply_transformation_3d
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 
 if __name__ == "__main__":
 

@@ -7,9 +7,10 @@ from mvdatasets.loaders.ingp import load_ingp
 from mvdatasets.loaders.dmsr import load_dmsr
 from mvdatasets.loaders.llff import load_llff
 from mvdatasets.utils.point_clouds import load_point_clouds
-from mvdatasets.utils.common import is_dataset_supported
+from mvdatasets.config import is_dataset_supported
 from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.contraction import contract_points
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 def get_poses_all(cameras):
@@ -53,20 +54,17 @@ class MVDataset:
 
         # check if path exists
         if not os.path.exists(data_path):
-            print(f"[bold red]ERROR[/bold red]: data path {data_path} does not exist")
-            exit(1)
+            print_error(f"data path {data_path} does not exist")
 
         # load scene cameras
         if splits is None:
             splits = ["all"]
         elif "train" not in splits and "test" not in splits:
-            print("[bold red]ERROR[/bold red]: splits must contain at least one of 'train' or 'test'")
-            exit(1)
+            print_error("splits must contain at least one of 'train' or 'test'")
 
         # check if dataset is supported
         if not is_dataset_supported(dataset_name):
-            print(f"[bold red]ERROR[/bold red]: dataset {dataset_name} is not supported")
-            exit(1)
+            print_error(f"dataset {dataset_name} is not supported")
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
@@ -121,10 +119,6 @@ class MVDataset:
                 verbose=verbose
             )
         
-        # TODO: load multiface
-        
-        # TODO: load bmvs
-        
         # load llff
         # load mipnerf360
         elif (
@@ -137,10 +131,6 @@ class MVDataset:
                 config,
                 verbose=verbose
             )
-        
-        # TODO: load tanks_and_temples
-        
-        # TODO: ...
             
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
@@ -202,7 +192,7 @@ class MVDataset:
                     print(f"loaded {len(self.point_clouds)} point clouds")
         else:
             if len(point_clouds_paths) > 0:
-                print("[bold yellow]WARNING[/bold yellow]: point_clouds_paths will be ignored")
+                print_warning("point_clouds_paths will be ignored")
         
         transformed_point_clouds = []
         for point_cloud in self.point_clouds:
@@ -213,52 +203,11 @@ class MVDataset:
             #     pc = contract_points(pc)
             transformed_point_clouds.append(pc)
         self.point_clouds = transformed_point_clouds
-        
-        # TODO: (optional) load meshes
-        # if len(meshes_paths) > 0:
-        #     # TODO: load meshes
-        #     self.meshes = []
-        #     print(f"loaded {len(self.meshes)} meshes")
-        # else:
-        #     self.meshes = []
-
-        # # align and center poses
-        cameras_all = []
-        for split, cameras_list in cameras_splits.items():
-            cameras_all += cameras_list
-        
-        # transform = auto_orient_and_center_poses(
-        #     poses_all,
-        #     method=auto_orient_method,
-        #     center_method=auto_center_method,
-        # )
-
-        # for camera in cameras_all:
-        #     camera.concat_global_transform(transform)
-
-        # # scale poses
-        # if self.auto_scale_poses:
-        #     scale_factor = float(
-        #         torch.max(torch.abs(get_poses_all(cameras_all)[:, :3, 3]))
-        #     )
-        #     transform = torch.eye(4)
-        #     transform[3, 3] = scale_factor
-        #     for camera in cameras_all:
-        #         camera.concat_global_transform(transform)
-
-        # # bouding primitives
-        # if bounding_primitive == "sphere":
-        #     bouding_privimitive = Sphere()
-        # else:
-        #     bounding_primitive = AABB()
-
-        # TODO: compute t_near, t_far by casting rays from all cameras,
-        # intersecting with AABB [-1, 1] and returning min/max t
-        # t_near, t_far = calculate_t_near_t_far(cameras_all, bouding_privimitive)
 
         # split data into train and test (or keep the all set)
         self.data = cameras_splits
         
+        # printing
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
                     
@@ -284,11 +233,9 @@ class MVDataset:
             if camera_id >= 0 and camera_id < len(self.data[split]):
                 return self.data[split][camera_id].width
             else:
-                print(f"[bold red]ERROR[/bold red]: camera index {camera_id} out of range [0, {len(self.data[split])})")
-                exit(1)
+                print_error(f"camera index {camera_id} out of range [0, {len(self.data[split])})")
         else:
-            print(f"[bold red]ERROR[/bold red]: split {split} does not exist, available splits: {list(self.data.keys())}")
-            exit(1)
+            print_error(f"split {split} does not exist, available splits: {list(self.data.keys())}")
             
     def get_height(self, split="train", camera_id=0):
         """Returns the height of a camera
@@ -304,11 +251,9 @@ class MVDataset:
             if camera_id >= 0 and camera_id < len(self.data[split]):
                 return self.data[split][camera_id].height
             else:
-                print(f"[bold red]ERROR[/bold red]: camera index {camera_id} out of range [0, {len(self.data[split])})")
-                exit(1)
+                print_error(f"camera index {camera_id} out of range [0, {len(self.data[split])})")
         else:
-            print(f"[bold red]ERROR[/bold red]: split {split} does not exist, available splits: {list(self.data.keys())}")
-            exit(1)
+            print_error(f"split {split} does not exist, available splits: {list(self.data.keys())}")
             
     def get_resolution(self, split="train", camera_id=0):
         """Returns the resolution (width, height) of a camera
@@ -324,65 +269,3 @@ class MVDataset:
                     
     def __getitem__(self, split):
         return self.data[split]
-
-
-
-
-# def auto_orient_and_center_poses(
-#     poses,
-#     method="up",  # "up", "none"
-#     center_method="focus",  # "poses", "focus", "none"
-# ):
-#     """Orients and centers the poses.
-
-#     We provide three methods for orientation:
-
-#     - up: Orient the poses so that the average up vector is aligned with the z axis.
-#         This method works well when images are not at arbitrary angles.
-
-#     There are two centering methods:
-
-#     - poses: The poses are centered around the origin.
-#     - focus: The origin is set to the focus of attention of all cameras (the
-#         closest point to cameras optical axes). Recommended for inward-looking
-#         camera configurations.
-
-#     Args:
-#         poses: The poses to orient.
-#         method: The method to use for orientation.
-#         center_method: The method to use to center the poses.
-
-#     Returns:
-#         Tuple of the oriented poses and the transform matrix.
-#     """
-
-#     origins = poses[..., :3, 3]
-
-#     mean_origin = torch.mean(origins, dim=0)
-#     # translation_diff = origins - mean_origin
-
-#     if center_method == "poses":
-#         translation = mean_origin
-#     # elif center_method == "focus":
-#     #     translation = focus_of_attention(poses, mean_origin)
-#     elif center_method == "none":
-#         translation = torch.zeros_like(mean_origin)
-#     else:
-#         raise ValueError(f"Unknown value for center_method: {center_method}")
-
-#     if method == "up":
-#         up = torch.mean(poses[:, :3, 1], dim=0)
-#         up = up / torch.linalg.norm(up)
-#         rotation = rotation_matrix(up.cpu().numpy(), np.array([0, 0, 1.0]))
-#         rotation = torch.from_numpy(rotation)
-#         # transform = torch.cat([rotation, rotation @ -translation[..., None]], dim=-1)
-#         transform = torch.eye(4)
-#         transform[:3, :3] = rotation
-#         transform[:3, 3] = -rotation @ -translation
-#     elif method == "none":
-#         transform = torch.eye(4)
-#         transform[:3, 3] = -translation
-#     else:
-#         raise ValueError(f"Unknown value for method: {method}")
-
-#     return transform

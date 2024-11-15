@@ -67,13 +67,16 @@ class BoundingBox:
 
         Args:
             pose (np.ndarray, optional): Defaults to np.eye(4).
-            local_scale (np.ndarray, optional): Defaults to np.array([1, 1, 1]).
+            local_scale (int, float or np.ndarray, optional): Defaults to np.array([1, 1, 1]).
             father_bb (BoundingBox, optional): Defaults to None.
             label (str, optional): Defaults to None.
             color (str, optional): Defaults to None.
             line_width (float, optional): Defaults to 1.0.
             device (str, optional): Defaults to "cpu".
         """
+        
+        if isinstance(local_scale, (int, float)):
+            local_scale = np.array([local_scale, local_scale, local_scale])
         
         assert local_scale.shape == (3,)
         

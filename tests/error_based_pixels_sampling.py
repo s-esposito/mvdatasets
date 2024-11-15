@@ -14,8 +14,9 @@ from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import get_camera_rays, get_points_2d_from_pixels, get_random_pixels, get_random_pixels_from_error_map
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.common import get_dataset_test_preset
-from mvdatasets.utils.images import numpy2image, image2tensor
+from mvdatasets.config import get_dataset_test_preset
+from mvdatasets.utils.images import numpy_to_image, image_to_tensor
+from mvdatasets.config import datasets_path
 
 
 if __name__ == "__main__":
@@ -38,9 +39,6 @@ if __name__ == "__main__":
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
 
     dataset_name = "blendernerf"
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
@@ -99,8 +97,8 @@ if __name__ == "__main__":
     plt.close()
     
     # load error map
-    error_map_pil = Image.open("debug/error_maps/plushy_test_0.png")
-    error_map = image2tensor(error_map_pil, device=device)
+    error_map_pil = Image.open("tests/assets/error_maps/plushy_test_0.png")
+    error_map = image_to_tensor(error_map_pil, device=device)
     
     # gen rays (uniform sampling)
     for i in range(10000):

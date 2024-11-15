@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.utils.bounding_sphere import BoundingSphere
 from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
@@ -35,10 +35,10 @@ if __name__ == "__main__":
         torch.cuda.manual_seed(seed)  # Set a random seed for GPU
     else:
         device = "cpu"
-    # torch.set_default_device(device)
+    torch.set_default_device(device)
 
     # Set default tensor type
-    # torch.set_default_dtype(torch.float32)
+    torch.set_default_dtype(torch.float32)
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
@@ -70,17 +70,10 @@ if __name__ == "__main__":
 
     sphere = BoundingSphere(
         pose=np.eye(4),
-        local_scale=np.array([0.4, 0.4, 0.4]),
+        local_scale=0.4,
         device=device
     )
     bounding_spheres.append(sphere)
-    
-    # points = sphere.get_random_points_inside(1000)
-    # # get points norm
-    # points_norm = torch.norm(points, dim=1)
-    # print("min norm", torch.min(points_norm))
-    # print("max norm", torch.max(points_norm))
-    # print("points", points)
     
     # shoot rays from camera and intersect with boxes
     rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
@@ -89,13 +82,7 @@ if __name__ == "__main__":
     for i, bb in enumerate(bounding_spheres):
         is_hit, t_near, t_far, p_near, p_far = bb.intersect(rays_o, rays_d)
         intersections.append([is_hit, t_near, t_far, p_near, p_far])
-        print(f"is {i} sphere hit?", np.any(is_hit.cpu().numpy()))
-    
-    # points_3d = []
-    # for (is_hit, _, _, p_near, p_far) in intersections:
-    #     points_3d.append(p_near[is_hit].cpu().numpy())
-    #     points_3d.append(p_far[is_hit].cpu().numpy())
-    # points_3d = np.concatenate(points_3d, axis=0)
+        print(f"is sphere {i} hit?", np.any(is_hit.cpu().numpy()))
     
     near_depth = np.ones((height, width)).flatten() * np.inf
     far_depth = np.ones((height, width)).flatten() * np.inf

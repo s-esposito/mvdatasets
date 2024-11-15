@@ -1,3 +1,9 @@
+from mvdatasets.utils.printing import print_error
+
+
+datasets_path = "/home/stefano/Data"
+
+
 def is_dataset_supported(dataset_name):
     datasets_supported = [
                             "dtu",
@@ -20,19 +26,20 @@ def is_dataset_supported(dataset_name):
 def get_dataset_test_preset(dataset_name):
 
     if not is_dataset_supported(dataset_name):
-        print(f"[bold red]ERROR[/bold red]: {dataset_name} is not a supported dataset.")
-        exit(1)
+        print_error(f"{dataset_name} is not a supported dataset.")
     
     # test DTU
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
-        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        # dataset specific config
         config = {}
 
     # test blender
     if dataset_name == "blender":
         scene_name = "lego"
-        pc_paths = ["debug/point_clouds/blender/lego.ply"]
+        pc_paths = ["tests/assets/point_clouds/blender/lego.ply"]
+        # dataset specific config
         config = {
             "test_skip": 20,
         }
@@ -40,7 +47,8 @@ def get_dataset_test_preset(dataset_name):
     # test shelly
     if dataset_name == "shelly":
         scene_name = "khady"
-        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        # dataset specific config
         config = {
             "test_skip": 4,
             "init_sphere_scale": 0.2
@@ -49,7 +57,8 @@ def get_dataset_test_preset(dataset_name):
     # test blendernerf
     if dataset_name == "blendernerf":
         scene_name = "plushy"
-        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        # dataset specific config
         config = {
             "test_skip": 10,
         }
@@ -57,7 +66,8 @@ def get_dataset_test_preset(dataset_name):
     # test dmsr
     if dataset_name == "dmsr":
         scene_name = "dinning"
-        pc_paths = [f"debug/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        # dataset specific config
         config = {
             "test_skip": 5,
         }
@@ -66,6 +76,7 @@ def get_dataset_test_preset(dataset_name):
     if dataset_name == "refnerf":
         scene_name = "car"
         pc_paths = []
+        # dataset specific config
         config = {
             "test_skip": 10,
         }
@@ -74,22 +85,22 @@ def get_dataset_test_preset(dataset_name):
     if dataset_name == "ingp":
         scene_name = "fox"
         pc_paths = []
+        # dataset specific config
         config = {}
         
     # test llff
     if dataset_name == "llff":
         scene_name = "fern"
-        pc_paths = ["debug/point_clouds/llff/fern.ply"]
+        pc_paths = ["tests/assets/point_clouds/llff/fern.ply"]
+        # dataset specific config
         config = {
             "scene_type": "forward_facing",
         }
     
     # test mipnerf360
     if dataset_name == "mipnerf360":
-        # "bicycle", "garden", "bonsai", "counter", "kitchen", "room", "stump" 
         scene_name = "garden"
         pc_paths = []
-        # pc_paths = ["debug/point_clouds/mipnerf360/garden.ply"]
         
         # dataset specific config
         config = {
@@ -99,37 +110,30 @@ def get_dataset_test_preset(dataset_name):
         
         # scene specific config
         if scene_name == "bicycle":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -104
             config["translate_scene_z"] = 0.1
             
         if scene_name == "garden":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -120
             config["translate_scene_z"] = 0.2
             
         if scene_name == "bonsai":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -130
             config["translate_scene_z"] = 0.25
             
         if scene_name == "counter":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -125
             config["translate_scene_y"] = -0.1
             config["translate_scene_z"] = 0.25
             
         if scene_name == "kitchen":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -130
             config["translate_scene_z"] = 0.2
             
         if scene_name == "room":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -115
             
         if scene_name == "stump":
-            # config["init_sphere_scale"] = 0.2
             config["rotate_scene_x_axis_deg"] = -137
             config["translate_scene_z"] = 0.25
     

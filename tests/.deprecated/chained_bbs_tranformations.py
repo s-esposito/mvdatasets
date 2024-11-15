@@ -15,18 +15,18 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from mvdatasets.utils.plotting import plot_bounding_boxes
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.bounding_box import BoundingBox
 from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.point_clouds import load_point_cloud
 from mvdatasets.utils.geometry import apply_transformation_3d
-
+from mvdatasets.config import datasets_path
 
 def test():
     
     # load data
     
-    data_path = "debug/assetsnerf/chair_instance_info.npy"
+    data_path = "tests/assets/assetsnerf/chair.npy"
     data = np.load(data_path, allow_pickle=True).item()
     print(data["chair"].keys())
     
@@ -48,7 +48,7 @@ def test():
     bounding_boxes.append(father_bb)
     
     # load point cloud from ply
-    points_3d = load_point_cloud("debug/assetsnerf/5.ply")
+    points_3d = load_point_cloud("tests/assets/assetsnerf/5.ply")
     point_clouds.append(points_3d)
     
     # test save
@@ -65,7 +65,7 @@ def test():
         )
         bounding_boxes.append(bb)
         # load instance point cloud (in world space)
-        points_3d = load_point_cloud(f"debug/assetsnerf/{bb_key}.ply")
+        points_3d = load_point_cloud(f"tests/assets/assetsnerf/{bb_key}.ply")
         # align to father pc (in world space)
         points_3d = apply_transformation_3d(points_3d, bb_data["transformation"])
         point_clouds.append(points_3d)

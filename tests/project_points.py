@@ -12,8 +12,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.geometry import project_points_3d_to_2d, camera_to_points_3d_distance, unproject_points_2d_to_3d
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
+from mvdatasets.config import datasets_path
+
 
 if __name__ == "__main__":
 
@@ -35,9 +36,6 @@ if __name__ == "__main__":
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
 
     # Get dataset test preset
     
@@ -66,21 +64,21 @@ if __name__ == "__main__":
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
     else:
-        # dataset has not debug point cloud
+        # dataset has not tests/assets point cloud
         exit(0)
         
-    points_2d_s = project_points_3d_to_2d(camera=camera, points_3d=point_cloud)
+    points_2d_s = camera.project_points_3d_to_2d(points_3d=point_cloud)
     print("points_2d_s", points_2d_s.shape)
 
     # 3d points distance from camera center
-    camera_points_dists = camera_to_points_3d_distance(camera, point_cloud)
+    camera_points_dists = camera.camera_to_points_3d_distance(point_cloud)
     print("camera_points_dist", camera_points_dists.shape)
     
     fig = plot_points_2d_on_image(camera, points_2d_s, points_norms=camera_points_dists)
 
     # plt.show()
-    # plt.savefig(os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
-    # plt.close()
+    plt.savefig(os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"), transparent=True, dpi=300)
+    plt.close()
     
     # reproject to 3D
     
@@ -93,10 +91,7 @@ if __name__ == "__main__":
     camera_points_dists = camera_points_dists[points_mask]
     point_cloud = point_cloud[points_mask]
     
-    # points_2d_s[:, [1, 0]]  # pixels have h, w order but we need x, y
-    
-    points_3d = unproject_points_2d_to_3d(camera=camera, points_2d_s=points_2d_s, depth=camera_points_dists[..., np.newaxis])
-    print("points_3d", points_3d.shape)
+    points_3d = camera.unproject_points_2d_to_3d(points_2d_s=points_2d_s, depth=camera_points_dists)
     
     # filter out random number of points
     num_points = 100
@@ -107,9 +102,16 @@ if __name__ == "__main__":
     # visualize 3D points
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(point_cloud[:, 0], point_cloud[:, 1], point_cloud[:, 2], c='r', marker='o')
-    ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], c='b', marker='x')
-    plt.show()
+    ax.scatter(point_cloud[:, 0], point_cloud[:, 1], point_cloud[:, 2], c='r', marker='o', label='point cloud')
+    ax.scatter(points_3d[:, 0], points_3d[:, 1], points_3d[:, 2], c='b', marker='x', label='reprojected points')
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
+    ax.legend()
     
     error = np.mean(np.abs(points_3d - point_cloud))
     print("error", error.item())
+    
+    # plt.show()
+    plt.savefig(os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"), transparent=True, dpi=300)
+    plt.close()

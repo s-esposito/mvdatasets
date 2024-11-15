@@ -17,10 +17,11 @@ from mvdatasets.utils.plotting import plot_cameras
 from mvdatasets.utils.plotting import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.utils.bounding_box import BoundingBox
+from mvdatasets.config import datasets_path
 
 
 if __name__ == "__main__":
@@ -44,14 +45,11 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
-
     # Get dataset test preset
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
     else:
-        dataset_name = "dtu"
+        dataset_name = "blender"
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
@@ -70,7 +68,7 @@ if __name__ == "__main__":
     
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
+        local_scale=mv_data.scene_radius*2,
         line_width=2.0,
         device=device
     )
@@ -120,6 +118,7 @@ if __name__ == "__main__":
         dpi=300
     )
     plt.close()
+    print("saved plot")
     
     # Create tensor reel
     tensor_reel = TensorReel(sampled_cameras, width=width, height=height, device=device)

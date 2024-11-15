@@ -13,7 +13,7 @@ from mvdatasets.utils.plotting import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.bounding_box import BoundingBox
 
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=np.array([mv_data.scene_radius*2, mv_data.scene_radius*2, mv_data.scene_radius*2]),
+        local_scale=mv_data.scene_radius*2,
         line_width=2.0,
         device=device
     )
@@ -101,10 +101,10 @@ if __name__ == "__main__":
         ) = tensor_reel.get_next_rays_batch(
             batch_size=batch_size,
             cameras_idx=cameras_idx,
-            frame_idx=frame_idx,
+            frames_idx=frame_idx,
             jitter_pixels=True,
             nr_rays_per_pixel=1,
-            masked_sampling=True
+            # masked_sampling=True
         )
 
         if profiler is not None:

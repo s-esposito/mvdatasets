@@ -13,7 +13,8 @@ from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import get_camera_rays
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
+from mvdatasets.config import datasets_path
 
 if __name__ == "__main__":
 
@@ -35,9 +36,6 @@ if __name__ == "__main__":
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
 
     # Get dataset test preset
     if len(sys.argv) > 1:

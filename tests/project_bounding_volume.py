@@ -12,11 +12,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mvdatasets.utils.plotting import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.utils.geometry import project_points_3d_to_2d, camera_to_points_3d_distance
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.raycasting import get_camera_rays
 from mvdatasets.utils.bounding_box import BoundingBox
 from mvdatasets.utils.bounding_sphere import BoundingSphere
+from mvdatasets.config import datasets_path
 
 if __name__ == "__main__":
 
@@ -38,9 +38,6 @@ if __name__ == "__main__":
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
 
     # Get dataset test preset
     
@@ -94,7 +91,7 @@ if __name__ == "__main__":
     # bounding sphere
     bounding_volume = BoundingSphere(
         pose=np.eye(4),
-        local_scale=np.array([scene_radius, scene_radius, scene_radius]),
+        local_scale=scene_radius,
         device=device
     )
     # bounding_volume intersection test
@@ -114,9 +111,9 @@ if __name__ == "__main__":
     plt.close()
     
     # points_3d = bounding_volume.get_random_points_on_surface(100000)
-    # points_2d = project_points_3d_to_2d(camera=camera, points_3d=points_3d)
+    # points_2d = camera.project_points_3d_to_2d(points_3d=points_3d)
     # # 3d points distance from camera center
-    # camera_points_dists = camera_to_points_3d_distance(camera, points_3d)
+    # camera_points_dists = camera.camera_to_points_3d_distance(points_3d)
     # points_2d = points_2d.cpu().numpy()
     # camera_points_dists = camera_points_dists.cpu().numpy()
     # print("camera_points_dist", camera_points_dists)

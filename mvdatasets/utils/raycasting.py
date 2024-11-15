@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from mvdatasets.utils.geometry import inv_perspective_projection, euclidean_to_augmented
+from mvdatasets.utils.geometry import inv_perspective_projection, euclidean_to_homogeneous
 from mvdatasets.utils.images import image_uint8_to_float32
 
 
@@ -419,7 +419,7 @@ def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen
     # unproject pixels to get view directions
     
     # pixels have height, width order, we need x, y, z order
-    points_2d_a_s = euclidean_to_augmented(points_2d_screen[:, [1, 0]])
+    points_2d_a_s = euclidean_to_homogeneous(points_2d_screen[:, [1, 0]])
 
     # from screen to camera coords (out is (N, 3, 1))
     points_3d_c = intrinsics_inv_all @ points_2d_a_s.unsqueeze(-1)

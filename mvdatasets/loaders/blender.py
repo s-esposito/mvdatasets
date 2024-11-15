@@ -5,7 +5,7 @@ from glob import glob
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from mvdatasets.scenes.camera import Camera
+from mvdatasets import Camera
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.geometry import (
     deg2rad,
@@ -20,84 +20,45 @@ from mvdatasets.utils.images import (
     image_uint8_to_float32,
     image_float32_to_uint8
 )
+from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_blender(
-    scene_path,
-    splits,
-    config,
-    verbose=False,
-):
-    """blender data format loader
+def load_blender(scene_path, splits, config, verbose=False):
+    """Blender data format loader.
 
     Args:
-        scene_path (str): path to the dataset scene folder
-        splits (list): splits to load (e.g. ["train", "test"])
-        config (dict): dict of config parameters
+        scene_path (str): Path to the dataset scene folder.
+        splits (list): Splits to load (e.g., ["train", "test"]).
+        config (dict): Dictionary of configuration parameters.
+        verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): dict of splits with lists of Camera objects
+        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-    
-    # CONFIG -----------------------------------------------------------------
-    
-    config["scene_type"] = "bounded"
-    
-    if "load_mask" not in config:
-        config["load_mask"] = True
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: load_mask not in config, setting to {config['load_mask']}")
-        
-    if "use_binary_mask" not in config:
-        config["use_binary_mask"] = True
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: use_binary_mask not in config, setting to {config['use_binary_mask']}")
-        
-    if "rotate_scene_x_axis_deg" not in config:
-        config["rotate_scene_x_axis_deg"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
+    # Default configuration
+    defaults = {
+        "scene_type": "bounded",
+        "load_mask": True,
+        "use_binary_mask": True,
+        "rotate_scene_x_axis_deg": 0.0,
+        "subsample_factor": 1,
+        "white_bg": True,
+        "test_skip": 20,
+        "scene_radius_mult": 0.5,
+        "target_cameras_max_distance": 1.0,
+        "init_sphere_scale": 0.3,
+        "pose_only": False,
+    }
 
-    if "subsample_factor" not in config:
-        config["subsample_factor"] = 1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
-    
-    if "white_bg" not in config:
-        config["white_bg"] = True
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: white_bg not in config, setting to {config['white_bg']}")
-        
-    if "test_skip" not in config:
-        config["test_skip"] = 20
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
-        
-    if "scene_radius_mult" not in config:
-        config["scene_radius_mult"] = 0.5
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
-    
-    if "target_cameras_max_distance" not in config:
-        config["target_cameras_max_distance"] = 1.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
-    
-    if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.3
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
-
-    if "pose_only" not in config:
-        config["pose_only"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
-    else:
-        if config["pose_only"]:
+    # Update config with defaults
+    for key, default_value in defaults.items():
+        if key not in config:
+            config[key] = default_value
             if verbose:
-                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
+                print(f"Setting '{key}' to default value: {default_value}")
 
+    # Debugging output
     if verbose:
         print("load_blender config:")
         for k, v in config.items():

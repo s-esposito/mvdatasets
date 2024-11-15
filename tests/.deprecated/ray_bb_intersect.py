@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mvdatasets.utils.plotting import plot_bounding_boxes
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.utils.common import get_dataset_test_preset
+from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.utils.bounding_box import BoundingBox
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     
     # create bounding boxes
     bounding_boxes = []
-    scene_path = f"debug/assetsnerf/{dataset_name}/{scene_name}"
+    scene_path = f"tests/assets/assetsnerf/{dataset_name}/{scene_name}"
     icp_path = os.path.join(scene_path, "icp")
     # bounding_boxes_path = os.path.join(scene_path, "bounding_boxes")
     

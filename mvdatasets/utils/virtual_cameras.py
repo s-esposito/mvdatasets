@@ -1,6 +1,6 @@
 import numpy as np
 
-from mvdatasets.scenes.camera import Camera
+from mvdatasets import Camera
 from mvdatasets.utils.geometry import look_at, deg2rad
 
 
@@ -35,9 +35,7 @@ def sample_cameras_on_hemisphere(
 
         # get rotation matrix from azimuth and elevation
         pose = np.eye(4)
-        rotation = look_at(cameras_centers[i], center, up)
-        pose[:3, :3] = rotation
-        pose[:3, 3] = cameras_centers[i]
+        pose = look_at(cameras_centers[i], center, up)
         
         # local transform
         local_transform = np.eye(4)

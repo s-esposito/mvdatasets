@@ -3,6 +3,7 @@ import numpy as np
 import open3d as o3d
 from rich import print
 from mvdatasets.utils.texture import RGBATexture, SHTexture
+from mvdatasets.utils.printing import print_error, print_warning, print_log
 
 
 def triangle_to_vertices_uvs_conversion(triangle_uvs, faces, vertices):
@@ -22,13 +23,12 @@ class Mesh:
     ):
         # only one of o3d_mesh and mesh_meta should be provided
         if o3d_mesh is not None and mesh_meta is not None:
-            print("[bold red]ERROR[/bold red]: only one of o3d_mesh and mesh_meta should be provided")
-            exit(1)
+            print_error("only one of o3d_mesh and mesh_meta should be provided")
+
             
         # at least one of o3d_mesh and mesh_meta should be provided
         if o3d_mesh is None and mesh_meta is None:
-            print("[bold red]ERROR[/bold red]: at least one of o3d_mesh and mesh_meta should be provided")
-            exit(1)
+            print_error("at least one of o3d_mesh and mesh_meta should be provided")
             
         if o3d_mesh is not None:
             
@@ -85,10 +85,10 @@ class Mesh:
             assert self.has_uvs, "mesh must have uvs to load texture"
             # TODO: support RGBATexture
             # if len(textures_meta) == 1:
-            #     print("[bold blue]INFO[/bold blue]: loading RGBATexture")
+            #     print_log("loading RGBATexture")
             #     self.texture = RGBATexture(textures_meta[0], verbose=verbose)
             # else:
-            print("[bold blue]INFO[/bold blue]: loading SHTexture")
+            print_log("loading SHTexture")
             self.texture = SHTexture(textures_meta, verbose=verbose)
             self.has_texture = True
         else:

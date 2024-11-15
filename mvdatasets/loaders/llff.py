@@ -8,110 +8,72 @@ import pycolmap
 import open3d as o3d
 from tqdm import tqdm
 
-from mvdatasets.scenes.camera import Camera
+from mvdatasets import Camera
 from mvdatasets.utils.geometry import rot_x_3d, deg2rad, get_min_max_cameras_distances
 from mvdatasets.utils.geometry import apply_transformation_3d
 from mvdatasets.utils.pycolmap import read_points3D, read_cameras
+from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_llff(
-    scene_path,
-    splits,
-    config,
-    pose_only=False,
-    verbose=False
-):
-    """llff data format loader
+def load_llff(scene_path, splits, config, verbose=False):
+    """LLFF data format loader.
 
     Args:
-        scene_path (str): path to the dataset scene folder
-        splits (list): splits to load (e.g. ["train", "test"])
-        config (dict): dict of config parameters
+        scene_path (str): Path to the dataset scene folder.
+        splits (list): Splits to load (e.g., ["train", "test"]).
+        config (dict): Dictionary of configuration parameters.
+        verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): dict of splits with lists of Camera objects
+        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
+    # Default configuration
+    defaults = {
+        "scene_type": "bounded",
+        "translate_scene_x": 0.0,
+        "translate_scene_y": 0.0,
+        "translate_scene_z": 0.0,
+        "rotate_scene_x_axis_deg": 0.0,
+        "test_camera_freq": 8,
+        "train_test_overlap": False,
+        "subsample_factor": 1,
+        "init_sphere_scale": 0.1,
+        "pose_only": False,
+    }
 
-    # CONFIG -----------------------------------------------------------------
-    
-    if "scene_type" not in config:
-        config["scene_type"] = "bounded"
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_type not in config, setting to {config['scene_type']}")
-    else:
-        valid_scene_types = ["bounded", "unbounded", "forward_facing"]
-        if config["scene_type"] not in valid_scene_types:
-            print(f"[bold red]ERROR[/bold red]: scene_type {config['scene_type']} must be a value in {valid_scene_types}")
-            exit(1)
-    
-    if "translate_scene_x" not in config:
-        config["translate_scene_x"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_x not in config, setting to {config['translate_scene_x']}")
-    
-    if "translate_scene_y" not in config:
-        config["translate_scene_y"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_y not in config, setting to {config['translate_scene_y']}")
-    
-    if "translate_scene_z" not in config:
-        config["translate_scene_z"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: translate_scene_z not in config, setting to {config['translate_scene_z']}")
-            
-    if "rotate_scene_x_axis_deg" not in config:
-        config["rotate_scene_x_axis_deg"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
-    
-    if "test_camera_freq" not in config:
-        config["test_camera_freq"] = 8
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: test_camera_freq not in config, setting to {config['test_camera_freq']}")
-    
-    if "train_test_overlap" not in config:
-        config["train_test_overlap"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: train_test_overlap not in config, setting to {config['train_test_overlap']}")
+    # Valid values for specific keys
+    valid_values = {
+        "scene_type": ["bounded", "unbounded", "forward_facing"],
+        "subsample_factor": [1, 2, 4, 8],
+    }
 
-    if "subsample_factor" not in config:
-        config["subsample_factor"] = 1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
-    else:
-        valid_subsample_factors = [1, 2, 4, 8]
-        if config["subsample_factor"] not in valid_subsample_factors:
-            raise ValueError(f"subsample_factor {config['subsample_factor']} must be a value in {valid_subsample_factors}")
+    # Update config with defaults and handle warnings
+    for key, default_value in defaults.items():
+        if key not in config:
+            config[key] = default_value
+            if verbose:
+                print_warning(f"{key} not in config, setting to {default_value}")
+                
+    # Validate specific keys
+    for key, valid in valid_values.items():
+        if key in config and config[key] not in valid:
+            raise ValueError(f"{key} {config[key]} must be a value in {valid}")
 
-    if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
-
-    # if bounded, all scene content can be represented in the foreground bounding box
+    # Set `target_cameras_max_distance` based on `scene_type`
     if config["scene_type"] == "bounded":
         config["target_cameras_max_distance"] = 1.0
-    # if unbounded, scene content extends beyond the foreground bounding sphere
     elif config["scene_type"] == "unbounded":
         config["target_cameras_max_distance"] = 0.5
-    # if forward_facing, scene content is in front of the camera
     elif config["scene_type"] == "forward_facing":
-        print("[bold red]ERROR[/bold red]: forward_facing scene type not implemented yet")
-        exit(1)
-    
-    if "pose_only" not in config:
-        config["pose_only"] = False
+        print_error("forward_facing scene type not implemented yet")
+
+    # Check for unimplemented features
+    if config.get("pose_only"):
         if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
-    else:
-        if config["pose_only"]:
-            if verbose:
-                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
-                # not implemented error
-                print("[bold red]ERROR[/bold red]: pose_only is not implemented yet")
-                exit()
-        
+            print_warning("pose_only is True, but this is not implemented yet")
+
+    # Debugging output
     if verbose:
         print("load_llff config:")
         for k, v in config.items():
@@ -137,7 +99,7 @@ def load_llff(
     # # save point cloud as ply with o3d
     # o3d_point_cloud = o3d.geometry.PointCloud()
     # o3d_point_cloud.points = o3d.utility.Vector3dVector(point_cloud)
-    # o3d.io.write_point_cloud(os.path.join("debug/point_clouds/mipnerf360", "garden.ply"), o3d_point_cloud)
+    # o3d.io.write_point_cloud(os.path.join("tests/assets/point_clouds/mipnerf360", "garden.ply"), o3d_point_cloud)
     # exit()
     
     images_path = os.path.join(scene_path, "images")
@@ -283,7 +245,6 @@ def load_llff(
         camera = Camera(
             intrinsics=intrinsics,
             pose=pose,
-            params=params,
             global_transform=global_transform,
             local_transform=local_transform,
             rgbs=cam_imgs,

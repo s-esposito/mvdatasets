@@ -11,6 +11,7 @@ from mvdatasets.utils.images import (
     non_normalize_uv_coord,
     non_normalized_uv_coords_to_interp_corners
 )
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 class TensorTexture():
@@ -28,8 +29,8 @@ class TensorTexture():
         
         if texture_np is None:
             if texture_path is None:
-                print("[bold red]ERROR[/bold red]: texture_np and texture_path cannot be both None")
-                exit()
+                print_error("texture_np and texture_path cannot be both None")
+
             texture_pil = Image.open(texture_path).convert('RGBA')
             texture_np = np.array(texture_pil) / 255.0
         

@@ -5,7 +5,7 @@ from glob import glob
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from mvdatasets.scenes.camera import Camera
+from mvdatasets import Camera
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.geometry import (
     deg2rad,
@@ -17,97 +17,58 @@ from mvdatasets.utils.geometry import (
     pose_global_rotation,
     get_min_max_cameras_distances
 )
+from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_dmsr(
-    scene_path,
-    splits,
-    config,
-    pose_only=False,
-    verbose=False,
-):
-    """dmsr data format loader
+def load_dmsr(scene_path, splits, config, verbose=False):
+    """DMSR data format loader.
 
     Args:
-        scene_path (str): path to the dataset scene folder
-        splits (list): splits to load (e.g. ["train", "test"])
-        config (dict): dict of config parameters
+        scene_path (str): Path to the dataset scene folder.
+        splits (list): Splits to load (e.g., ["train", "test"]).
+        config (dict): Dictionary of configuration parameters.
+        verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): dict of splits with lists of Camera objects
+        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-    
-    # CONFIG -----------------------------------------------------------------
-    
-    config["scene_type"] = "bounded"
-    
-    if "load_depth" not in config:
-        config["load_depth"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: load_depth not in config, setting to {config['load_depth']}")
-    else:
-        if config["load_depth"]:
-            raise NotImplementedError("load_depth is not implemented yet")
-        
-    if "load_semantics" not in config:
-        config["load_semantics"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: load_semantics not in config, setting to {config['load_semantics']}")
-    else:
-        if config["load_semantics"]:
-            raise NotImplementedError("load_semantics is not implemented yet")
-        
-    if "load_semantic_instance" not in config:
-        config["load_semantic_instance"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: load_semantic_instance not in config, setting to {config['load_semantic_instance']}")
-    else:
-        if config["load_semantic_instance"]:
-            raise NotImplementedError("load_semantic_instance is not implemented yet")
-        
-    if "rotate_scene_x_axis_deg" not in config:
-        config["rotate_scene_x_axis_deg"] = 0.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: rotate_scene_x_axis_deg not in config, setting to {config['rotate_scene_x_axis_deg']}")
-        
-    if "subsample_factor" not in config:
-        config["subsample_factor"] = 1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: subsample_factor not in config, setting to {config['subsample_factor']}")
-        
-    if "test_skip" not in config:
-        config["test_skip"] = 1
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: test_skip not in config, setting to {config['test_skip']}")
-    
-    if "scene_radius_mult" not in config:
-        config["scene_radius_mult"] = 0.5
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: scene_radius_mult not in config, setting to {config['scene_radius_mult']}")
-    
-    if "target_cameras_max_distance" not in config:
-        config["target_cameras_max_distance"] = 1.0
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: target_cameras_max_distance not in config, setting to {config['target_cameras_max_distance']}")
-    
-    if "init_sphere_scale" not in config:
-        config["init_sphere_scale"] = 0.3
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: init_sphere_scale not in config, setting to {config['init_sphere_scale']}")
+    # Default configuration
+    defaults = {
+        "scene_type": "bounded",
+        "rotate_scene_x_axis_deg": 0.0,
+        "subsample_factor": 1,
+        "test_skip": 1,
+        "scene_radius_mult": 0.5,
+        "target_cameras_max_distance": 1.0,
+        "init_sphere_scale": 0.3,
+        "pose_only": False,
+        "load_depth": False,
+        "load_semantics": False,
+        "load_semantic_instance": False,
+    }
 
-    if "pose_only" not in config:
-        config["pose_only"] = False
-        if verbose:
-            print(f"[bold yellow]WARNING[/bold yellow]: pose_only not in config, setting to {config['pose_only']}")
-    else:
-        if config["pose_only"]:
+    # Update config with defaults and handle warnings
+    for key, default_value in defaults.items():
+        if key not in config:
+            config[key] = default_value
             if verbose:
-                print("[bold yellow]WARNING[/bold yellow]: pose_only is True, will not load images")
-                # not implemented error
-                print("[bold red]ERROR[/bold red]: pose_only is not implemented yet")
-                exit()
-    
+                print_warning(f"{key} not in config, setting to {default_value}")
+
+    # Check for unimplemented features
+    unimplemented_features = {
+        "load_depth": "load_depth is not implemented yet",
+        "load_semantics": "load_semantics is not implemented yet",
+        "load_semantic_instance": "load_semantic_instance is not implemented yet",
+        "pose_only": "pose_only is not implemented yet",
+    }
+    for key, message in unimplemented_features.items():
+        if config.get(key):
+            if verbose:
+                print_warning(f"{key} is True, but {message}")
+            raise NotImplementedError(message)
+
+    # Debugging output
     if verbose:
         print("load_dmsr config:")
         for k, v in config.items():

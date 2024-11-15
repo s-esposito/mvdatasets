@@ -12,11 +12,7 @@ from mvdatasets.utils.raycasting import (
     get_points_2d_from_pixels,
     get_random_pixels_from_error_map
 )
-from mvdatasets.utils.geometry import (
-    euclidean_to_augmented,
-    augmented_to_euclidean,
-    homogeneous_to_augmented
-)
+from mvdatasets.utils.geometry import euclidean_to_homogeneous
 
 
 class TensorReel:
@@ -210,10 +206,15 @@ class TensorReel:
                 sampled_idx = torch.randperm(len(cameras_idx), device=self.device)[:batch_size]
             cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
             
-        # TODO: sample frames_idx for each camera (if not given)
-        frames_idx = torch.zeros(batch_size).int()
-        # if frames_idx is None:
-        #   ....
+        # sample frames_idx
+        nr_frames = self.rgbs.shape[1]
+        if frames_idx is None:
+            # sample among all frames with repetitions
+            frames_idx = torch.randint(nr_frames, (batch_size,))
+        else:
+            # sample among given frames indices with repetitions
+            sampled_idx = torch.randint(len(frames_idx), (batch_size,))
+            frames_idx = torch.tensor(frames_idx, device=self.device)[sampled_idx]
         
         vals = {}
         
@@ -249,7 +250,7 @@ class TensorReel:
         
         # pixels have height, width order, we need x, y, z order
         points_2d_s = points_2d[..., [1, 0]]  # swap x and y
-        points_2d_a_s = euclidean_to_augmented(points_2d_s)
+        points_2d_a_s = euclidean_to_homogeneous(points_2d_s)
         points_2d_a_s = points_2d_a_s.unsqueeze(0)
         # print("points_2d_a_s", points_2d_a_s.shape)
         
@@ -284,7 +285,7 @@ class TensorReel:
         frames_idx=None,
         jitter_pixels=False,
         nr_rays_per_pixel=1,
-        # masked_sampling=False
+        masked_sampling=False
     ):
         """Sample a batch of rays from the tensor reel.
 
@@ -320,8 +321,15 @@ class TensorReel:
             sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,))
             cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
-        # TODO: sample frames_idx for each camera (if not given)
-        frames_idx = torch.zeros(real_batch_size).int()
+        # sample frames_idx
+        nr_frames = self.rgbs.shape[1]
+        if frames_idx is None:
+            # sample among all frames with repetitions
+            frames_idx = torch.randint(nr_frames, (real_batch_size,))
+        else:
+            # sample among given frames indices with repetitions
+            sampled_idx = torch.randint(len(frames_idx), (real_batch_size,))
+            frames_idx = torch.tensor(frames_idx, device=self.device)[sampled_idx]
         
         # get random pixels
         pixels = get_random_pixels(

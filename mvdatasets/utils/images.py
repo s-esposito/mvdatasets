@@ -92,10 +92,7 @@ def non_normalized_uv_coords_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn)
     # Ensure uv_coords_nn is float type
     # uv_coords_nn = uv_coords_nn.float()
     
-    # Get uv coords fractional part
-    # diff = uv_coords_nn - uv_coords_nn.round()
-    # print("diff:", diff)
-    
+    # Get uv coords fractional part    
     diff = uv_coords_nn - uv_corners_coords_nn[:, 0, :]
     
     lerp_weights = torch.zeros((uv_coords_nn.shape[0], 4), device=uv_coords_nn.device)
@@ -111,13 +108,6 @@ def non_normalized_uv_coords_to_lerp_weights(uv_coords_nn, uv_corners_coords_nn)
     
     # Bottom-right texel weight
     lerp_weights[:, 3] = diff[:, 0] * diff[:, 1]
-    
-    # print("sum lerp weights:", torch.min(lerp_weights.sum(dim=1)))
-    
-    # # Ensure weights sum to 1 (optional check)
-    # assert torch.allclose(lerp_weights.sum(dim=1), torch.ones_like(lerp_weights[:, 0])), "Weights do not sum to 1"
-
-    # TODO: what's happening here?
     
     return lerp_weights.unsqueeze(-1)
 

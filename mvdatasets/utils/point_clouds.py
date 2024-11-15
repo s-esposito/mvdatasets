@@ -2,6 +2,7 @@ from rich import print
 import open3d as o3d
 import os
 import numpy as np
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 def load_point_cloud(point_cloud_path, max_nr_points=None, verbose=False):
@@ -34,11 +35,9 @@ def load_point_cloud(point_cloud_path, max_nr_points=None, verbose=False):
                 print("loaded {} points".format(points_3d.shape[0]))
             return points_3d
         else:
-            print("[bold red]ERROR[/bold red]: unsupported point cloud format")
-            exit(1)
+            print_error("unsupported point cloud format")
     else:
-        print("[bold red]ERROR[/bold red]: point cloud path {} does not exist".format(point_cloud_path))
-        exit(1)
+        print_error("point cloud path {} does not exist".format(point_cloud_path))
 
 
 def load_point_clouds(point_clouds_paths, max_nr_points=10000, verbose=False):
