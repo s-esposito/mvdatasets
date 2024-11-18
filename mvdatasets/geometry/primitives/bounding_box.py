@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 import open3d as o3d
 
-from mvdatasets.utils.geometry import apply_transformation_3d
+from mvdatasets.geometry.common import apply_transformation_3d
 
 
 def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):

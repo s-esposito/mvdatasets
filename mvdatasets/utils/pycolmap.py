@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from PIL import Image
-from mvdatasets.utils.geometry import qvec2rotmat
+from mvdatasets.geometry.common import qvec2rotmat
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.printing import print_error
 

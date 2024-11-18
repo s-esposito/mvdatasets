@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 from mvdatasets import Camera
-from mvdatasets.utils.geometry import look_at, deg2rad
+from mvdatasets.geometry.common import look_at, deg2rad
 
 
 def sample_cameras_on_hemisphere(

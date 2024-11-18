@@ -8,7 +8,7 @@ from PIL import Image
 from tqdm import tqdm
 from mvdatasets import Camera
 from mvdatasets.utils.images import image_to_numpy
-from mvdatasets.utils.geometry import (
+from mvdatasets.geometry.common import (
     deg2rad,
     scale_3d,
     rot_x_3d,

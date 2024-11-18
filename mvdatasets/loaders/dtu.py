@@ -9,7 +9,7 @@ import cv2 as cv
 
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets import Camera
-from mvdatasets.utils.geometry import (
+from mvdatasets.geometry.common import (
     deg2rad,
     scale_3d,
     rot_x_3d,

@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 
-from mvdatasets.utils.geometry import (
+from mvdatasets.geometry.common import (
     inv_perspective_projection,
     euclidean_to_homogeneous,
 )

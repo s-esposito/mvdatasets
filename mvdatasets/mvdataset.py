@@ -10,8 +10,8 @@ from mvdatasets.loaders.dmsr import load_dmsr
 from mvdatasets.loaders.llff import load_llff
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.config import is_dataset_supported
-from mvdatasets.utils.geometry import apply_transformation_3d
-from mvdatasets.utils.contraction import contract_points
+from mvdatasets.geometry.common import apply_transformation_3d
+from mvdatasets.geometry.contraction import contract_points
 from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets import Camera
 

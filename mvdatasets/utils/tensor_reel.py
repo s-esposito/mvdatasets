@@ -12,7 +12,7 @@ from mvdatasets.utils.raycasting import (
     get_points_2d_from_pixels,
     get_random_pixels_from_error_map,
 )
-from mvdatasets.utils.geometry import euclidean_to_homogeneous
+from mvdatasets.geometry.common import euclidean_to_homogeneous
 
 
 class TensorReel:

@@ -17,8 +17,8 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
-from mvdatasets.utils.bounding_sphere import BoundingSphere
-from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
+from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
+from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.raycasting import get_camera_rays
 
 

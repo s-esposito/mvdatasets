@@ -10,8 +10,8 @@ import open3d as o3d
 from tqdm import tqdm
 
 from mvdatasets import Camera
-from mvdatasets.utils.geometry import rot_x_3d, deg2rad, get_min_max_cameras_distances
-from mvdatasets.utils.geometry import apply_transformation_3d
+from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
+from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.pycolmap import read_points3D, read_cameras
 from mvdatasets.utils.printing import print_error, print_warning
 

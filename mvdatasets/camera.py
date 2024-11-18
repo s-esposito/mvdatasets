@@ -3,7 +3,7 @@ import torch
 import cv2 as cv
 from typing import Union
 
-from mvdatasets.utils.geometry import (
+from mvdatasets.geometry.common import (
     apply_transformation_3d,
     project_points_3d_to_2d_from_intrinsics_and_c2w,
     unproject_points_2d_to_3d_from_intrinsics_and_c2w,

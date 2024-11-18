@@ -13,13 +13,13 @@ import imageio
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.utils.plotting import plot_bounding_boxes
+from mvdatasets.visualization.matplotlib import plot_bounding_boxes
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.utils.bounding_box import BoundingBox
-from mvdatasets.utils.geometry import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
+from mvdatasets.geometry.primitives.bounding_box import BoundingBox
+from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.point_clouds import load_point_cloud
-from mvdatasets.utils.geometry import apply_transformation_3d
+from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.config import datasets_path
 
 

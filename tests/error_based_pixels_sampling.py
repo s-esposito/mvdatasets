@@ -10,7 +10,7 @@ from PIL import Image
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
-from mvdatasets.utils.plotting import plot_points_2d_on_image
+from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import (
     get_camera_rays,
     get_points_2d_from_pixels,

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
-from mvdatasets.utils.plotting import plot_cameras
+from mvdatasets.visualization.matplotlib import plot_cameras
 from mvdatasets.utils.raycasting import get_camera_rays, get_camera_frames
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
