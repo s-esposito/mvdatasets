@@ -20,7 +20,7 @@ from mvdatasets.utils.raycasting import (
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.utils.images import numpy_to_image, image_to_tensor
+from mvdatasets.utils.images import image_to_tensor
 from mvdatasets.config import datasets_path
 
 

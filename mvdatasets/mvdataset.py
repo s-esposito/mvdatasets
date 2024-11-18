@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from mvdatasets.loaders.dtu import load_dtu
 from mvdatasets.loaders.blender import load_blender
-from mvdatasets.loaders.ingp import load_ingp
+# from mvdatasets.loaders.ingp import load_ingp
 from mvdatasets.loaders.dmsr import load_dmsr
 from mvdatasets.loaders.llff import load_llff
 from mvdatasets.utils.point_clouds import load_point_clouds
@@ -89,9 +89,9 @@ class MVDataset:
             res = load_blender(data_path, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
 
-        # load ingp
-        elif self.dataset_name == "ingp":
-            res = load_ingp(data_path, splits, config, verbose=verbose)
+        # # load ingp
+        # elif self.dataset_name == "ingp":
+        #     res = load_ingp(data_path, splits, config, verbose=verbose)
 
         # load dmsr
         elif self.dataset_name == "dmsr":

@@ -56,7 +56,7 @@ def load_blender(
         if key not in config:
             config[key] = default_value
             if verbose:
-                print(f"Setting '{key}' to default value: {default_value}")
+                print_warning(f"Setting '{key}' to default value: {default_value}")
 
     # Debugging output
     if verbose:

@@ -9,7 +9,7 @@ def is_dataset_supported(dataset_name):
     datasets_supported = [
         "dtu",
         "blender",
-        "ingp",
+        # "ingp",
         "blendernerf",
         "dmsr",
         "refnerf",

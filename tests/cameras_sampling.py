@@ -1,14 +1,9 @@
 import numpy as np
-import PIL
 import os
 import sys
-import time
 import torch
-from copy import deepcopy
 import matplotlib.pyplot as plt
-import open3d as o3d
 from tqdm import tqdm
-import imageio
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
