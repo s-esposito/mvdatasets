@@ -13,16 +13,16 @@ from mvdatasets.geometry.common import (
     scale_3d,
     rot_x_3d,
     rot_y_3d,
-    rot_z_3d,
     pose_local_rotation,
     pose_global_rotation,
     get_min_max_cameras_distances,
 )
+from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
-    """DMSR data format loader.
+def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
+    """Blender data format loader.
 
     Args:
         scene_path (Path): Path to the dataset scene folder.
@@ -37,41 +37,28 @@ def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
     # Default configuration
     defaults = {
         "scene_type": "bounded",
+        "load_mask": True,
+        "use_binary_mask": True,
         "rotate_scene_x_axis_deg": 0.0,
         "subsample_factor": 1,
-        "test_skip": 1,
+        "white_bg": True,
+        "test_skip": 20,
         "scene_radius_mult": 0.5,
         "target_cameras_max_distance": 1.0,
         "init_sphere_scale": 0.3,
         "pose_only": False,
-        "load_depth": False,
-        "load_semantics": False,
-        "load_semantic_instance": False,
     }
 
-    # Update config with defaults and handle warnings
+    # Update config with defaults
     for key, default_value in defaults.items():
         if key not in config:
             config[key] = default_value
             if verbose:
-                print_warning(f"{key} not in config, setting to {default_value}")
-
-    # Check for unimplemented features
-    unimplemented_features = {
-        "load_depth": "load_depth is not implemented yet",
-        "load_semantics": "load_semantics is not implemented yet",
-        "load_semantic_instance": "load_semantic_instance is not implemented yet",
-        "pose_only": "pose_only is not implemented yet",
-    }
-    for key, message in unimplemented_features.items():
-        if config.get(key):
-            if verbose:
-                print_warning(f"{key} is True, but {message}")
-            raise NotImplementedError(message)
+                print_warning(f"Setting '{key}' to default value: {default_value}")
 
     # Debugging output
     if verbose:
-        print("load_dmsr config:")
+        print("load_blender config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -81,7 +68,7 @@ def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
     poses_all = []
     for split in splits:
         # load current split transforms
-        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
+        with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)
 
         for frame in metas["frames"]:
@@ -120,16 +107,20 @@ def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
         cameras_splits[split] = []
 
         # load current split transforms
-        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
+        with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)
 
         camera_angle_x = metas["camera_angle_x"]
 
         # load images to cpu as numpy arrays
+        # (optional) load mask images to cpu as numpy arrays
         frames_list = []
 
         for frame in metas["frames"]:
-            img_path = frame["file_path"].split("/")[-1] + ".png"
+            img_path = frame["file_path"].split("/")[-1]
+            # check if file format is in the path
+            if not img_path.endswith(".png"):
+                img_path += ".png"
             camera_pose = frame["transform_matrix"]
             frames_list.append((img_path, camera_pose))
         frames_list.sort(key=lambda x: int(x[0].split(".")[0].split("_")[-1]))
@@ -142,30 +133,72 @@ def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
         # iterate over images and load them
         pbar = tqdm(frames_list, desc=split, ncols=100)
         for frame in pbar:
+
             # get image name
             im_name = frame[0]
             # camera_pose = frame[1]
-            # load PIL image
-            img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
-            img_np = image_to_numpy(img_pil, use_uint8=True)
-
-            # remove alpha (it is always 1)
-            img_np = img_np[:, :, :3]
-
-            # im_name = im_name.replace('r', 'd')
-            # depth_pil = Image.open(os.path.join(scene_path, f"{split}", "depth", im_name))
-            # depth_np = image_to_numpy(depth_pil)[..., None]
-
-            # override H, W
-            if height is None or width is None:
-                height, width = img_np.shape[:2]
 
             # get frame idx and pose
             idx = int(frame[0].split(".")[0].split("_")[-1])
 
-            # get images
-            cam_imgs = img_np[None, ...]
-            # depth_imgs = depth_np[None, ...]
+            if config["pose_only"]:
+
+                # do not load images
+                cam_imgs = None
+                cam_masks = None
+
+                # only read first image to get image size
+                if height is None or width is None:
+                    img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
+                    width, height = img_pil.size
+
+            else:
+
+                # load PIL image
+                img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
+                img_np = image_to_numpy(img_pil, use_uint8=True)
+
+                # override H, W
+                if height is None or width is None:
+                    height, width = img_np.shape[:2]
+
+                if config["load_mask"]:
+                    # use alpha channel as mask
+                    # (nb: this is only resonable for synthetic data)
+                    mask_np = img_np[..., -1, None]
+                    if config["use_binary_mask"]:
+                        mask_np = mask_np > 0
+                        mask_np = mask_np.astype(np.uint8) * 255
+                else:
+                    mask_np = None
+
+                # apply white background, else black
+                if config["white_bg"]:
+                    if img_np.dtype == np.uint8:
+                        # values in [0, 255], cast to [0, 1], run operation, cast back
+                        img_np = image_uint8_to_float32(img_np)
+                        img_np = img_np[..., :3] * img_np[..., -1:] + (
+                            1 - img_np[..., -1:]
+                        )
+                        img_np = image_float32_to_uint8(img_np)
+                    else:
+                        # values in [0, 1]
+                        img_np = img_np[..., :3] * img_np[..., -1:] + (
+                            1 - img_np[..., -1:]
+                        )
+                else:
+                    img_np = img_np[..., :3]
+
+                # get images
+                cam_imgs = img_np[None, ...]
+                # print(cam_imgs.shape)
+
+                # get mask (optional)
+                if config["load_mask"]:
+                    cam_masks = mask_np[None, ...]
+                    # print(cam_masks.shape)
+                else:
+                    cam_masks = None
 
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
@@ -181,10 +214,12 @@ def load_dmsr(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
                 global_transform=global_transform,
                 local_transform=local_transform,
                 rgbs=cam_imgs,
-                # depths=depth_imgs,
-                masks=None,  # dataset has no masks
+                masks=cam_masks,
                 camera_idx=idx,
+                width=width,
+                height=height,
                 subsample_factor=int(config["subsample_factor"]),
+                verbose=verbose,
             )
 
             cameras_splits[split].append(camera)

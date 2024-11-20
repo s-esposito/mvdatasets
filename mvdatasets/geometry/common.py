@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from typing import Union
 
 
-def convert_6d_to_rotation_matrix(cont_6d: torch.tensor) -> torch.tensor:
+def convert_6d_to_rotation_matrix(cont_6d: torch.Tensor) -> torch.Tensor:
     """
     :param 6d vector (*, 6)
     :returns matrix (*, 3, 3)
@@ -71,8 +71,8 @@ def rotation_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 
 def deg2rad(
-    deg: Union[float, np.ndarray, torch.tensor]
-) -> Union[float, np.ndarray, torch.tensor]:
+    deg: Union[float, np.ndarray, torch.Tensor]
+) -> Union[float, np.ndarray, torch.Tensor]:
     return deg * np.pi / 180
 
 
@@ -80,7 +80,7 @@ def scale_3d(scale: float) -> np.ndarray:
     return np.array([[scale, 0, 0], [0, scale, 0], [0, 0, scale]])
 
 
-def rot_x_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
+def rot_x_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.Tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -104,7 +104,7 @@ def rot_x_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor
         )
 
 
-def rot_y_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
+def rot_y_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.Tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -128,7 +128,7 @@ def rot_y_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor
         )
 
 
-def rot_z_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor]:
+def rot_z_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.Tensor]:
     if device is None:
         # numpy
         return np.array(
@@ -154,7 +154,7 @@ def rot_z_3d(theta: float, device: str = None) -> Union[np.ndarray, torch.tensor
 
 def rot_euler_3d(
     theta_x: float, theta_y: float, theta_z: float, device: str = None
-) -> Union[np.ndarray, torch.tensor]:
+) -> Union[np.ndarray, torch.Tensor]:
     """angles are in radians"""
     return (
         rot_z_3d(theta_z, device)
@@ -165,7 +165,7 @@ def rot_euler_3d(
 
 def rot_euler_3d_deg(
     theta_x: float, theta_y: float, theta_z: float, device: str = None
-) -> Union[np.ndarray, torch.tensor]:
+) -> Union[np.ndarray, torch.Tensor]:
     """angles are in degrees"""
     return rot_euler_3d(deg2rad(theta_x), deg2rad(theta_y), deg2rad(theta_z), device)
 
@@ -218,8 +218,8 @@ def opengl_projection_matrix_from_intrinsics(
 
 
 def pose_local_rotation(
-    pose: Union[np.ndarray, torch.tensor], rotation: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    pose: Union[np.ndarray, torch.Tensor], rotation: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Applies a local rotation to the pose frame using a rotation matrix.
 
@@ -259,8 +259,8 @@ def pose_local_rotation(
 
 
 def pose_global_rotation(
-    pose: Union[np.ndarray, torch.tensor], rotation: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    pose: Union[np.ndarray, torch.Tensor], rotation: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Applies a global rotation to the pose frame using a rotation matrix.
 
@@ -303,15 +303,57 @@ def pose_global_rotation(
     return rotation_transform @ pose
 
 
+# def apply_rotation_3d(
+#     points_3d: Union[np.ndarray, torch.Tensor],
+#     rot: Union[np.ndarray, torch.Tensor]
+# ) -> Union[np.ndarray, torch.Tensor]:
+#     """
+#     Applies a 3D rotation to a set of points.
+
+#     Args:
+#         points_3d (numpy.ndarray or torch.Tensor): A (N, 3) array of 3D points.
+#         rot (numpy.ndarray or torch.Tensor): A (3, 3) rotation matrix.
+
+#     Returns:
+#         numpy.ndarray or torch.Tensor: A (N, 3) array of rotated 3D points.
+
+#     Raises:
+#         ValueError: If the shapes of `points_3d` or `rot` are invalid.
+#         TypeError: If the input types are inconsistent (mixing NumPy and PyTorch).
+#     """
+#     # Check if inputs are from the same library
+#     if isinstance(points_3d, np.ndarray) and isinstance(rot, np.ndarray):
+#         lib = np
+#     elif isinstance(points_3d, torch.Tensor) and isinstance(rot, torch.Tensor):
+#         lib = torch
+#     else:
+#         raise TypeError(
+#             "Both `points_3d` and `rot` must be either NumPy arrays or PyTorch tensors."
+#         )
+
+#     # Validate input shapes
+#     if points_3d.shape[1] != 3:
+#         raise ValueError("`points_3d` must have shape (N, 3).")
+#     if rot.shape != (3, 3):
+#         raise ValueError("`rot` must be a 3x3 rotation matrix.")
+
+#     # Apply rotation
+#     rotated_points = lib.matmul(
+#         points_3d, rot.T
+#     )  # Rotates points, handling (N, 3) @ (3, 3)
+
+#     return rotated_points
+
+
 def apply_rotation_3d(
-    points_3d: Union[np.ndarray, torch.tensor], rot: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    points_3d: Union[np.ndarray, torch.Tensor], rot: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Applies a 3D rotation to a set of points.
 
     Args:
         points_3d (numpy.ndarray or torch.Tensor): A (N, 3) array of 3D points.
-        rot (numpy.ndarray or torch.Tensor): A (3, 3) rotation matrix.
+        rot (numpy.ndarray or torch.Tensor): A (3, 3) rotation matrix or a batch (N, 3, 3) of rotation matrices.
 
     Returns:
         numpy.ndarray or torch.Tensor: A (N, 3) array of rotated 3D points.
@@ -320,40 +362,103 @@ def apply_rotation_3d(
         ValueError: If the shapes of `points_3d` or `rot` are invalid.
         TypeError: If the input types are inconsistent (mixing NumPy and PyTorch).
     """
-    # Check if inputs are from the same library
-    if isinstance(points_3d, np.ndarray) and isinstance(rot, np.ndarray):
-        lib = np
-    elif isinstance(points_3d, torch.Tensor) and isinstance(rot, torch.Tensor):
-        lib = torch
-    else:
-        raise TypeError(
-            "Both `points_3d` and `rot` must be either NumPy arrays or PyTorch tensors."
-        )
+    # Validate points_3d shape
+    if points_3d.ndim != 2 or points_3d.shape[1] != 3:
+        raise ValueError("`points_3d` must be a 2D array of shape (N, 3).")
 
-    # Validate input shapes
-    if points_3d.shape[1] != 3:
-        raise ValueError("`points_3d` must have shape (N, 3).")
-    if rot.shape != (3, 3):
-        raise ValueError("`rot` must be a 3x3 rotation matrix.")
+    # Validate rotation matrix shape
+    if rot.ndim == 2 and rot.shape == (3, 3):
+        batched_rotation = False
+    elif rot.ndim == 3 and rot.shape[1:] == (3, 3):
+        batched_rotation = True
+    else:
+        raise ValueError("`rot` must be of shape (3, 3) or (N, 3, 3).")
+
+    # Ensure consistent types between inputs
+    if isinstance(points_3d, np.ndarray) and not isinstance(rot, np.ndarray):
+        raise TypeError("Both inputs must be of the same type (NumPy or PyTorch).")
+    if isinstance(points_3d, torch.Tensor) and not isinstance(rot, torch.Tensor):
+        raise TypeError("Both inputs must be of the same type (NumPy or PyTorch).")
 
     # Apply rotation
-    rotated_points = lib.matmul(
-        points_3d, rot.T
-    )  # Rotates points, handling (N, 3) @ (3, 3)
+    if isinstance(points_3d, np.ndarray):
+        if batched_rotation:
+            rotated_points = np.einsum("nij,nj->ni", rot, points_3d)
+        else:
+            rotated_points = points_3d @ rot.T
+        return rotated_points
+    elif isinstance(points_3d, torch.Tensor):
+        if batched_rotation:
+            rotated_points = torch.einsum("nij,nj->ni", rot, points_3d)
+        else:
+            rotated_points = points_3d @ rot.T
+        return rotated_points
 
-    return rotated_points
+
+# def apply_transformation_3d(
+#     points_3d: Union[np.ndarray, torch.Tensor],
+#     transform: Union[np.ndarray, torch.Tensor],
+# ) -> Union[np.ndarray, torch.Tensor]:
+#     """
+#     Applies a 3D affine transformation to a set of points.
+
+#     Args:
+#         points_3d (numpy.ndarray or torch.Tensor): A (N, 3) array of 3D points.
+#         transform (numpy.ndarray or torch.Tensor): A (4, 4) affine transformation matrix.
+
+#     Returns:
+#         numpy.ndarray or torch.Tensor: A (N, 3) array of transformed 3D points.
+
+#     Raises:
+#         ValueError: If the shapes of `points_3d` or `transform` are invalid.
+#         TypeError: If the input types are inconsistent (mixing NumPy and PyTorch).
+#     """
+#     # Check if inputs are from the same library
+#     if isinstance(points_3d, np.ndarray) and isinstance(transform, np.ndarray):
+#         lib = np
+#     elif isinstance(points_3d, torch.Tensor) and isinstance(transform, torch.Tensor):
+#         lib = torch
+#     else:
+#         raise TypeError(
+#             "Both `points_3d` and `transform` must be either NumPy arrays or PyTorch tensors."
+#         )
+
+#     # Validate input shapes
+#     if points_3d.shape[1] != 3:
+#         raise ValueError("`points_3d` must have shape (N, 3).")
+#     if transform.shape != (4, 4):
+#         raise ValueError("`transform` must be a 4x4 transformation matrix.")
+
+#     # Convert points to homogeneous coordinates
+#     if lib == torch:
+#         ones = lib.ones(
+#             (points_3d.shape[0], 1), dtype=points_3d.dtype, device=points_3d.device
+#         )
+#         augmented_points_3d = lib.concat([points_3d, ones], axis=1)  # (N, 4)
+#     elif lib == np:
+#         ones = lib.ones((points_3d.shape[0], 1), dtype=points_3d.dtype)
+#         augmented_points_3d = lib.hstack([points_3d, ones])  # (N, 4)
+
+#     # Apply transformation
+#     transformed_points_3d = lib.matmul(augmented_points_3d, transform.T)  # (N, 4)
+
+#     # Convert back to Euclidean coordinates
+#     points_3d = transformed_points_3d[:, :3] / transformed_points_3d[:, 3:4]
+
+#     return points_3d
 
 
 def apply_transformation_3d(
-    points_3d: Union[np.ndarray, torch.tensor],
-    transform: Union[np.ndarray, torch.tensor],
-) -> Union[np.ndarray, torch.tensor]:
+    points_3d: Union[np.ndarray, torch.Tensor],
+    transform: Union[np.ndarray, torch.Tensor],
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Applies a 3D affine transformation to a set of points.
 
     Args:
         points_3d (numpy.ndarray or torch.Tensor): A (N, 3) array of 3D points.
-        transform (numpy.ndarray or torch.Tensor): A (4, 4) affine transformation matrix.
+        transform (numpy.ndarray or torch.Tensor): A (4, 4) affine transformation matrix
+                                                    or (N, 4, 4) for per-point transformations.
 
     Returns:
         numpy.ndarray or torch.Tensor: A (N, 3) array of transformed 3D points.
@@ -362,44 +467,47 @@ def apply_transformation_3d(
         ValueError: If the shapes of `points_3d` or `transform` are invalid.
         TypeError: If the input types are inconsistent (mixing NumPy and PyTorch).
     """
-    # Check if inputs are from the same library
-    if isinstance(points_3d, np.ndarray) and isinstance(transform, np.ndarray):
-        lib = np
-    elif isinstance(points_3d, torch.Tensor) and isinstance(transform, torch.Tensor):
-        lib = torch
+    # Check dimensionality of points_3d
+    if points_3d.ndim != 2 or points_3d.shape[1] != 3:
+        raise ValueError("`points_3d` must be a 2D array of shape (N, 3).")
+
+    # Check dimensionality of transform
+    if transform.ndim == 2 and transform.shape == (4, 4):
+        batched_transform = False
+    elif transform.ndim == 3 and transform.shape[1:] == (4, 4):
+        batched_transform = True
     else:
-        raise TypeError(
-            "Both `points_3d` and `transform` must be either NumPy arrays or PyTorch tensors."
-        )
+        raise ValueError("`transform` must be of shape (4, 4) or (N, 4, 4).")
 
-    # Validate input shapes
-    if points_3d.shape[1] != 3:
-        raise ValueError("`points_3d` must have shape (N, 3).")
-    if transform.shape != (4, 4):
-        raise ValueError("`transform` must be a 4x4 transformation matrix.")
+    # Ensure consistent types between inputs
+    if isinstance(points_3d, np.ndarray) and not isinstance(transform, np.ndarray):
+        raise TypeError("Both inputs must be of the same type (NumPy or PyTorch).")
+    if isinstance(points_3d, torch.Tensor) and not isinstance(transform, torch.Tensor):
+        raise TypeError("Both inputs must be of the same type (NumPy or PyTorch).")
 
-    # Convert points to homogeneous coordinates
-    if lib == torch:
-        ones = lib.ones(
-            (points_3d.shape[0], 1), dtype=points_3d.dtype, device=points_3d.device
-        )
-        augmented_points_3d = lib.concat([points_3d, ones], axis=1)  # (N, 4)
-    elif lib == np:
-        ones = lib.ones((points_3d.shape[0], 1), dtype=points_3d.dtype)
-        augmented_points_3d = lib.hstack([points_3d, ones])  # (N, 4)
+    # Convert points_3d to homogeneous coordinates
+    points_homogeneous = euclidean_to_homogeneous(points_3d)
 
     # Apply transformation
-    transformed_points_3d = lib.matmul(augmented_points_3d, transform.T)  # (N, 4)
-
-    # Convert back to Euclidean coordinates
-    points_3d = transformed_points_3d[:, :3] / transformed_points_3d[:, 3:4]
-
-    return points_3d
+    if isinstance(points_3d, np.ndarray):
+        if batched_transform:
+            transformed_points = np.einsum("nij,nj->ni", transform, points_homogeneous)
+        else:
+            transformed_points = points_homogeneous @ transform.T
+        return transformed_points[:, :3]
+    elif isinstance(points_3d, torch.Tensor):
+        if batched_transform:
+            transformed_points = torch.einsum(
+                "nij,nj->ni", transform, points_homogeneous
+            )
+        else:
+            transformed_points = points_homogeneous @ transform.T
+        return transformed_points[:, :3]
 
 
 def pad_matrix(
-    matrix: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    matrix: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Pads a transformation matrix with a homogeneous bottom row [0, 0, 0, 1].
 
@@ -445,8 +553,8 @@ def pad_matrix(
 
 
 def unpad_matrix(
-    matrix: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    matrix: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Removes the homogeneous bottom row from a padded transformation matrix.
 
@@ -472,8 +580,8 @@ def unpad_matrix(
 
 
 def euclidean_to_homogeneous(
-    points: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    points: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Converts Euclidean coordinates to homogeneous coordinates by appending a column of ones.
 
@@ -504,8 +612,8 @@ def euclidean_to_homogeneous(
 
 
 def homogeneous_to_euclidean(
-    vectors: Union[np.ndarray, torch.tensor]
-) -> Union[np.ndarray, torch.tensor]:
+    vectors: Union[np.ndarray, torch.Tensor]
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Converts homogeneous coordinates to Euclidean coordinates by dividing by the last coordinate.
 
@@ -527,16 +635,16 @@ def homogeneous_to_euclidean(
     return vectors[..., :-1] / vectors[..., -1:]
 
 
-def perspective_projection(
-    intrinsics: Union[np.ndarray, torch.tensor],
-    points_3d: Union[np.ndarray, torch.tensor],
-) -> Union[np.ndarray, torch.tensor]:
+def local_perspective_projection(
+    intrinsics: Union[np.ndarray, torch.Tensor],
+    points_3d_camera: Union[np.ndarray, torch.Tensor],
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Apply perspective projection to 3D points.
 
     Args:
         intrinsics (np.ndarray or torch.Tensor): Camera intrinsic matrix of shape (3, 3).
-        points_3d (np.ndarray or torch.Tensor): Array of 3D points of shape (N, 3).
+        points_3d_camera (np.ndarray or torch.Tensor): Array of 3D points of shape (N, 3).
 
     Returns:
         np.ndarray or torch.Tensor: Projected 2D points of shape (N, 2).
@@ -544,12 +652,12 @@ def perspective_projection(
     Raises:
         ValueError: If inputs have invalid shapes or types.
     """
-    if points_3d.shape[-1] != 3:
-        raise ValueError("`points_3d` must have shape (N, 3).")
+    if points_3d_camera.shape[-1] != 3:
+        raise ValueError("`points_3d_camera` must have shape (N, 3).")
     if intrinsics.shape != (3, 3):
         raise ValueError("`intrinsics` must have shape (3, 3).")
 
-    augmented_points_3d = euclidean_to_homogeneous(points_3d)
+    augmented_points_3d_camera = euclidean_to_homogeneous(points_3d_camera)
 
     if isinstance(intrinsics, torch.Tensor):
         K0 = torch.cat(
@@ -566,21 +674,21 @@ def perspective_projection(
     else:
         raise TypeError("`intrinsics` must be either a numpy.ndarray or torch.Tensor.")
 
-    homogeneous_points_2d = (K0 @ augmented_points_3d.T).T
-    points_2d = homogeneous_to_euclidean(homogeneous_points_2d)
+    homogeneous_points_2d_screen = (K0 @ augmented_points_3d_camera.T).T
+    points_2d_screen = homogeneous_to_euclidean(homogeneous_points_2d_screen)
 
-    return points_2d
+    return points_2d_screen
 
 
-def inv_perspective_projection(
-    intrinsics_inv: Union[np.ndarray, torch.tensor],
-    points_2d_screen: Union[np.ndarray, torch.tensor],
-) -> Union[np.ndarray, torch.tensor]:
+def local_inv_perspective_projection(
+    intrinsics_inv: Union[np.ndarray, torch.Tensor],
+    points_2d_screen: Union[np.ndarray, torch.Tensor],
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Apply inverse perspective projection to 2D screen points.
 
     Args:
-        intrinsics_inv (np.ndarray or torch.Tensor): Inverse of camera intrinsic matrix of shape (3, 3).
+        intrinsics_inv (np.ndarray or torch.Tensor): Inverse of camera intrinsic matrix of shape (N, 3, 3) or (3, 3).
         points_2d_screen (np.ndarray or torch.Tensor): 2D points in screen coordinates of shape (N, 2).
 
     Returns:
@@ -589,29 +697,56 @@ def inv_perspective_projection(
     Raises:
         ValueError: If inputs have invalid shapes or types.
     """
-    if intrinsics_inv.shape != (3, 3):
-        raise ValueError("`intrinsics_inv` must have shape (3, 3).")
-    if points_2d_screen.shape[-1] != 2:
+
+    # check input shapes
+    if intrinsics_inv.ndim == 2:
+        intrinsics_inv = intrinsics_inv[None, ...]  # Add batch dimension
+    elif intrinsics_inv.ndim == 3:
+        pass
+    else:
+        raise ValueError(
+            f"intrinsics_inv: {intrinsics_inv.shape} must have shape (N, 3, 3) or (3, 3)."
+        )
+
+    if intrinsics_inv.shape[1:] != (3, 3):
+        raise ValueError(
+            f"intrinsics_inv: {intrinsics_inv.shape} must have shape (N, 3, 3) or (3, 3)."
+        )
+
+    if (
+        intrinsics_inv.shape[0] != points_2d_screen.shape[0]
+        and intrinsics_inv.shape[0] != 1
+    ):
+        raise ValueError(
+            f"input shapes do not match: intrinsics_inv: {intrinsics_inv.shape} and points_2d_screen: {points_2d_screen.shape}."
+        )
+
+    if points_2d_screen.ndim == 2 and points_2d_screen.shape[-1] != 2:
         raise ValueError("`points_2d_screen` must have shape (N, 2).")
 
-    augmented_points_2d_screen = euclidean_to_homogeneous(points_2d_screen)
-    augmented_points_3d_camera = (intrinsics_inv @ augmented_points_2d_screen.T).T
+    augmented_points_2d_screen = euclidean_to_homogeneous(points_2d_screen)  # (N, 3)
+    augmented_points_2d_screen = augmented_points_2d_screen[..., None]  # (N, 3, 1)
+    augmented_points_3d_camera = (
+        intrinsics_inv @ augmented_points_2d_screen
+    )  # (N, 3, 3) @ (N, 3, 1)
+    # reshape to (N, 3)
+    augmented_points_3d_camera = augmented_points_3d_camera.squeeze(-1)  # (N, 3)
 
     return augmented_points_3d_camera
 
 
-def project_points_3d_to_2d_from_intrinsics_and_c2w(
-    intrinsics: Union[np.ndarray, torch.tensor],
-    c2w: Union[np.ndarray, torch.tensor],
-    points_3d: Union[np.ndarray, torch.tensor],
-) -> Union[np.ndarray, torch.tensor]:
+def global_perspective_projection(
+    intrinsics: Union[np.ndarray, torch.Tensor],
+    c2w: Union[np.ndarray, torch.Tensor],
+    points_3d_world: Union[np.ndarray, torch.Tensor],
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Projects 3D points to 2D screen space using camera intrinsics and pose.
 
     Args:
         intrinsics (np.ndarray or torch.Tensor): Camera intrinsic matrix of shape (3, 3).
         c2w (np.ndarray or torch.Tensor): Camera-to-world transformation matrix of shape (4, 4).
-        points_3d (np.ndarray or torch.Tensor): 3D points in world space of shape (N, 3).
+        points_3d_world (np.ndarray or torch.Tensor): 3D points in world space of shape (N, 3).
 
     Returns:
         np.ndarray or torch.Tensor: 2D screen points of shape (N, 2).
@@ -619,41 +754,43 @@ def project_points_3d_to_2d_from_intrinsics_and_c2w(
     Raises:
         ValueError: If inputs have incorrect types or shapes.
     """
-    if isinstance(points_3d, torch.Tensor):
+    if isinstance(points_3d_world, torch.Tensor):
         intrinsics = torch.tensor(
-            intrinsics, dtype=torch.float32, device=points_3d.device
+            intrinsics, dtype=torch.float32, device=points_3d_world.device
         )
-        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d.device)
+        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d_world.device)
         w2c = torch.inverse(c2w)  # World-to-camera transformation
-    elif isinstance(points_3d, np.ndarray):
+    elif isinstance(points_3d_world, np.ndarray):
         intrinsics = np.asarray(intrinsics, dtype=np.float32)
         c2w = np.asarray(c2w, dtype=np.float32)
         w2c = np.linalg.inv(c2w)
     else:
-        raise ValueError("`points_3d` must be either a torch.Tensor or np.ndarray.")
+        raise ValueError(
+            "`points_3d_world` must be either a torch.Tensor or np.ndarray."
+        )
 
     # Transform 3D points from world space to camera space
-    points_3d_c = apply_transformation_3d(points_3d, w2c)
+    points_3d_camera = apply_transformation_3d(points_3d_world, w2c)
 
     # Project 3D camera space points to 2D screen space
-    points_2d_s = perspective_projection(intrinsics, points_3d_c)
+    points_2d_screen = local_perspective_projection(intrinsics, points_3d_camera)
 
-    return points_2d_s
+    return points_2d_screen
 
 
-def unproject_points_2d_to_3d_from_intrinsics_and_c2w(
-    intrinsics: Union[np.ndarray, torch.tensor],
-    c2w: Union[np.ndarray, torch.tensor],
-    points_2d_s: Union[np.ndarray, torch.tensor],
-    depth: Union[np.ndarray, torch.tensor],
-) -> Union[np.ndarray, torch.tensor]:
+def global_inv_perspective_projection(
+    intrinsics_inv: Union[np.ndarray, torch.Tensor],
+    c2w: Union[np.ndarray, torch.Tensor],
+    points_2d_screen: Union[np.ndarray, torch.Tensor],
+    depth: Union[np.ndarray, torch.Tensor],
+) -> Union[np.ndarray, torch.Tensor]:
     """
     Unprojects 2D screen points to 3D world space using camera intrinsics and pose.
 
     Args:
-        intrinsics (np.ndarray or torch.Tensor): Camera intrinsic matrix of shape (3, 3).
+        intrinsics_inv (np.ndarray or torch.Tensor): Inverse of the camera intrinsic matrix of shape (3, 3).
         c2w (np.ndarray or torch.Tensor): Camera-to-world transformation matrix of shape (4, 4).
-        points_2d_s (np.ndarray or torch.Tensor): 2D screen points of shape (N, 2).
+        points_2d_screen (np.ndarray or torch.Tensor): 2D screen points of shape (N, 2).
         depth (np.ndarray or torch.Tensor): Depth values for the points, shape (N,).
 
     Returns:
@@ -664,28 +801,28 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(
     """
 
     # Validate input shapes
-    if points_2d_s.shape[0] != depth.shape[0]:
-        raise ValueError("Input shapes do not match: points_2d_s and depth.")
-    if points_2d_s.shape[1] != 2:
-        raise ValueError("points_2d_s must have shape (N, 2).")
-    if depth.ndim != 1:
-        raise ValueError("depth must be a 1D array.")
-    if depth.shape[0] != points_2d_s.shape[0]:
-        raise ValueError("Input shapes do not match: points_2d_s and depth.")
-
-    # Convert intrinsics and c2w to the same type as points_2d_s
-    if isinstance(points_2d_s, np.ndarray):
-        intrinsics = np.asarray(intrinsics, dtype=np.float32)
-        c2w = np.asarray(c2w, dtype=np.float32)
-        inv_intrinsics = np.linalg.inv(intrinsics)
-    elif isinstance(points_2d_s, torch.Tensor):
-        intrinsics = torch.tensor(
-            intrinsics, dtype=torch.float32, device=points_2d_s.device
+    if points_2d_screen.shape[0] != depth.shape[0]:
+        raise ValueError(
+            f"input shapes do not match: points_2d_screen: {points_2d_screen.shape} and depth: {depth.shape}."
         )
-        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_2d_s.device)
-        inv_intrinsics = torch.inverse(intrinsics)
+    if points_2d_screen.shape[1] != 2:
+        raise ValueError(
+            f"points_2d_screen: {points_2d_screen} must have shape (N, 2)."
+        )
+    if depth.ndim != 1:
+        raise ValueError(f"depth: {depth.shape} must be a 1D array.")
+
+    # Convert intrinsics and c2w to the same type as points_2d_screen
+    if isinstance(points_2d_screen, np.ndarray):
+        intrinsics_inv = np.asarray(intrinsics_inv, dtype=np.float32)
+        c2w = np.asarray(c2w, dtype=np.float32)
+    elif isinstance(points_2d_screen, torch.Tensor):
+        intrinsics_inv = torch.tensor(
+            intrinsics_inv, dtype=torch.float32, device=points_2d_screen.device
+        )
+        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_2d_screen.device)
     else:
-        raise ValueError("`points_2d_s` must be a torch.Tensor or np.ndarray.")
+        raise ValueError("`points_2d_screen` must be a torch.Tensor or np.ndarray.")
 
     # Ray origin is the camera center
     rays_o = c2w[:3, -1]  # Extract camera center from the last column of c2w
@@ -695,24 +832,29 @@ def unproject_points_2d_to_3d_from_intrinsics_and_c2w(
         rays_o = np.expand_dims(rays_o, axis=0)
 
     # Unproject 2D screen points to camera space
-    points_3d_c = inv_perspective_projection(inv_intrinsics, points_2d_s)
+    points_3d_camera = local_inv_perspective_projection(
+        intrinsics_inv,
+        points_2d_screen,
+    )
 
     # Transform points from camera space to world space
-    points_3d_w = (c2w[:3, :3] @ points_3d_c.T).T
+    points_3d_world = (c2w[:3, :3] @ points_3d_camera.T).T
 
     # Normalize the direction vectors
-    if isinstance(points_3d_w, torch.Tensor):
-        rays_d = F.normalize(points_3d_w, dim=-1)
+    if isinstance(points_3d_world, torch.Tensor):
+        rays_d = F.normalize(points_3d_world, dim=-1)
     else:
-        rays_d = points_3d_w / np.linalg.norm(points_3d_w, axis=-1, keepdims=True)
+        rays_d = points_3d_world / np.linalg.norm(
+            points_3d_world, axis=-1, keepdims=True
+        )
 
     # Scale direction vectors by depth
-    points_3d_w = rays_d * depth[..., None]
+    points_3d_world = rays_d * depth[..., None]
 
     # Add ray origin to scale and translate points
-    points_3d_w += rays_o
+    points_3d_world += rays_o
 
-    return points_3d_w
+    return points_3d_world
 
 
 # def look_at(eye, center, up, forward_positive_z=False):
@@ -790,6 +932,15 @@ def look_at(
     pose[:3, 3] = camera_origin
 
     return pose
+
+
+def get_mask_points_out_image(
+    points_2d_screen: Union[np.ndarray, torch.Tensor], width: int, height: int
+) -> Union[np.ndarray, torch.Tensor]:
+    """Filter out points that are outside the image."""
+    mask = (points_2d_screen[:, 0] >= 0) & (points_2d_screen[:, 0] < width)
+    mask &= (points_2d_screen[:, 1] >= 0) & (points_2d_screen[:, 1] < height)
+    return mask
 
 
 ####################################################

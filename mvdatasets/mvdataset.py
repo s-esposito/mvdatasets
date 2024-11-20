@@ -3,25 +3,10 @@ import os
 from typing import List
 import numpy as np
 from pathlib import Path
-from mvdatasets.loaders.dtu import load_dtu
-from mvdatasets.loaders.blender import load_blender
-# from mvdatasets.loaders.ingp import load_ingp
-from mvdatasets.loaders.dmsr import load_dmsr
-from mvdatasets.loaders.llff import load_llff
 from mvdatasets.utils.point_clouds import load_point_clouds
-from mvdatasets.config import is_dataset_supported
 from mvdatasets.geometry.common import apply_transformation_3d
-from mvdatasets.geometry.contraction import contract_points
 from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets import Camera
-
-
-def get_poses_all(cameras: list) -> np.ndarray:
-    poses = []
-    for camera in cameras:
-        poses.append(camera.get_pose())
-    poses = np.stack(poses, 0)
-    return poses
 
 
 class MVDataset:
@@ -60,10 +45,6 @@ class MVDataset:
         elif "train" not in splits and "test" not in splits:
             print_error("splits must contain at least one of 'train' or 'test'")
 
-        # check if dataset is supported
-        if not is_dataset_supported(dataset_name):
-            print_error(f"dataset {dataset_name} is not supported")
-
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
         print(f"loading {splits} splits")
@@ -73,8 +54,10 @@ class MVDataset:
         # STATIC SCENE DATASETS -----------------------------------------------
 
         # load dtu
-        if self.dataset_name == "dtu":
-            res = load_dtu(data_path, splits, config, verbose=verbose)
+        if self.dataset_name == "dtu" or self.dataset_name == "blended-mvs":
+            from mvdatasets.loaders.static.dtu import load
+
+            res = load(data_path, splits, config, verbose=verbose)
 
         # load blender
         # load blendernerf
@@ -86,7 +69,9 @@ class MVDataset:
             or self.dataset_name == "refnerf"
             or self.dataset_name == "shelly"
         ):
-            res = load_blender(data_path, splits, config, verbose=verbose)
+            from mvdatasets.loaders.static.blender import load
+
+            res = load(data_path, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
 
         # # load ingp
@@ -95,26 +80,43 @@ class MVDataset:
 
         # load dmsr
         elif self.dataset_name == "dmsr":
-            res = load_dmsr(data_path, splits, config, verbose=verbose)
+            from mvdatasets.loaders.static.dmsr import load
+
+            res = load(data_path, splits, config, verbose=verbose)
 
         # load llff
         # load mipnerf360
         elif self.dataset_name == "llff" or self.dataset_name == "mipnerf360":
-            res = load_llff(data_path, splits, config, verbose=verbose)
+            from mvdatasets.loaders.static.colmap import load
+
+            res = load(data_path, splits, config, verbose=verbose)
 
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
-        # # load pac_nerf
-        # elif self.dataset_name == "pac_nerf":
-        #     # TODO: find n_cameras automatically
-        #     cameras_splits = load_pac_nerf(
-        #                                 data_path,
-        #                                 splits,
-        #                                 n_cameras=11,
-        #                                 load_mask=load_mask
-        #                             )
+        elif self.dataset_name == "d-nerf":
+            from mvdatasets.loaders.dynamic.d_nerf import load
+
+            res = load(data_path, splits, config, verbose=verbose)
+
+        elif self.dataset_name == "panoptic-sports":
+            from mvdatasets.loaders.dynamic.panoptic_sports import load
+
+            res = load(data_path, splits, config, verbose=verbose)
+
+        elif self.dataset_name == "nerfies":
+            from mvdatasets.loaders.dynamic.nerfies import load
+
+            res = load(data_path, splits, config, verbose=verbose)
+
+        elif self.dataset_name == "iphone":
+            from mvdatasets.loaders.dynamic.iphone import load
+
+            res = load(data_path, splits, config, verbose=verbose)
 
         # UNPACK -------------------------------------------------------------
+
+        else:
+            print_error(f"dataset {self.dataset_name} is not supported")
 
         # cameras
         cameras_splits = res["cameras_splits"]
@@ -170,9 +172,6 @@ class MVDataset:
         for point_cloud in self.point_clouds:
             # apply global transform
             pc = apply_transformation_3d(point_cloud, self.global_transform)
-            # apply contraction function
-            # if self.scene_type == "unbounded":
-            #     pc = contract_points(pc)
             transformed_point_clouds.append(pc)
         self.point_clouds = transformed_point_clouds
 

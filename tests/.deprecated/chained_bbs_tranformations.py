@@ -20,7 +20,7 @@ from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.point_clouds import load_point_cloud
 from mvdatasets.geometry.common import apply_transformation_3d
-from mvdatasets.config import datasets_path
+from mvdatasets.config import DATASETS_PATH
 
 
 def test():
@@ -121,17 +121,16 @@ def test():
 if __name__ == "__main__":
 
     # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
 
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
         device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
     else:
         device = "cpu"
-    torch.set_default_device(device)
+    torch.set_default_device(DEVICE)
 
     # Set default tensor type
     torch.set_default_dtype(torch.float32)

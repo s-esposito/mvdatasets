@@ -128,7 +128,7 @@ def image_uint8_to_float32(tensor):
         if tensor.dtype == np.float32:
             return tensor
         return tensor.astype(np.float32) / 255.0
-    raise ValueError("tensor must be torch.tensor or np.ndarray")
+    raise ValueError("tensor must be torch.Tensor or np.ndarray")
 
 
 def image_float32_to_uint8(tensor):
@@ -141,7 +141,7 @@ def image_float32_to_uint8(tensor):
         if tensor.dtype == np.uint8:
             return tensor
         return (tensor * 255).astype(np.uint8)
-    raise ValueError("tensor must be torch.tensor or np.ndarray")
+    raise ValueError("tensor must be torch.Tensor or np.ndarray")
 
 
 def image_to_numpy(pil_image, use_lower_left_origin=False, use_uint8=False):

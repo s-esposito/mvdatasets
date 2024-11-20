@@ -12,7 +12,7 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.open3d_rendering import render_o3d_mesh
 from mvdatasets.utils.images import numpy_to_image
 from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.config import datasets_path
+from mvdatasets.config import DATASETS_PATH
 
 if __name__ == "__main__":
 
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         splits=["train", "test"],
     )
 

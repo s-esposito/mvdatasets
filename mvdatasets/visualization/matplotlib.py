@@ -3,10 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import product, combinations
 from mvdatasets.utils.raycasting import (
-    get_camera_rays,
-    get_camera_frames_per_points_2d,
-    get_camera_rays_per_points_2d,
+    get_rays_per_points_2d_screen,
 )
+
+
+TRANSPARENT = True
+BBOX_INCHES = "tight"
+PAD_INCHES = 0
+DPI = 300
 
 # from mvdatasets.scenes.camera import Camera
 # import math
@@ -72,8 +76,8 @@ def _draw_rays(
     ax,
     rays_o,
     rays_d,
-    rgb=None,
-    mask=None,
+    rgbs=None,
+    masks=None,
     max_nr_rays=None,
     ray_lenght=None,
     up="z",
@@ -88,10 +92,10 @@ def _draw_rays(
             idx = np.random.permutation(rays_o.shape[0])[:max_nr_rays]
             rays_o = rays_o[idx]
             rays_d = rays_d[idx]
-            if rgb is not None:
-                rgb = rgb[idx]
-            if mask is not None:
-                mask = mask[idx]
+            if rgbs is not None:
+                rgbs = rgbs[idx]
+            if masks is not None:
+                masks = masks[idx]
 
     if ray_lenght is None:
         ray_lenght = 2 * scene_radius
@@ -100,8 +104,10 @@ def _draw_rays(
     for i, (ray_o, ray_d) in enumerate(zip(rays_o, rays_d)):
         start_point = ray_o
         end_point = ray_o + ray_d * ray_lenght
-        color = rgb[i] if rgb is not None else "blue"
-        alpha = mask[i] if mask is not None else 0.5
+        color = rgbs[i] if rgbs is not None else "blue"
+        alpha = masks[i] if masks is not None else 0.5
+        print("color", color)
+        print("alpha", alpha)
         # plot line segment
         ax.plot(
             [start_point[0], end_point[0]],
@@ -144,7 +150,7 @@ def _draw_point_cloud(
 
     if color is None:
         # random matplotlib color
-        color = np.random.rand(3)
+        color = "black"
     if size is None:
         size = 10
     if marker is None:
@@ -375,16 +381,14 @@ def _draw_image_plane(ax, camera, up="z", scene_radius=1.0):
     # get image plane corner points in 3D
     # from screen coordinates
     corner_points_2d_screen = np.array(
-        [[0, 0], [camera.height, 0], [0, camera.width], [camera.height, camera.width]]
+        [[0, 0], [camera.width, 0], [0, camera.height], [camera.width, camera.height]]
     )
 
-    _, corner_points_d = get_camera_rays_per_points_2d(
+    _, corner_points_d = get_rays_per_points_2d_screen(
         torch.from_numpy(camera.get_pose()).float(),
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
         torch.from_numpy(corner_points_2d_screen).float(),
     )
-    # normalise to unit length
-    corner_points_d = corner_points_d / torch.norm(corner_points_d, dim=1, keepdim=True)
     corner_points_d = corner_points_d.cpu().numpy()
 
     corner_points_3d_world = camera.get_center() + corner_points_d * scale
@@ -438,13 +442,12 @@ def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
         [[0, 0], [camera.height, 0], [0, camera.width], [camera.height, camera.width]]
     )
 
-    rays_o, rays_d = get_camera_rays_per_points_2d(
+    rays_o, rays_d = get_rays_per_points_2d_screen(
         torch.from_numpy(camera.get_pose()).float(),
         torch.from_numpy(camera.get_intrinsics_inv()).float(),
         torch.from_numpy(image_plane_vertices_2d).float(),
     )
     # normalise to unit length
-    rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
 
@@ -452,7 +455,8 @@ def _draw_frustum(ax, camera, up="z", scene_radius=1.0):
         ax,
         rays_o,
         rays_d,
-        rgb=np.zeros((rays_o.shape[0], 3)),
+        rgbs=np.zeros((rays_o.shape[0], 3)),
+        masks=np.ones((rays_o.shape[0], 1)),
         up=up,
         scene_radius=scene_radius,
     )
@@ -588,7 +592,9 @@ def plot_cameras(
     draw_contraction_spheres=False,
     figsize=(15, 15),
     title=None,
-):
+    show=True,
+    save_path=None,  # if set, saves the figure to the given path
+) -> None:
     """
     out:
         matplotlib figure
@@ -652,7 +658,19 @@ def plot_cameras(
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)
 
-    return fig
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+
+    if show:
+        plt.show()
+
+    plt.close()
 
 
 def plot_bounding_boxes(
@@ -668,7 +686,9 @@ def plot_bounding_boxes(
     draw_frame=False,
     figsize=(15, 15),
     title=None,
-):
+    show=True,
+    save_path=None,  # if set, saves the figure to the given path
+) -> None:
     """
     out:
         matplotlib figure
@@ -707,7 +727,19 @@ def plot_bounding_boxes(
     # draw cameras
     _draw_cameras(ax, cameras, up=up, scene_radius=scene_radius)
 
-    return fig
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+
+    if show:
+        plt.show()
+
+    plt.close()
 
 
 def _draw_camera_rays(
@@ -718,40 +750,36 @@ def _draw_camera_rays(
     up="z",
     scene_radius=1.0,
 ):
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device="cpu")
-    # normalise to unit length
-    rays_d = rays_d / torch.norm(rays_d, dim=1, keepdim=True)
+    rays_o, rays_d, points_2d_screen = camera.get_rays()
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
 
     if not camera.has_rgbs():
         # color rays with their uv coordinates
-        xy = points_2d[:, [1, 0]]
+        xy = points_2d_screen  # [:, [1, 0]]
         z = np.zeros((xy.shape[0], 1))
-        rgb = np.concatenate([xy, z], axis=1)
-        rgb[:, 0] /= np.max(rgb[:, 0])
-        rgb[:, 1] /= np.max(rgb[:, 1])
+        rgbs = np.concatenate([xy, z], axis=1)
+        rgbs[:, 0] /= np.max(rgbs[:, 0])
+        rgbs[:, 1] /= np.max(rgbs[:, 1])
     else:
         # use frame rgb
-        rgb = camera.get_rgb(frame_idx=frame_idx)
-        vals = get_camera_frames_per_points_2d(points_2d, rgb=rgb)
-        rgb = vals["rgb"]
+        vals = camera.get_data(points_2d_screen, frame_idx=frame_idx)
+        rgbs = vals["rgbs"].cpu().numpy()
 
     if not camera.has_masks():
         # set to ones
-        mask = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
+        masks = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
     else:
-        mask = camera.get_mask(frame_idx=frame_idx)
-        vals = get_camera_frames_per_points_2d(points_2d, mask=mask)
-        mask = vals["mask"]
+        vals = camera.get_data(points_2d_screen)
+        masks = vals["masks"].cpu().numpy()
 
     # draw rays
     _draw_rays(
         ax,
         rays_o,
         rays_d,
-        rgb=rgb,
-        mask=mask,
+        rgbs=rgbs,
+        masks=masks,
         max_nr_rays=nr_rays,
         up=up,
         scene_radius=scene_radius,
@@ -763,8 +791,8 @@ def plot_current_batch(
     cameras_idx,
     rays_o,
     rays_d,
-    rgb=None,
-    mask=None,
+    rgbs=None,
+    masks=None,
     bounding_boxes=[],
     azimuth_deg=60,
     elevation_deg=30,
@@ -774,7 +802,9 @@ def plot_current_batch(
     draw_bounding_cube=True,
     figsize=(15, 15),
     title=None,
-):
+    show=True,
+    save_path=None,  # if set, saves the figure to the given path
+) -> None:
     """
     out:
         matplotlib figure
@@ -787,17 +817,17 @@ def plot_current_batch(
     cameras_idx = cameras_idx.cpu().numpy()
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
-    if rgb is not None:
-        rgb = rgb.cpu().numpy()
+    if rgbs is not None:
+        rgbs = rgbs.cpu().numpy()
     else:
         # if rgb is not given, color rays blue
-        rgb = np.zeros((rays_o.shape[0], 3))
-        rgb[:, 2] = 1.0
-    if mask is not None:
-        mask = mask.cpu().numpy()
+        rgbs = np.zeros((rays_o.shape[0], 3))
+        rgbs[:, 2] = 1.0
+    if masks is not None:
+        masks = masks.cpu().numpy()
     else:
         # if mask is not given, set to 0.5
-        mask = np.ones((rays_o.shape[0], 1)) * 0.5
+        masks = np.ones((rays_o.shape[0], 1)) * 0.5
 
     # get unique camera idxs
     unique_cameras_idx = np.unique(cameras_idx, axis=0)
@@ -836,8 +866,8 @@ def plot_current_batch(
         ax,
         rays_o,
         rays_d,
-        rgb=rgb,
-        mask=mask,
+        rgbs=rgbs,
+        masks=masks,
         max_nr_rays=None,
         up=up,
         scene_radius=scene_radius,
@@ -846,23 +876,37 @@ def plot_current_batch(
     # plot bounding boxes (if given)
     _draw_bounding_boxes(ax, bounding_boxes, up=up, scene_radius=scene_radius)
 
-    return fig
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+
+    if show:
+        plt.show()
+
+    plt.close()
 
 
 def plot_points_2d_on_image(
     camera,
-    points_2d,
+    points_2d_screen,
     points_norms=None,
     frame_idx=0,
     show_ticks=False,
     figsize=(15, 15),
     title=None,
-):
+    show=True,
+    save_path=None,  # if set, saves the figure to the given path
+) -> None:
     """
 
     args:
         camera (Camera): camera object
-        points_2d (np.ndarray, float): (N, 2) -> (x, y)
+        points_2d_screen (np.ndarray, float): (N, 2) -> (x, y)
         frame_idx (int, optional): Defaults to 0.
 
     out:
@@ -876,7 +920,7 @@ def plot_points_2d_on_image(
     if camera.has_masks():
         mask = camera.get_mask(frame_idx=frame_idx) / 255.0
         rgb = rgb * np.clip(mask + 0.2, 0, 1)
-    # print("rgb", rgb.shape)
+    # print("rgbs", rgb.shape)
 
     # init figure
     fig = plt.figure(figsize=figsize)
@@ -886,24 +930,21 @@ def plot_points_2d_on_image(
     plt.imshow(rgb, alpha=0.8, resample=True)
 
     # filter out points outside image range
-    points_mask = points_2d[:, 0] >= 0
-    points_mask *= points_2d[:, 1] >= 0
-    points_mask *= points_2d[:, 0] < camera.width
-    points_mask *= points_2d[:, 1] < camera.height
-    points_2d = points_2d[points_mask]
+    points_mask = points_2d_screen[:, 0] >= 0
+    points_mask *= points_2d_screen[:, 1] >= 0
+    points_mask *= points_2d_screen[:, 0] < camera.width
+    points_mask *= points_2d_screen[:, 1] < camera.height
+    points_2d_screen = points_2d_screen[points_mask]
 
     if points_norms is not None:
         points_norms = points_norms[points_mask]
         print("min dist", np.min(points_norms))
         print("max dist", np.max(points_norms))
 
-    # points_2d = points_2d[points_2d[:, 0] >= 0]
-    # points_2d = points_2d[points_2d[:, 1] >= 0]
-    # points_2d = points_2d[points_2d[:, 0] < camera.width]
-    # points_2d = points_2d[points_2d[:, 1] < camera.height]
-
     if points_norms is None:
-        rgb = np.column_stack([points_2d, np.zeros((points_2d.shape[0], 1))])
+        rgb = np.column_stack(
+            [points_2d_screen, np.zeros((points_2d_screen.shape[0], 1))]
+        )
         rgb[:, 0] /= camera.width
         rgb[:, 1] /= camera.height
     else:
@@ -913,8 +954,8 @@ def plot_points_2d_on_image(
         norm = plt.Normalize(vmin=np.min(points_norms), vmax=np.max(points_norms))
         cmap = cm.get_cmap("jet")
         rgb = cmap(norm(points_norms))
-    points_2d -= 0.5  # to avoid imshow shift
-    plt.scatter(points_2d[:, 0], points_2d[:, 1], s=10, c=rgb, marker=".")
+    points_2d_screen -= 0.5  # to avoid imshow shift
+    plt.scatter(points_2d_screen[:, 0], points_2d_screen[:, 1], s=10, c=rgb, marker=".")
     plt.gca().set_aspect("equal", adjustable="box")
 
     if show_ticks:
@@ -937,7 +978,19 @@ def plot_points_2d_on_image(
     plt.xlabel("x")
     plt.ylabel("y")
 
-    return fig
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+
+    if show:
+        plt.show()
+
+    plt.close()
 
 
 def plot_rays_samples(
@@ -961,7 +1014,9 @@ def plot_rays_samples(
     draw_near_far_points=True,
     figsize=(15, 15),
     title=None,
-):
+    show=True,
+    save_path=None,  # if set, saves the figure to the given path
+) -> None:
     """
     out:
         matplotlib figure
@@ -1023,7 +1078,7 @@ def plot_rays_samples(
         p_far = rays_o + rays_d * t_far
 
         # edge case of a single ray
-        if p_near.dim() == 1:
+        if p_near.ndim == 1:
             p_near = p_near.unsqueeze(1)
             p_far = p_far.unsqueeze(1)
 
@@ -1093,4 +1148,16 @@ def plot_rays_samples(
     if labels:
         plt.legend()
 
-    return fig
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+
+    if show:
+        plt.show()
+
+    plt.close()

@@ -1,13 +1,18 @@
+import torch
 from pathlib import Path
+from typing import List, Union, Tuple
 from mvdatasets.utils.printing import print_error
 
 
-datasets_path = Path("/home/stefano/Data")
+DATASETS_PATH = Path("/home/stefano/Data")
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+SEED = 42
 
 
-def is_dataset_supported(dataset_name):
+def is_dataset_supported(dataset_name: str) -> bool:
     datasets_supported = [
         "dtu",
+        "blended-mvs",
         "blender",
         # "ingp",
         "blendernerf",
@@ -16,6 +21,10 @@ def is_dataset_supported(dataset_name):
         "llff",
         "mipnerf360",
         "shelly",
+        "d-nerf",
+        "iphone",
+        "panoptic-sports",
+        "nerfies",
     ]
     dataset_name = dataset_name.lower()
     if dataset_name in datasets_supported:
@@ -24,15 +33,24 @@ def is_dataset_supported(dataset_name):
         return False
 
 
-def get_dataset_test_preset(dataset_name):
+def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], dict]:
 
     if not is_dataset_supported(dataset_name):
         print_error(f"{dataset_name} is not a supported dataset.")
 
-    # test DTU
+    # test dtu
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        # dataset specific config
+        config = {
+            "subsample_factor": 1,
+        }
+
+    # test blended-mvs
+    if dataset_name == "blended-mvs":
+        scene_name = "bmvs_bear"
+        pc_paths = []
         # dataset specific config
         config = {}
 
@@ -92,7 +110,7 @@ def get_dataset_test_preset(dataset_name):
         pc_paths = ["tests/assets/point_clouds/llff/fern.ply"]
         # dataset specific config
         config = {
-            "scene_type": "forward_facing",
+            "scene_type": "forward-facing",
         }
 
     # test mipnerf360
@@ -103,7 +121,7 @@ def get_dataset_test_preset(dataset_name):
         # dataset specific config
         config = {
             "scene_type": "unbounded",
-            "subsample_factor": 4,
+            "subsample_factor": 8,
         }
 
         # scene specific config

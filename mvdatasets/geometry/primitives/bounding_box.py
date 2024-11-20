@@ -11,14 +11,14 @@ from mvdatasets.geometry.common import apply_transformation_3d
 def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
     """
     Args:
-        rays_o (torch.tensor): (N, 3)
-        rays_d (torch.tensor): (N, 3)
+        rays_o (torch.Tensor): (N, 3)
+        rays_d (torch.Tensor): (N, 3)
         aabb_min (np.ndarray): (3,)
         aabb_max (np.ndarray): (3,)
     Out:
-        is_hit (torch.tensor): (N,)
-        t_near (torch.tensor): (N,)
-        t_far (torch.tensor): (N,)
+        is_hit (torch.Tensor): (N,)
+        t_near (torch.Tensor): (N,)
+        t_far (torch.Tensor): (N,)
     """
 
     if rays_o.device != aabb_min.device:
@@ -171,14 +171,14 @@ class BoundingBox:
         """
         Args:
             rays in world space
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
+            rays_o (torch.Tensor): (N, 3)
+            rays_d (torch.Tensor): (N, 3)
         Out:
-            is_hit (torch.tensor): (N,)
-            t_near (torch.tensor): (N,)
-            t_far (torch.tensor): (N,)
-            p_near (torch.tensor): (N, 3)
-            p_far (torch.tensor): (N, 3)
+            is_hit (torch.Tensor): (N,)
+            t_near (torch.Tensor): (N,)
+            t_far (torch.Tensor): (N,)
+            p_near (torch.Tensor): (N, 3)
+            p_far (torch.Tensor): (N, 3)
         """
 
         pose = self.get_pose()
@@ -284,10 +284,10 @@ class BoundingBox:
         """checks if points are inside the bounding box
 
         args:
-            points (torch.tensor): (N, 3) points are in world space
+            points (torch.Tensor): (N, 3) points are in world space
 
         returns:
-            is_inside (torch.tensor): (N,)
+            is_inside (torch.Tensor): (N,)
         """
 
         pose = self.get_pose()

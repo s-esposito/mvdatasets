@@ -10,14 +10,14 @@ from mvdatasets.utils.printing import print_error, print_warning
 def _intersect_sphere(rays_o, rays_d, center, radius):
     """
     Args:
-        rays_o (torch.tensor): (N, 3)
-        rays_d (torch.tensor): (N, 3)
-        center (torch.tensor): (3,)
+        rays_o (torch.Tensor): (N, 3)
+        rays_d (torch.Tensor): (N, 3)
+        center (torch.Tensor): (3,)
         radius (float)
     Out:
-        is_hit (torch.tensor): (N,)
-        t_near (torch.tensor): (N,)
-        t_far (torch.tensor): (N,)
+        is_hit (torch.Tensor): (N,)
+        t_near (torch.Tensor): (N,)
+        t_far (torch.Tensor): (N,)
     """
 
     if rays_o.device != center.device:
@@ -137,14 +137,14 @@ class BoundingSphere:
         """
         Args:
             rays in world space
-            rays_o (torch.tensor): (N, 3)
-            rays_d (torch.tensor): (N, 3)
+            rays_o (torch.Tensor): (N, 3)
+            rays_d (torch.Tensor): (N, 3)
         Out:
-            is_hit (torch.tensor): (N,)
-            t_near (torch.tensor): (N,)
-            t_far (torch.tensor): (N,)
-            p_near (torch.tensor): (N, 3)
-            p_far (torch.tensor): (N, 3)
+            is_hit (torch.Tensor): (N,)
+            t_near (torch.Tensor): (N,)
+            t_far (torch.Tensor): (N,)
+            p_near (torch.Tensor): (N, 3)
+            p_far (torch.Tensor): (N, 3)
         """
 
         # pose in world space

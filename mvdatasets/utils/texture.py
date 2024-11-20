@@ -10,10 +10,10 @@ from mvdatasets.utils.images import image_to_numpy
 def sample_texture(image, uvs):
     """
     Args:
-        image: torch.tensor, [H, W, C] or [H, W, C, F]
-        uvs: torch.tensor, [N, 2] in [0, 1]
+        image: torch.Tensor, [H, W, C] or [H, W, C, F]
+        uvs: torch.Tensor, [N, 2] in [0, 1]
     Out:
-        vals: torch.tensor, [N, C] or [N, C, F]
+        vals: torch.Tensor, [N, C] or [N, C, F]
     """
     # get image dims
     height, width = image.shape[:2]

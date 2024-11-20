@@ -45,7 +45,7 @@ def load_K_Rt_from_P(filename, P=None):
     return intrinsics, pose
 
 
-def load_dtu(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
+def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
     """DTU data format loader.
 
     Args:
@@ -185,6 +185,7 @@ def load_dtu(scene_path: Path, splits: list, config: dict = {}, verbose: bool = 
             masks=cam_masks,
             camera_idx=idx,
             subsample_factor=int(config["subsample_factor"]),
+            verbose=verbose,
         )
 
         cameras_all.append(camera)

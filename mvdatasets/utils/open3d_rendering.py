@@ -1,8 +1,6 @@
 import open3d as o3d
 import numpy as np
 
-from mvdatasets.utils.raycasting import get_camera_rays
-
 
 def render_o3d_mesh_normals(camera, o3d_mesh):
     return render_o3d_mesh(camera, o3d_mesh)["normals"]
@@ -16,7 +14,7 @@ def render_o3d_mesh(camera, o3d_mesh):
     """render and open3d mesh with open3d raycasting from camera"""
 
     # gen rays
-    rays_o, rays_d, _ = get_camera_rays(camera)
+    rays_o, rays_d, _ = camera.get_rays()
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     rays = o3d.core.Tensor(
@@ -49,7 +47,7 @@ def render_o3d_scene(camera, o3d_scene):
     """render and open3d mesh with open3d raycasting from camera"""
 
     # gen rays
-    rays_o, rays_d, _ = get_camera_rays(camera)
+    rays_o, rays_d, _ = camera.get_rays()
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
     rays = o3d.core.Tensor(

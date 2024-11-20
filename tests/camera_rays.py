@@ -4,51 +4,26 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
+from config import get_dataset_test_preset
+from config import DATASETS_PATH, DEVICE, SEED
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
 from mvdatasets.visualization.matplotlib import plot_cameras
-from mvdatasets.utils.raycasting import get_camera_rays, get_camera_frames
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.utils.profiler import Profiler
-from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.config import datasets_path
 
-if __name__ == "__main__":
 
-    # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+def main(dataset_name, device):
 
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
-    else:
-        device = "cpu"
-    torch.set_default_device(device)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Set profiler
-    profiler = Profiler()  # nb: might slow down the code
-
-    # Get dataset test preset
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -58,63 +33,69 @@ if __name__ == "__main__":
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
     else:
-        point_cloud = np.array([[0, 0, 0]])
+        point_cloud = None
 
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
 
     # resize camera
-    taget_dim = 100
-    min_dim = min(camera.width, camera.height)
-    print("min_dim", min_dim)
-    subsample_factor = min_dim // taget_dim
-    print("subsample_factor", subsample_factor)
-    camera.resize(subsample_factor=subsample_factor)
+    camera.resize(subsample_factor=10)
 
-    print(camera)
+    # print(camera)
 
-    # gen rays
-    rays_o, rays_d, points_2d = get_camera_rays(camera)
+    # gen rays and get data
+    # rays_o, rays_d, points_2d_screen = camera.get_rays()
+    # vals = camera.get_data(points_2d_screen=points_2d_screen)
 
-    vals, _ = get_camera_frames(camera, points_2d=points_2d)
+    vals = camera.get_data()
     for key, val in vals.items():
-        print(key, val.shape, val.device)
+        if val is not None:
+            val = val.reshape(camera.height, camera.width, -1).cpu().numpy()
+            plt.imshow(val)
+            plt.xlabel("h")
+            plt.ylabel("w")
+            plt.show()
+            print(key, val.shape)
+
+    exit(0)
 
     # Visualize cameras
-    fig = plot_cameras(
-        [mv_data["test"][0]],
+    plot_cameras(
+        cameras=[camera],
         points_3d=point_cloud,
-        nr_rays=512,
+        nr_rays=256,
         azimuth_deg=20,
         elevation_deg=30,
-        scene_radius=mv_data.max_camera_distance,
+        scene_radius=1.0,
         up="z",
         draw_image_planes=True,
         draw_cameras_frustums=False,
         figsize=(15, 15),
-        title=f"test camera {0} rays",
+        title=f"test camera {rand_idx} rays",
+        show=True,
+        save_path=os.path.join("plots", f"{dataset_name}_camera_rays.png"),
     )
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_camera_rays.png"),
-        bbox_inches="tight",
-        pad_inches=0,
-        dpi=300,
-        transparent=True,
-    )
-    plt.close()
 
-    # # plt.show()
-    # img_path = os.path.join("plots", f"{dataset_name}_camera_test_{rand_idx}.png")
-    # img = camera.get_rgb()
-    # mask = camera.get_mask()
+if __name__ == "__main__":
 
-    # # concatenate mask 3 times
-    # mask = np.concatenate([mask] * 3, axis=-1)
-    # print("mask", mask.shape)
+    # Set a random seed for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
 
-    # # save image
-    # plt.imsave(img_path, img)
-    # plt.imsave(img_path.replace(".png", "_mask.png"), mask)
+    # # Check if CUDA (GPU support) is available
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
+    torch.set_default_device(DEVICE)
+
+    # Set default tensor type
+    torch.set_default_dtype(torch.float32)
+
+    # Get dataset test preset
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1]
+    else:
+        dataset_name = "dtu"
+
+    main(dataset_name, DEVICE)

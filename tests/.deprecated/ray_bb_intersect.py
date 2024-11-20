@@ -21,23 +21,21 @@ from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
-from mvdatasets.utils.raycasting import get_camera_rays
 
 
 if __name__ == "__main__":
 
     # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
 
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
         device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
     else:
         device = "cpu"
-    torch.set_default_device(device)
+    torch.set_default_device(DEVICE)
 
     # Set default tensor type
     torch.set_default_dtype(torch.float32)
@@ -46,7 +44,7 @@ if __name__ == "__main__":
     profiler = Profiler()  # nb: might slow down the code
 
     # Set datasets path
-    datasets_path = "/home/stefano/Data"
+    DATASETS_PATH = "/home/stefano/Data"
 
     # Get dataset test preset
     dataset_name = "dmsr"
@@ -56,7 +54,7 @@ if __name__ == "__main__":
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -147,7 +145,7 @@ if __name__ == "__main__":
     # finished loading bounding boxes
 
     # shoot rays from camera and intersect with boxes
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
+    rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
 
     intersections = []
     for i, bb in enumerate(bounding_boxes):

@@ -25,7 +25,7 @@ def sample_cameras_on_hemisphere(
     # y = np.array(y)
     # z = np.array(z)
     cameras_centers = np.column_stack((x, y, z))
-    
+
     cameras = []
     for i in range(nr_cameras):
 

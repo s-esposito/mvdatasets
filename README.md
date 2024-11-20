@@ -47,9 +47,9 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-Configure your dataset path in `mvdatasets/config`, e.g.:
+Configure your dataset path in `config`, e.g.:
 ```python
-datasets_path = "/home/stefano/Data"
+DATASETS_PATH = "/home/stefano/Data"
 ```
 
 ## Testing

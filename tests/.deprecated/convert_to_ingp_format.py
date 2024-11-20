@@ -24,17 +24,16 @@ from mvdatasets.utils.data_converter import convert_to_ingp_format
 if __name__ == "__main__":
 
     # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
 
     # # Check if CUDA (GPU support) is available
     if torch.cuda.is_available():
         device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
     else:
         device = "cpu"
-    torch.set_default_device(device)
+    torch.set_default_device(DEVICE)
 
     # Set default tensor type
     torch.set_default_dtype(torch.float32)
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     profiler = Profiler()  # nb: might slow down the code
 
     # Set datasets path
-    datasets_path = "/home/stefano/Data"
+    DATASETS_PATH = "/home/stefano/Data"
 
     # Get dataset test preset
     if len(sys.argv) > 1:
@@ -56,7 +55,7 @@ if __name__ == "__main__":
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,

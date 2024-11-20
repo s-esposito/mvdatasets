@@ -1,47 +1,18 @@
 import numpy as np
-import PIL
 import os
 import sys
-import time
 import torch
-from copy import deepcopy
 import matplotlib.pyplot as plt
-import open3d as o3d
-from tqdm import tqdm
-import imageio
+from config import DEVICE, SEED
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.utils.profiler import Profiler
-from mvdatasets.mvdataset import MVDataset
-from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
-from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
-from mvdatasets.utils.raycasting import get_camera_rays
 
 
-if __name__ == "__main__":
-
-    # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
-    else:
-        device = "cpu"
-    torch.set_default_device(device)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Set profiler
-    profiler = Profiler()  # nb: might slow down the code
+def main(device):
 
     width = 800
     height = 800
@@ -68,7 +39,7 @@ if __name__ == "__main__":
     bounding_spheres.append(sphere)
 
     # shoot rays from camera and intersect with boxes
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
+    rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
 
     intersections = []
     for i, bb in enumerate(bounding_spheres):
@@ -116,3 +87,20 @@ if __name__ == "__main__":
         dpi=300,
     )
     plt.close()
+
+
+if __name__ == "__main__":
+
+    # Set a random seed for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+
+    # # Check if CUDA (GPU support) is available
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
+    torch.set_default_device(DEVICE)
+
+    # Set default tensor type
+    torch.set_default_dtype(torch.float32)
+
+    main(DEVICE)

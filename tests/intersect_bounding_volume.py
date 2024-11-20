@@ -4,54 +4,27 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
+from config import get_dataset_test_preset
+from config import DATASETS_PATH, DEVICE, SEED
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
-from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.utils.profiler import Profiler
-from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.utils.raycasting import get_camera_rays
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
-from mvdatasets.config import datasets_path
 
-if __name__ == "__main__":
 
-    # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+def main(dataset_name, device):
 
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
-    else:
-        device = "cpu"
-    torch.set_default_device(device)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Set profiler
-    profiler = Profiler()  # nb: might slow down the code
-
-    # Get dataset test preset
-
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -62,8 +35,10 @@ if __name__ == "__main__":
     rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
     camera = deepcopy(mv_data["test"][rand_idx])
     # shoot rays from camera
-    rays_o, rays_d, points_2d = get_camera_rays(camera, device=device)
-
+    rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
+    print("rays_o", rays_o.shape)
+    print("rays_d", rays_d.shape)
+    
     # bounding box
     scene_radius = mv_data.scene_radius
     scene_diameter = scene_radius * 2
@@ -108,7 +83,6 @@ if __name__ == "__main__":
 
     img_np = ((camera.get_rgb() / 255.0) * 0.5) + (hit_range * 0.5)
     plt.imshow(img_np)
-
     plt.savefig(
         os.path.join("plots", f"{dataset_name}_bounding_sphere.png"),
         transparent=True,
@@ -116,12 +90,26 @@ if __name__ == "__main__":
     )
     plt.close()
 
-    # points_3d = bounding_volume.get_random_points_on_surface(100000)
-    # points_2d = camera.project_points_3d_to_2d(points_3d=points_3d)
-    # # 3d points distance from camera center
-    # camera_points_dists = camera.camera_to_points_3d_distance(points_3d)
-    # points_2d = points_2d.cpu().numpy()
-    # camera_points_dists = camera_points_dists.cpu().numpy()
-    # print("camera_points_dist", camera_points_dists)
-    # fig = plot_points_2d_on_image(camera, points_2d, points_norms=camera_points_dists)
-    # plt.show()
+
+if __name__ == "__main__":
+
+    # Set a random seed for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+
+    # # Check if CUDA (GPU support) is available
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
+    torch.set_default_device(DEVICE)
+
+    # Set default tensor type
+    torch.set_default_dtype(torch.float32)
+
+    # Get dataset test preset
+
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1]
+    else:
+        dataset_name = "dtu"
+
+    main(dataset_name, DEVICE)

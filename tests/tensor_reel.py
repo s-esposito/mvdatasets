@@ -5,6 +5,8 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from config import get_dataset_test_preset
+from config import DATASETS_PATH, DEVICE, SEED
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,46 +15,21 @@ from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.profiler import Profiler
-from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 
 
-if __name__ == "__main__":
+def main(dataset_name, device):
 
-    # Set a random seed for reproducibility
-    seed = 42
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        device = "cuda"
-        torch.cuda.manual_seed(seed)  # Set a random seed for GPU
-    else:
-        device = "cpu"
-    torch.set_default_device(device)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
-
-    # Set datasets path
-    datasets_path = "/home/stefano/Data"
-
-    # Get dataset test preset
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        datasets_path,
+        DATASETS_PATH,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -83,7 +60,6 @@ if __name__ == "__main__":
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)
     azimuth_deg = 0
     azimuth_deg_delta = 360 / (nr_iterations / 2)
-    frames_paths = []
     for i in pbar:
 
         # cameras_idx = np.random.permutation(len(mv_data["train"]))[:2]
@@ -104,7 +80,6 @@ if __name__ == "__main__":
             frames_idx=frame_idx,
             jitter_pixels=True,
             nr_rays_per_pixel=1,
-            # masked_sampling=True
         )
 
         if profiler is not None:
@@ -112,9 +87,9 @@ if __name__ == "__main__":
 
         if not benchmark:
 
-            gt_rgb = vals["rgb"]
-            if "mask" in vals:
-                gt_mask = vals["mask"]
+            gt_rgb = vals["rgbs"]
+            if "masks" in vals:
+                gt_mask = vals["masks"]
             else:
                 gt_mask = None
 
@@ -126,7 +101,7 @@ if __name__ == "__main__":
                 print("gt_mask", gt_mask.shape, gt_mask.device, gt_mask.dtype)
             print("frame_idx", frame_idx.shape, frame_idx.device, frame_idx.dtype)
 
-            fig = plot_current_batch(
+            plot_current_batch(
                 mv_data["train"],
                 camera_idx,
                 rays_o,
@@ -139,15 +114,9 @@ if __name__ == "__main__":
                 scene_radius=mv_data.max_camera_distance,
                 up="z",
                 figsize=(15, 15),
+                show=False,
+                save_path=os.path.join("plots", f"{dataset_name}_batch_{i}.png"),
             )
-
-            # plt.show()
-            frame_path = os.path.join("plots", f"{dataset_name}_batch_{i}.png")
-            plt.savefig(
-                frame_path, bbox_inches="tight", pad_inches=0, dpi=72, transparent=True
-            )
-            plt.close()
-            frames_paths.append(frame_path)
 
             # update azimuth every 2 iterations
             if i % 2 != 0:
@@ -155,3 +124,26 @@ if __name__ == "__main__":
 
     if profiler is not None:
         profiler.print_avg_times()
+
+
+if __name__ == "__main__":
+
+    # Set a random seed for reproducibility
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+
+    # # Check if CUDA (GPU support) is available
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
+    torch.set_default_device(DEVICE)
+
+    # Set default tensor type
+    torch.set_default_dtype(torch.float32)
+
+    # Get dataset test preset
+    if len(sys.argv) > 1:
+        dataset_name = sys.argv[1]
+    else:
+        dataset_name = "dtu"
+
+    main(dataset_name, DEVICE)
