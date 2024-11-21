@@ -1,16 +1,17 @@
+import tyro
 import numpy as np
 import os
 import sys
 import torch
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from config import DATASETS_PATH, DEVICE, SEED
+from config import Args
 from config import get_dataset_test_preset
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.visualization.matplotlib import plot_cameras
+from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
@@ -19,18 +20,19 @@ from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 
 
-def main(dataset_name, device):
+def main(args: Args):
 
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    device = args.device
+    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
     # dataset loading
     mv_data = MVDataset(
-        dataset_name,
+        args.dataset_name,
         scene_name,
-        DATASETS_PATH,
+        args.datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -72,7 +74,7 @@ def main(dataset_name, device):
     )
 
     # Visualize cameras
-    plot_cameras(
+    plot_3d(
         sampled_cameras,
         points_3d=point_cloud,
         azimuth_deg=20,
@@ -151,23 +153,5 @@ def main(dataset_name, device):
 
 
 if __name__ == "__main__":
-
-    # Set a random seed for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
-    torch.set_default_device(DEVICE)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Get dataset test preset
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "blender"
-
-    main(dataset_name, DEVICE)
+    args = tyro.cli(Args)
+    main(args)

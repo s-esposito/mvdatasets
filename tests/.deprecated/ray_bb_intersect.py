@@ -13,7 +13,7 @@ import imageio
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.visualization.matplotlib import plot_bounding_boxes
+from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.config import get_dataset_test_preset
@@ -43,18 +43,15 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
-    # Set datasets path
-    DATASETS_PATH = "/home/stefano/Data"
-
     # Get dataset test preset
     dataset_name = "dmsr"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
-        dataset_name,
+        args.dataset_name,
         scene_name,
-        DATASETS_PATH,
+        args.datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -200,9 +197,9 @@ if __name__ == "__main__":
     )
     plt.close()
 
-    fig = plot_bounding_boxes(
+    fig = plot_3d(
         bounding_boxes=bounding_boxes,
-        point_clouds=[point_cloud, points_near, points_far],
+        points_3d=[point_cloud, points_near, points_far],
         cameras=[camera],
         azimuth_deg=230,
         elevation_deg=60,

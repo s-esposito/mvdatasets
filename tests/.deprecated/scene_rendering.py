@@ -18,22 +18,21 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
-    # Set datasets path
-    DATASETS_PATH = "/home/stefano/Data"
-
     # Get dataset test preset
     # if len(sys.argv) > 1:
     #     dataset_name = sys.argv[1]
     # else:
     dataset_name = "dmsr"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
-        dataset_name,
+        args.dataset_name,
         scene_name,
-        DATASETS_PATH,
+        args.datasets_path,
         splits=["train", "test"],
+        config=config,
+        verbose=True,
     )
 
     # scene path (folder containing only mesh files)
@@ -63,7 +62,7 @@ if __name__ == "__main__":
     # render mesh
     splits = ["test", "train"]
     for split in splits:
-        save_path = os.path.join(DATASETS_PATH, dataset_name, scene_name, split)
+        save_path = os.path.join(args.datasets_path, dataset_name, scene_name, split)
         for camera in mv_data[split]:
             # print(camera.camera_idx)
             imgs = render_o3d_scene(camera, o3d_scene)

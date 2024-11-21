@@ -199,6 +199,10 @@ class Camera:
         matrix_world = opengl_matrix_world_from_w2c(w2c)
         return matrix_world
 
+    def get_data_dict(self) -> dict:
+        """return all camera data"""
+        return self.data
+
     def has_rgbs(self) -> bool:
         """check if rgbs exists"""
         return self.data["rgbs"] is not None
@@ -416,6 +420,7 @@ class Camera:
         self,
         points_2d_screen: torch.Tensor = None,
         frame_idx: int = 0,
+        keys: list = ["rgbs", "masks"],
         device: str = "cpu",
     ):
         """return data values for points_2d_screen
@@ -423,8 +428,6 @@ class Camera:
             vals (dict):
                 rgb_vals (optional, torch.Tensor): (N, 3)
                 mask_vals (optional, torch.Tensor): (N, 1)
-            points_2d_screen (torch.Tensor, float): (N, 2)
-                                            Values in [0, W-1], [0, H-1].
         """
 
         # sample points if not provided
@@ -436,6 +439,14 @@ class Camera:
         frames_idx = torch.full(
             (points_2d_screen.shape[0],), frame_idx, dtype=torch.int32, device=device
         )
+        
+        data = {}
+        for key in keys:
+            if key not in self.data.keys() or self.data[key] is None:
+                print_warning(f"data {key} not found for camera {self.camera_idx}")
+            else:
+                data[key] = self.data[key]
+        
         vals = get_data_per_points_2d_screen(
             points_2d_screen=points_2d_screen,
             cameras_idx=None,

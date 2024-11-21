@@ -14,10 +14,10 @@ DATASETS=(
 
 for dataset in "${DATASETS[@]}"; do
     echo "#### testing $dataset ####"
-    python tests/train_test_splits.py $dataset
-    python tests/pixels_sampling.py $dataset
-    python tests/camera_rays.py $dataset
-    python tests/project_points.py $dataset
-    python tests/tensor_reel.py $dataset
-    python tests/project_bounding_volume.py $dataset
+    python tests/vis_camera_rays.py --dataset-name $dataset
+    python tests/train_test_splits.py --dataset-name $dataset
+    python tests/pixels_sampling.py --dataset-name $dataset
+    python tests/points_projections.py --dataset-name $dataset
+    python tests/tensor_reel.py --dataset-name $dataset
+    python tests/bounding_volumes.py --dataset-name $dataset
 done

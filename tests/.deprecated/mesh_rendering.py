@@ -12,20 +12,21 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.open3d_rendering import render_o3d_mesh
 from mvdatasets.utils.images import numpy_to_image
 from mvdatasets.config import get_dataset_test_preset
-from mvdatasets.config import DATASETS_PATH
 
 if __name__ == "__main__":
 
     dataset_name = "dtu"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
     mesh_file_path = "tests/assets/meshes/dtu/dtu_scan83.ply"
 
     # dataset loading
     mv_data = MVDataset(
-        dataset_name,
+        args.dataset_name,
         scene_name,
-        DATASETS_PATH,
+        args.datasets_path,
         splits=["train", "test"],
+        config=config,
+        verbose=True,
     )
 
     # load mesh

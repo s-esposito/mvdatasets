@@ -47,9 +47,9 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-Configure your dataset path in `config`, e.g.:
+Configure your datasets root folder path in `config`, e.g.:
 ```python
-DATASETS_PATH = "/home/stefano/Data"
+Config.datasets_path = Path("/home/stefano/Data")
 ```
 
 ## Testing

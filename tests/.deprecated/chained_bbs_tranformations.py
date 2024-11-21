@@ -13,14 +13,13 @@ import imageio
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.visualization.matplotlib import plot_bounding_boxes
+from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.config import get_dataset_test_preset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 from mvdatasets.utils.point_clouds import load_point_cloud
 from mvdatasets.geometry.common import apply_transformation_3d
-from mvdatasets.config import DATASETS_PATH
 
 
 def test():
@@ -94,7 +93,7 @@ def test():
     # bounding_boxes.append(bb)
 
     # visualize bounding boxes
-    fig = plot_bounding_boxes(
+    fig = plot_3d(
         bounding_boxes=bounding_boxes,
         points_3d=np.concatenate(point_clouds, axis=0),
         azimuth_deg=90,

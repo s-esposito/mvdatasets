@@ -1,3 +1,4 @@
+import tyro
 import sys
 import os
 import torch
@@ -5,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 from PIL import Image
-from config import DATASETS_PATH, DEVICE, SEED
+from config import Args
 from config import get_dataset_test_preset
 
 # load mvdatasets from parent directory
@@ -23,20 +24,28 @@ from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.images import image_to_tensor
 
 
-def main(dataset_name, device):
-
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+def main(args: Args):
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
+    device = args.device
+    dataset_path = args.datasets_path
+    dataset_name = args.dataset_name
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+
+    if dataset_name != "plushy":
+        raise ValueError("This test is only for the plushy dataset.")
+    
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        DATASETS_PATH,
+        dataset_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
+        config=config,
+        verbose=True,
     )
 
     # random camera index
@@ -116,19 +125,5 @@ def main(dataset_name, device):
 
 
 if __name__ == "__main__":
-
-    # Set a random seed for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
-    torch.set_default_device(DEVICE)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    dataset_name = "blendernerf"
-
-    main(dataset_name, DEVICE)
+    args = tyro.cli(Args)
+    main(args)

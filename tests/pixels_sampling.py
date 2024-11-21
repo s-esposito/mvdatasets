@@ -1,3 +1,4 @@
+import tyro
 import sys
 import os
 import torch
@@ -5,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
-from config import DATASETS_PATH, DEVICE, SEED
+from config import Args
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,17 +16,22 @@ from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 
 
-def main(dataset_name, device):
+def main(args: Args):
 
+    device = args.device
+    dataset_path = args.datasets_path
+    dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        DATASETS_PATH,
+        dataset_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
+        config=config,
+        verbose=True,
     )
 
     # random camera index
@@ -46,7 +52,7 @@ def main(dataset_name, device):
     rays_o, rays_d, points_2d_screen = camera.get_rays(jitter_pixels=True)
     plot_points_2d_on_image(
         camera,
-        points_2d_screen,  # [:, [1, 0]],
+        points_2d_screen,
         show_ticks=True,
         figsize=(15, 15),
         title="screen space sampling (jittered)",
@@ -61,7 +67,7 @@ def main(dataset_name, device):
 
     plot_points_2d_on_image(
         camera,
-        points_2d_screen,  # [:, [1, 0]],
+        points_2d_screen,
         show_ticks=True,
         figsize=(15, 15),
         title="screen space sampling",
@@ -71,23 +77,5 @@ def main(dataset_name, device):
 
 
 if __name__ == "__main__":
-
-    # Set a random seed for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
-    torch.set_default_device(DEVICE)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Get dataset test preset
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
-
-    main(dataset_name, DEVICE)
+    args = tyro.cli(Args)
+    main(args)

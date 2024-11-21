@@ -1,3 +1,4 @@
+import tyro
 from rich import print
 import os
 import sys
@@ -6,24 +7,29 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
-from config import DATASETS_PATH, DEVICE, SEED
+from config import Args
 
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # library imports
-from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
+from mvdatasets.visualization.matplotlib import plot_points_2d_on_image, plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.printing import print_error
 
 
-def main(dataset_name, device):
+def main(args: Args):
+
+    device = args.device
+    dataset_path = args.datasets_path
+    dataset_name = args.dataset_name
+    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        DATASETS_PATH,
+        dataset_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -55,6 +61,7 @@ def main(dataset_name, device):
     plot_points_2d_on_image(
         camera,
         points_2d_screen,
+        title="point cloud projection",
         points_norms=camera_points_dists,
         show=False,
         save_path=os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"),
@@ -70,63 +77,62 @@ def main(dataset_name, device):
     idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
     point_cloud = point_cloud[idx]
     points_3d = points_3d[idx]
-
-    # visualize 3D points
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-    ax.scatter(
-        point_cloud[:, 0],
-        point_cloud[:, 1],
-        point_cloud[:, 2],
-        c="r",
-        marker="o",
-        label="point cloud",
+    
+    # plot point clouds and camera
+    plot_3d(
+        cameras=[camera],
+        points_3d=[point_cloud, points_3d],
+        points_3d_colors=["red", "blue"],
+        points_3d_labels=["point cloud", "reprojected points"],
+        azimuth_deg=20,
+        elevation_deg=30,
+        up="z",
+        scene_radius=mv_data.scene_radius,
+        draw_bounding_cube=True,
+        draw_image_planes=True,
+        figsize=(15, 15),
+        title="point_cloud_unprojection",
+        show=True,
+        save_path=os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
     )
-    ax.scatter(
-        points_3d[:, 0],
-        points_3d[:, 1],
-        points_3d[:, 2],
-        c="b",
-        marker="x",
-        label="reprojected points",
-    )
-    ax.set_xlabel("X Label")
-    ax.set_ylabel("Y Label")
-    ax.set_zlabel("Z Label")
-    ax.legend()
+    
+    # # visualize 3D points
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection="3d")
+    # ax.set_title("screen space points unprojection")
+    # ax.scatter(
+    #     point_cloud[:, 0],
+    #     point_cloud[:, 1],
+    #     point_cloud[:, 2],
+    #     c="r",
+    #     marker="o",
+    #     label="point cloud",
+    # )
+    # ax.scatter(
+    #     points_3d[:, 0],
+    #     points_3d[:, 1],
+    #     points_3d[:, 2],
+    #     c="b",
+    #     marker="x",
+    #     label="reprojected points",
+    # )
+    # ax.set_xlabel("X Label")
+    # ax.set_ylabel("Y Label")
+    # ax.set_zlabel("Z Label")
+    # ax.legend()
+    
+    # # plt.show()
+    # plt.savefig(
+    #     os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
+    #     transparent=True,
+    #     dpi=300,
+    # )
+    # plt.close()
 
     error = np.mean(np.abs(points_3d - point_cloud))
     print("error", error.item())
 
-    # plt.show()
-    plt.savefig(
-        os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
-        transparent=True,
-        dpi=300,
-    )
-    plt.close()
-
 
 if __name__ == "__main__":
-
-    # Set a random seed for reproducibility
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-
-    # # Check if CUDA (GPU support) is available
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(SEED)  # Set a random seed for GPU
-    torch.set_default_device(DEVICE)
-
-    # Set default tensor type
-    torch.set_default_dtype(torch.float32)
-
-    # Get dataset test preset
-
-    if len(sys.argv) > 1:
-        dataset_name = sys.argv[1]
-    else:
-        dataset_name = "dtu"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
-
-    main(dataset_name, DEVICE)
+    args = tyro.cli(Args)
+    main(args)

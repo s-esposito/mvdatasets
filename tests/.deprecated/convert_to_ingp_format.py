@@ -13,7 +13,7 @@ import imageio
 # load mvdatasets from parent directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from mvdatasets.visualization.matplotlib import plot_cameras
+from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.config import get_dataset_test_preset
@@ -41,21 +41,18 @@ if __name__ == "__main__":
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
-    # Set datasets path
-    DATASETS_PATH = "/home/stefano/Data"
-
     # Get dataset test preset
     if len(sys.argv) > 1:
         dataset_name = sys.argv[1]
     else:
         dataset_name = "dtu"
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # dataset loading
     mv_data = MVDataset(
-        dataset_name,
+        args.dataset_name,
         scene_name,
-        DATASETS_PATH,
+        args.datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
