@@ -7,11 +7,6 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# library imports
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere

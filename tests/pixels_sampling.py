@@ -7,11 +7,6 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# library imports
 from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
 from mvdatasets.mvdataset import MVDataset
 

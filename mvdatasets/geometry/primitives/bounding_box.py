@@ -6,6 +6,7 @@ from copy import deepcopy
 import open3d as o3d
 
 from mvdatasets.geometry.common import apply_transformation_3d
+from mvdatasets.utils.printing import print_error
 
 
 def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
@@ -115,6 +116,11 @@ class BoundingBox:
             )
 
     def get_pose(self):
+        """get pose in world space
+
+        Returns:
+            pose (torch.Tensor): (4, 4)
+        """
         pose = deepcopy(self.pose)
         father_bb = self.father_bb
         # while father_bb is not None:
@@ -128,18 +134,35 @@ class BoundingBox:
         return pose
 
     def get_radius(self):
+        """get radius (as maximum size lenght / 2) of the bounding box
+
+        Returns:
+            radius (float): radius of the bounding box
+        """
         return (torch.max(self.local_scale) / 2.0).item()
 
     def get_max_traversable_distance(self):
-        # TODO
-        pass
+        # TODO: implement
+        print_error("get_max_traversable_distance not implemented yet")
 
     def get_center(self):
+        """get center of the bounding box in world space
+
+        Returns:
+            center (torch.Tensor): (3,)
+        """
         pose = self.get_pose()
         return pose[:3, 3]
 
     def get_vertices(self, in_world_space=False):
-
+        """get vertices of the bounding box
+        
+        Args:
+            in_world_space (bool, optional): Defaults to False.
+        Returns:
+            vertices (torch.Tensor): (8, 3)
+        """
+        
         # offsets
         center = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device)
         offsets = torch.tensor(

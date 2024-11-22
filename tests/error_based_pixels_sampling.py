@@ -8,11 +8,6 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from config import Args
 from config import get_dataset_test_preset
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# library imports
 from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
 from mvdatasets.utils.raycasting import (
     get_points_2d_screen_from_pixels,

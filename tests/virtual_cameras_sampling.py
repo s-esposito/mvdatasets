@@ -1,16 +1,9 @@
 import tyro
 import numpy as np
 import os
-import sys
-import torch
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from config import Args
 from config import get_dataset_test_preset
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.mvdataset import MVDataset

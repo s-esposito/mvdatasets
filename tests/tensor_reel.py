@@ -8,10 +8,6 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from config import get_dataset_test_preset
 from config import Args
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel

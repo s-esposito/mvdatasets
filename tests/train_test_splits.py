@@ -1,15 +1,8 @@
 import tyro
 import numpy as np
 import os
-import sys
-import torch
-import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
@@ -34,9 +27,6 @@ def main(args: Args):
         config=config,
         verbose=True,
     )
-
-    print("scene_radius:", mv_data.scene_radius)
-    print("init_sphere_radius:", mv_data.init_sphere_radius)
 
     if mv_data.init_sphere_radius > mv_data.scene_radius:
         print_error("init_sphere_radius > scene_radius, this can't be true")
@@ -88,7 +78,6 @@ def main(args: Args):
     scene_type = config.get("scene_type", None)
     if scene_type == "unbounded":
         draw_contraction_spheres = True
-    print("draw_contraction_spheres:", draw_contraction_spheres)
 
     # Visualize cameras
     plot_3d(

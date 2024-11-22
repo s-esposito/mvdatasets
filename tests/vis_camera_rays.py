@@ -7,13 +7,9 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-
-# load mvdatasets from parent directory
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# library imports
-from mvdatasets.visualization.matplotlib import plot_3d, plot_image
+from mvdatasets.visualization.matplotlib import plot_3d, plot_image, plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
+from mvdatasets.geometry.primitives import BoundingBox
 
 
 def main(args: Args):
@@ -46,30 +42,14 @@ def main(args: Args):
     # resize camera
     camera.resize(subsample_factor=10)
 
-    # print(camera)
-
-    # gen rays and get data
-    # rays_o, rays_d, points_2d_screen = camera.get_rays()
-    # vals = camera.get_data(points_2d_screen=points_2d_screen)
-
-    # vals = camera.get_data()
-    # for key, val in vals.items():
-    #     if val is not None:
-    #         val = val.reshape(camera.width, camera.height, -1).cpu().numpy()
-    #         # plot
-    #         plot_image(
-    #             image=val,
-    #             show=True,
-    #         )
-
     # Visualize cameras
     plot_3d(
         cameras=[camera],
-        points_3d=point_cloud,
+        points_3d=[point_cloud],
         nr_rays=256,
         azimuth_deg=20,
         elevation_deg=30,
-        scene_radius=1.0,
+        scene_radius=mv_data.scene_radius,
         up="z",
         draw_image_planes=True,
         draw_cameras_frustums=False,
@@ -77,6 +57,35 @@ def main(args: Args):
         title=f"test camera {rand_idx} rays",
         show=True,
         save_path=os.path.join("plots", f"{dataset_name}_camera_rays.png"),
+    )
+    
+    # Visualize intersections with bounding box
+    
+    # bounding box
+    bounding_volume = BoundingBox(
+        pose=np.eye(4),
+        local_scale=mv_data.scene_radius*2,
+        device=device,
+    )
+    
+    # shoot rays from camera
+    rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
+    
+    # bounding_volume intersection test
+    is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
+
+    plot_rays_samples(
+        rays_o=rays_o.cpu().numpy(),
+        rays_d=rays_d.cpu().numpy(),
+        t_near=t_near.cpu().numpy(),
+        t_far=t_far.cpu().numpy(),
+        nr_rays=32,
+        camera=camera,
+        bounding_boxes=[bounding_volume],
+        scene_radius=mv_data.scene_radius,
+        title="bounding box intersections",
+        show=True,
+        save_path=os.path.join("plots", f"{dataset_name}_bounding_box_intersections.png"),
     )
 
 

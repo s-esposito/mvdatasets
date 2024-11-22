@@ -1,6 +1,7 @@
 import csv
 import glob
 import os
+import numpy as np
 import json
 from tqdm import tqdm
 from pathlib import Path
@@ -45,14 +46,17 @@ json_files_paths = sorted(glob.glob(os.path.join(jsons_path, "*.json")))
 json_file_path = json_files_paths[0]
 print(json_file_path)
 
+# get all objects in the current sequence
 object_keys = {}
 objects = do_stats_stage2_jsons_single_file_new(json_file_path)
-# print('objects: ',objects)
+print("objects:", objects)
 i = 1
 for key, _ in objects:
     object_keys[key] = i
     i = i + 1
 max_count = max(object_keys.values())
+# nr of objects in the current sequence
+print("max_count:", max_count)
 
 # read json file
 f = open(json_file_path)
@@ -82,8 +86,6 @@ for datapoint in data:
         input_resolution=(1920, 1080),
         output_resolution=(1920, 1080),
     )  # this is for unique id for each object throughout the video
-
-    exit(0)
 
 # for json_file in tqdm(json_files_names):
 #     input_resolution = (1920, 1080)
