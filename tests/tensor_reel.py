@@ -93,7 +93,9 @@ def main(args: Args):
             else:
                 gt_mask = None
 
-            print("cameras_idx", cameras_idx.shape, cameras_idx.device, cameras_idx.dtype)
+            print(
+                "cameras_idx", cameras_idx.shape, cameras_idx.device, cameras_idx.dtype
+            )
             print("rays_o", rays_o.shape, rays_o.device, rays_o.dtype)
             print("rays_d", rays_d.shape, rays_d.device, rays_d.dtype)
             print("gt_rgb", gt_rgb.shape, gt_rgb.device, gt_rgb.dtype)

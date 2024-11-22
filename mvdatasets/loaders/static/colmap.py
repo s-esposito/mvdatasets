@@ -236,14 +236,14 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
 
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
-    
+
     # scene scale such that furthest away camera is at target distance
     scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
 
     # new scene scale
     new_min_camera_distance = min_camera_distance * scene_radius_mult
     new_max_camera_distance = max_camera_distance * scene_radius_mult
-    
+
     # scene radius
     scene_radius = new_max_camera_distance
 
@@ -347,7 +347,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         "point_clouds": [point_cloud],
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
-        "scene_radius": scene_radius
+        "scene_radius": scene_radius,
     }
 
 

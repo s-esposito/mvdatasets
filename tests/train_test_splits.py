@@ -32,7 +32,7 @@ def main(args: Args):
         point_cloud = mv_data.point_clouds[0]
     else:
         point_cloud = None
-    
+
     # sdf init
 
     bs = BoundingSphere(
@@ -101,7 +101,7 @@ def main(args: Args):
     )
 
     print("done")
-    
+
 
 if __name__ == "__main__":
     args = tyro.cli(Args)

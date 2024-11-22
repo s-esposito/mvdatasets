@@ -30,7 +30,7 @@ def main(args: Args):
         config=config,
         verbose=True,
     )
-    
+
     bbs = []
     draw_bounding_cube = True
     draw_contraction_spheres = False
@@ -87,12 +87,12 @@ def main(args: Args):
         show=False,
         save_path=os.path.join("plots", f"{dataset_name}_camera_rays.png"),
     )
-    
+
     # Visualize intersections with bounding box
-    
+
     # shoot rays from camera
     rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
-    
+
     # bounding primitive intersection test
     if scene_type == "bounded":
         is_hit, t_near, t_far, p_near, p_far = bb.intersect(rays_o, rays_d)
@@ -114,7 +114,9 @@ def main(args: Args):
         draw_contraction_spheres=draw_contraction_spheres,
         title="bounding box intersections",
         show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_bounding_box_intersections.png"),
+        save_path=os.path.join(
+            "plots", f"{dataset_name}_bounding_box_intersections.png"
+        ),
     )
 
 

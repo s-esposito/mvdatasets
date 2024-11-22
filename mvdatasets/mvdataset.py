@@ -124,12 +124,12 @@ class MVDataset:
         # config
         self.scene_type = res["scene_type"]
         self.global_transform = res["global_transform"]
-        
+
         self.min_camera_distance = res["min_camera_distance"]
         self.max_camera_distance = res["max_camera_distance"]
         print("min_camera_distance:", self.min_camera_distance)
         print("max_camera_distance:", self.max_camera_distance)
-        
+
         self.scene_radius = res["scene_radius"]
         self.foreground_radius_mult = res["foreground_radius_mult"]
         self.foreground_radius = self.scene_radius * self.foreground_radius_mult
@@ -138,14 +138,11 @@ class MVDataset:
 
         # SDF sphere init radius
         # for SDF reconstruction
-        self.init_sphere_radius = (
-            self.min_camera_distance
-            * res["init_sphere_scale"]
-        )
+        self.init_sphere_radius = self.min_camera_distance * res["init_sphere_scale"]
         # round to 2 decimals
         self.init_sphere_radius = round(self.init_sphere_radius, 2)
         print("init_sphere_radius:", self.init_sphere_radius)
-        
+
         if self.init_sphere_radius > self.foreground_radius:
             print_error("init_sphere_radius > scene_radius, this can't be true")
 
@@ -187,13 +184,13 @@ class MVDataset:
 
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
-    
+
     def get_scene_radius(self) -> float:
         return self.scene_radius
-    
+
     def get_foreground_radius(self) -> float:
         return self.foreground_radius
-    
+
     def has_masks(self) -> bool:
         for split, cameras in self.data.items():
             for camera in cameras:

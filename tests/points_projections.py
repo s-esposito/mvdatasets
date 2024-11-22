@@ -72,7 +72,7 @@ def main(args: Args):
     idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
     point_cloud = point_cloud[idx]
     points_3d = points_3d[idx]
-    
+
     # plot point clouds and camera
     plot_3d(
         cameras=[camera],

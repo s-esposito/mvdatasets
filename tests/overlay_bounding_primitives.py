@@ -36,7 +36,7 @@ def main(args: Args):
     camera = deepcopy(mv_data["test"][rand_idx])
     # shoot rays from camera
     rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
-    
+
     # bounding box
     bounding_volume = BoundingBox(
         pose=np.eye(4),
@@ -45,7 +45,7 @@ def main(args: Args):
     )
     # bounding_volume intersection test
     is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
-    hit_range = (t_far - t_near)
+    hit_range = t_far - t_near
     hit_range = hit_range.cpu().numpy()
     # get the color map
     color_map = plt.colormaps.get_cmap("jet")
@@ -56,7 +56,7 @@ def main(args: Args):
     rgbs = data["rgbs"].cpu().numpy()
     img_np = (rgbs * 0.5) + (hit_range * 0.5)
     img_np = img_np.reshape(camera.width, camera.height, -1)
-    
+
     plot_image(
         image=img_np,
         title="Bounding Box",
@@ -66,13 +66,11 @@ def main(args: Args):
 
     # bounding sphere
     bounding_volume = BoundingSphere(
-        pose=np.eye(4),
-        local_scale=mv_data.get_foreground_radius(),
-        device=device
+        pose=np.eye(4), local_scale=mv_data.get_foreground_radius(), device=device
     )
     # bounding_volume intersection test
     is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
-    hit_range = (t_far - t_near)
+    hit_range = t_far - t_near
     hit_range = hit_range.cpu().numpy()
     # get the color map
     color_map = plt.colormaps.get_cmap("jet")
@@ -90,7 +88,7 @@ def main(args: Args):
         show=False,
         save_path=os.path.join("plots", f"{dataset_name}_bounding_sphere.png"),
     )
-    
+
 
 if __name__ == "__main__":
     args = tyro.cli(Args)

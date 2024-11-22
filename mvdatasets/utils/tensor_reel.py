@@ -41,7 +41,7 @@ class TensorReel:
 
         if len(cameras) == 0:
             print_error("tensor reel has no cameras")
-    
+
         data = {}
         poses = []
         intrinsics_inv = []
@@ -74,7 +74,7 @@ class TensorReel:
         for key, val in data.items():
             data[key] = torch.stack(val).to(device).contiguous()
         self.data = data
-        
+
         # concat cameras matrices
         self.poses = torch.stack(poses).to(device).contiguous()
         self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()
@@ -83,7 +83,7 @@ class TensorReel:
         self.temporal_dim = cameras[0].get_temporal_dim()
         self.width, self.height = cameras[0].get_resolution()
         self.device = device
-        
+
         if verbose:
             if self.device != "cpu":
                 print("tensor reel on gpu")
@@ -239,23 +239,31 @@ class TensorReel:
         nr_cameras = self.poses.shape[0]
         if cameras_idx is None:
             # sample among all cameras with repetitions
-            cameras_idx = torch.randint(nr_cameras, (real_batch_size,), device=self.device)
+            cameras_idx = torch.randint(
+                nr_cameras, (real_batch_size,), device=self.device
+            )
         else:
             # sample among given cameras indices with repetitions
-            sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,), device=self.device)
+            sampled_idx = torch.randint(
+                len(cameras_idx), (real_batch_size,), device=self.device
+            )
             cameras_idx = cameras_idx[sampled_idx]
         cameras_idx = cameras_idx.int()
 
         # sample frames_idx
         if frames_idx is None:
             # sample among all frames with repetitions
-            frames_idx = torch.randint(self.temporal_dim, (real_batch_size,), device=self.device)
+            frames_idx = torch.randint(
+                self.temporal_dim, (real_batch_size,), device=self.device
+            )
         else:
             # sample among given frames indices with repetitions
-            sampled_idx = torch.randint(len(frames_idx), (real_batch_size,), device=self.device)
+            sampled_idx = torch.randint(
+                len(frames_idx), (real_batch_size,), device=self.device
+            )
             frames_idx = frames_idx[sampled_idx]
         frames_idx = frames_idx.int()
-        
+
         # get random pixels
         pixels = get_random_pixels(
             self.height, self.width, real_batch_size, device=self.device
@@ -276,7 +284,7 @@ class TensorReel:
             points_2d_screen=points_2d_screen,
             cameras_idx=cameras_idx,
             frames_idx=frames_idx,
-            data_dict=self.data
+            data_dict=self.data,
         )
 
         # get a ray for each pixel in corresponding camera frame

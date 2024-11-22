@@ -97,10 +97,10 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
     # new scene scale
     new_min_camera_distance = min_camera_distance * scene_radius_mult
     new_max_camera_distance = max_camera_distance * scene_radius_mult
-    
+
     # scene radius
     scene_radius = new_max_camera_distance
-    
+
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
@@ -198,5 +198,5 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         "global_transform": global_transform,
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
-        "scene_radius": scene_radius
+        "scene_radius": scene_radius,
     }

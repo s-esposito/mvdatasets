@@ -156,13 +156,13 @@ class BoundingBox:
 
     def get_vertices(self, in_world_space=False):
         """get vertices of the bounding box
-        
+
         Args:
             in_world_space (bool, optional): Defaults to False.
         Returns:
             vertices (torch.Tensor): (8, 3)
         """
-        
+
         # offsets
         center = torch.tensor([0, 0, 0], dtype=torch.float32, device=self.device)
         offsets = torch.tensor(

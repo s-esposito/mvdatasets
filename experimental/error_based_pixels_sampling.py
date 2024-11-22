@@ -31,7 +31,7 @@ def main(args: Args):
 
     if dataset_name != "plushy":
         raise ValueError("This test is only for the plushy dataset.")
-    
+
     # dataset loading
     mv_data = MVDataset(
         dataset_name,

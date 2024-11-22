@@ -7,7 +7,7 @@ from tqdm import tqdm
 from pathlib import Path
 from visor_utils.vis import (
     do_stats_stage2_jsons_single_file_new,
-    generate_masks_for_image
+    generate_masks_for_image,
 )
 
 datasets_path = "/home/stefano/Data/"
@@ -82,7 +82,7 @@ for datapoint in data:
         full_path,
         object_keys=object_keys,
         is_overlay=False,
-        images_root_directory='.',
+        images_root_directory=".",
         input_resolution=(1920, 1080),
         output_resolution=(1920, 1080),
     )  # this is for unique id for each object throughout the video

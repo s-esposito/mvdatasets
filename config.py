@@ -5,13 +5,14 @@ from typing import List, Union, Tuple
 from mvdatasets.utils.printing import print_error
 from dataclasses import dataclass
 
+
 @dataclass
 class Args:
     datasets_path: Path = Path("/home/stefano/Data")
     dataset_name: str = "dtu"
     seed: int = 42
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
-    
+
     def _set_seeds(self):
         # Set a random seed for reproducibility
         torch.manual_seed(self.seed)
@@ -24,7 +25,7 @@ class Args:
             else:
                 # Set a random seed for GPU
                 torch.cuda.manual_seed(self.seed)
-        
+
     def __post_init__(self):
         # check path and dataset
         if not self.datasets_path.exists():
