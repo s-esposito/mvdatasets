@@ -10,7 +10,7 @@
 University of Tübingen, Autonomous Vision Group (AVG)
 
 ```
-⚠️ This repository is a work in progress. I am designing this codebase with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
+⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
 ```
 
 ---
@@ -86,17 +86,12 @@ python tests/pixels_sampling.py --dataset-name dtu
 python tests/overlay_bounding_primitives.py --dataset-name dtu
 ```
 
-e.g.: `python tests/train_test_splits.py blender` should render:
+e.g.: `python tests/train_test_splits.py --dataset-name blender` should render:
 
 <p float="left">
   <img src="imgs/blender_training_cameras.png" width="400"/>
   <img src="imgs/blender_test_cameras.png" width="400"/>
 </p>
-
-
-## Known issues
-
-- [ ] Point cloud unprojection with depth has wrong scale
 
 ## Disclaimer
 
