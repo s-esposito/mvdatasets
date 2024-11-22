@@ -1,25 +1,47 @@
-# MVDatasets: Standardized DataLoaders for 3D Computer Vision
+# MVDatasets
+
+
+<img align="right" width="100" height="100" src="imgs/art.webp">
+
+### Standardized DataLoaders for 3D Computer Vision
 
 [Stefano Esposito](https://s-esposito.github.io/), [Andreas Geiger](https://www.cvlibs.net/)
 <br>
 University of Tübingen, Autonomous Vision Group (AVG)
 
+```
 ⚠️ This repository is a work in progress. I am designing this codebase with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
+```
+
+---
 
 Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.
 
-Static:
-- [x] [DTU](#): unbounded
+
+<table>
+<tr>
+<td>
+
+**Static:**
 - [x] [NeRF-Synthetic](#): bounded
 - [x] [Shelly](#): bounded
+- [x] [DTU](#): unbounded
 - [x] [Mip-NeRF360](#): unbounded
 - [ ] [NeRF-LLFF](#): forward-facing
 
-Dynamic:
+</td>
+<td>
+
+**Dynamic:**
 - [ ] [PanopticSports](#): multi-view, bounded
 - [ ] [D-NeRF](#): semi-monocular, bounded
 - [ ] [iPhone](#): monocular, unbounded
 - [ ] [DynamicScenes](#): monocular, unbounded
+- [ ] ...
+
+</td>
+</tr>
+</table>
 
 ## Cameras
 
