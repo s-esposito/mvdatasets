@@ -4,7 +4,7 @@
 <br>
 University of Tübingen, Autonomous Vision Group (AVG)
 
-⚠️ This repository is a work in progress. I am designing this codebase with a focus on modularity; future updates *should* not disrupt existing functionalities.
+⚠️ This repository is a work in progress. I am designing this codebase with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
 
 Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.
 
@@ -56,11 +56,12 @@ Config.datasets_path = Path("/home/stefano/Data")
 
 ```bash
 # reproduce images
-python tests/train_test_splits.py dtu
-python tests/pixels_sampling.py dtu
-python tests/camera_rays.py dtu
-python tests/reproject_points.py dtu
-python tests/tensor_reel.py dtu
+python tests/train_test_splits.py --dataset-name dtu
+python tests/camera_rays.py --dataset-name dtu
+python tests/reproject_points.py --dataset-name dtu
+python tests/tensor_reel.py --dataset-name dtu
+python tests/pixels_sampling.py --dataset-name dtu
+python tests/overlay_bounding_primitives.py --dataset-name dtu
 ```
 
 e.g.: `python tests/train_test_splits.py blender` should render:

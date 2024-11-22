@@ -92,39 +92,6 @@ def main(args: Args):
         show=False,
         save_path=os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
     )
-    
-    # # visualize 3D points
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection="3d")
-    # ax.set_title("screen space points unprojection")
-    # ax.scatter(
-    #     point_cloud[:, 0],
-    #     point_cloud[:, 1],
-    #     point_cloud[:, 2],
-    #     c="r",
-    #     marker="o",
-    #     label="point cloud",
-    # )
-    # ax.scatter(
-    #     points_3d[:, 0],
-    #     points_3d[:, 1],
-    #     points_3d[:, 2],
-    #     c="b",
-    #     marker="x",
-    #     label="reprojected points",
-    # )
-    # ax.set_xlabel("X")
-    # ax.set_ylabel("Y")
-    # ax.set_zlabel("Z")
-    # ax.legend()
-    
-    # # plt.show()
-    # plt.savefig(
-    #     os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
-    #     transparent=True,
-    #     dpi=300,
-    # )
-    # plt.close()
 
     error = np.mean(np.abs(points_3d - point_cloud))
     print("error", error.item())

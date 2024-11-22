@@ -84,7 +84,7 @@ def main(args: Args):
         draw_contraction_spheres=draw_contraction_spheres,
         figsize=(15, 15),
         title=f"test camera {rand_idx} rays",
-        show=True,
+        show=False,
         save_path=os.path.join("plots", f"{dataset_name}_camera_rays.png"),
     )
     
@@ -113,7 +113,7 @@ def main(args: Args):
         draw_bounding_cube=draw_bounding_cube,
         draw_contraction_spheres=draw_contraction_spheres,
         title="bounding box intersections",
-        show=True,
+        show=False,
         save_path=os.path.join("plots", f"{dataset_name}_bounding_box_intersections.png"),
     )
 

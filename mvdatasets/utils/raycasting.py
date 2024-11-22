@@ -336,7 +336,7 @@ def get_data_per_points_2d_screen(
         ), f"cameras_idx: {cameras_idx.shape[0]} must have the same length as points_2d_screen: {points_2d_screen.shape[0]}"
     if frames_idx is not None:
         assert frames_idx.ndim == 1, f"frames_idx must: {frames_idx} be 1D"
-        assert cameras_idx.dtype == torch.int32, "cameras_idx must be int32"
+        assert frames_idx.dtype == torch.int32, "cameras_idx must be int32"
         assert (
             frames_idx.shape[0] == points_2d_screen.shape[0]
         ), f"frames_idx: {frames_idx.shape[0]} must have the same length as points_2d_screen: {points_2d_screen.shape[0]}"

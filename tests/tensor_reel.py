@@ -52,9 +52,9 @@ def main(args: Args):
     tensor_reel = TensorReel(mv_data["train"], device=device)
     print(tensor_reel)
 
-    benchmark = True
+    benchmark = False
     batch_size = 512
-    nr_iterations = 10000
+    nr_iterations = 10
     cameras_idx = None
     frame_idx = None
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)

@@ -59,7 +59,6 @@ def main(args: Args):
 
     # gen rays
     rays_o, rays_d, points_2d_screen = camera.get_rays(jitter_pixels=False)
-
     plot_points_2d_on_image(
         camera,
         points_2d_screen,
