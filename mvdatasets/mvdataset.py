@@ -121,30 +121,33 @@ class MVDataset:
         # cameras
         cameras_splits = res["cameras_splits"]
 
-        # computed
+        # config
+        self.scene_type = res["scene_type"]
         self.global_transform = res["global_transform"]
+        
         self.min_camera_distance = res["min_camera_distance"]
         self.max_camera_distance = res["max_camera_distance"]
-        self.scene_scale_mult = res["scene_scale_mult"]
-        print("scene_scale:", res["scene_scale"])
-        self.scene_radius = res["scene_scale"] * self.scene_scale_mult
-        # round to 2 decimals
-        self.scene_radius = round(self.scene_radius, 2)
+        print("min_camera_distance:", self.min_camera_distance)
+        print("max_camera_distance:", self.max_camera_distance)
+        
+        self.scene_radius = res["scene_radius"]
+        self.foreground_radius_mult = res["foreground_radius_mult"]
+        self.foreground_radius = self.scene_radius * self.foreground_radius_mult
         print("scene_radius:", self.scene_radius)
-
-        # config
-        self.scene_type = res["config"]["scene_type"]
+        print("foreground_radius:", self.foreground_radius)
 
         # SDF sphere init radius
         # for SDF reconstruction
         self.init_sphere_radius = (
             self.min_camera_distance
-            * self.scene_scale_mult
-            * res["config"]["init_sphere_scale"]
+            * res["init_sphere_scale"]
         )
         # round to 2 decimals
         self.init_sphere_radius = round(self.init_sphere_radius, 2)
         print("init_sphere_radius:", self.init_sphere_radius)
+        
+        if self.init_sphere_radius > self.foreground_radius:
+            print_error("init_sphere_radius > scene_radius, this can't be true")
 
         # optional
         if "point_clouds" in res:
@@ -182,6 +185,15 @@ class MVDataset:
         for split in splits:
             print(f"{split} split has {len(self.data[split])} cameras")
 
+    def get_sphere_init_radius(self) -> float:
+        return self.init_sphere_radius
+    
+    def get_scene_radius(self) -> float:
+        return self.scene_radius
+    
+    def get_foreground_radius(self) -> float:
+        return self.foreground_radius
+    
     def has_masks(self) -> bool:
         for split, cameras in self.data.items():
             for camera in cameras:

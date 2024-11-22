@@ -11,17 +11,16 @@ from mvdatasets.utils.raycasting import (
     get_points_2d_screen_from_pixels,
     get_random_pixels_from_error_map,
 )
+from mvdatasets import Camera
 from mvdatasets.utils.printing import print_error
 
 
 class TensorReel:
     def __init__(
         self,
-        cameras_list,
-        width=None,
-        height=None,
-        device="cuda",
-        verbose=False,
+        cameras: list[Camera],
+        device: str = "cuda",
+        verbose: bool = False,
         modalities: list[str] = ["rgbs", "masks"],
     ):
         """Create a tensor_reel object, containing all data
@@ -30,7 +29,7 @@ class TensorReel:
         Currently supports only static scenes, i.e. the first frame of each camera.
 
         Args:
-            cameras_list (list): list of cameras objects
+            cameras (list): list of cameras objects
             device (str, optional): device to move tensors to. Defaults to "cuda".
 
         Attributes:
@@ -40,6 +39,9 @@ class TensorReel:
             intrinsics_inv (torch.Tensor): (N, 3, 3)
         """
 
+        if len(cameras) == 0:
+            print_error("tensor reel has no cameras")
+    
         data = {}
         poses = []
         intrinsics_inv = []
@@ -47,9 +49,9 @@ class TensorReel:
 
         # collect data from all cameras
         if verbose:
-            pbar = tqdm(cameras_list, desc="tensor reel", ncols=100)
+            pbar = tqdm(cameras, desc="tensor reel", ncols=100)
         else:
-            pbar = cameras_list
+            pbar = cameras
         for camera in pbar:
 
             for key, val in camera.data.items():
@@ -71,28 +73,22 @@ class TensorReel:
         # concat data and move to device
         for key, val in data.items():
             data[key] = torch.stack(val).to(device).contiguous()
-
+        self.data = data
+        
         # concat cameras matrices
         self.poses = torch.stack(poses).to(device).contiguous()
         self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()
         self.projections = torch.stack(projections).to(device).contiguous()
 
+        self.temporal_dim = cameras[0].get_temporal_dim()
+        self.width, self.height = cameras[0].get_resolution()
+        self.device = device
+        
         if verbose:
-            if device != "cpu":
+            if self.device != "cpu":
                 print("tensor reel on gpu")
             else:
                 print("tensor reel on cpu")
-
-        self.device = device
-        if self.data["rgbs"] is not None:
-            self.height = self.rgbs.shape[2]
-            self.width = self.rgbs.shape[3]
-        else:
-            assert (
-                height is not None and width is not None
-            ), "height and width must be specified if cameras have not rgbs"
-            self.height = height
-            self.width = width
 
     # TODO: deprecated
     # @torch.no_grad()
@@ -137,10 +133,10 @@ class TensorReel:
     #         cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
 
     #     # sample frames_idx
-    #     nr_frames = self.rgbs.shape[1]
+    #     self.temporal_dim = self.rgbs.shape[1]
     #     if frames_idx is None:
     #         # sample among all frames with repetitions
-    #         frames_idx = torch.randint(nr_frames, (batch_size,))
+    #         frames_idx = torch.randint(self.temporal_dim, (batch_size,))
     #     else:
     #         # sample among given frames indices with repetitions
     #         sampled_idx = torch.randint(len(frames_idx), (batch_size,))
@@ -207,11 +203,11 @@ class TensorReel:
     @torch.no_grad()
     def get_next_rays_batch(
         self,
-        batch_size=512,
-        cameras_idx=None,
-        frames_idx=None,
-        jitter_pixels=False,
-        nr_rays_per_pixel=1,
+        batch_size: int = 512,
+        cameras_idx: torch.Tensor = None,
+        frames_idx: torch.Tensor = None,
+        jitter_pixels: bool = False,
+        nr_rays_per_pixel: int = 1,
     ):
         """Sample a batch of rays from the tensor reel.
 
@@ -243,22 +239,23 @@ class TensorReel:
         nr_cameras = self.poses.shape[0]
         if cameras_idx is None:
             # sample among all cameras with repetitions
-            cameras_idx = torch.randint(nr_cameras, (real_batch_size,))
+            cameras_idx = torch.randint(nr_cameras, (real_batch_size,), device=self.device)
         else:
             # sample among given cameras indices with repetitions
-            sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,))
-            cameras_idx = torch.tensor(cameras_idx, device=self.device)[sampled_idx]
+            sampled_idx = torch.randint(len(cameras_idx), (real_batch_size,), device=self.device)
+            cameras_idx = cameras_idx[sampled_idx]
+        cameras_idx = cameras_idx.int()
 
         # sample frames_idx
-        nr_frames = self.rgbs.shape[1]
         if frames_idx is None:
             # sample among all frames with repetitions
-            frames_idx = torch.randint(nr_frames, (real_batch_size,))
+            frames_idx = torch.randint(self.temporal_dim, (real_batch_size,), device=self.device)
         else:
             # sample among given frames indices with repetitions
-            sampled_idx = torch.randint(len(frames_idx), (real_batch_size,))
-            frames_idx = torch.tensor(frames_idx, device=self.device)[sampled_idx]
-
+            sampled_idx = torch.randint(len(frames_idx), (real_batch_size,), device=self.device)
+            frames_idx = frames_idx[sampled_idx]
+        frames_idx = frames_idx.int()
+        
         # get random pixels
         pixels = get_random_pixels(
             self.height, self.width, real_batch_size, device=self.device
@@ -279,10 +276,7 @@ class TensorReel:
             points_2d_screen=points_2d_screen,
             cameras_idx=cameras_idx,
             frames_idx=frames_idx,
-            data_dict={
-                "rgbs": self.rgbs,
-                "masks": self.masks,
-            },
+            data_dict=self.data
         )
 
         # get a ray for each pixel in corresponding camera frame
@@ -399,16 +393,6 @@ class TensorReel:
         string += f"poses: {self.poses.shape}, {self.poses.dtype}\n"
         string += f"intrinsics_inv: {self.intrinsics_inv.shape}, {self.intrinsics_inv.dtype}\n"
         string += f"projections: {self.projections.shape}, {self.projections.dtype}\n"
-        if self.rgbs is not None:
-            string += f"rgbs: {self.rgbs.shape}, {self.rgbs.dtype}\n"
-        if self.masks is not None:
-            string += f"masks: {self.masks.shape}, {self.masks.dtype}\n"
-        if self.normals is not None:
-            string += f"normals: {self.normals.shape}, {self.normals.dtype}\n"
-        if self.depths is not None:
-            string += f"depths: {self.depths.shape}, {self.depths.dtype}\n"
-        if self.instance_masks is not None:
-            string += f"instance_masks: {self.instance_masks.shape}, {self.instance_masks.dtype}\n"
-        if self.semantic_masks is not None:
-            string += f"semantic_masks: {self.semantic_masks.shape}, {self.semantic_masks.dtype}\n"
+        for key, val in self.data.items():
+            string += f"{key}: {val.shape}, {val.dtype}\n"
         return string

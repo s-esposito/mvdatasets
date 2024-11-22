@@ -99,5 +99,5 @@ class Profiler:
                 processed[key] = state
 
         for name, state in processed.items():
-            print(f"{name} took {state['avg']} s")
+            print(f"{name} took {state['avg'] * 1000} ms", f"{1/state['avg']:.2f} it/s")
         print("")

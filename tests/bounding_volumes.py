@@ -16,7 +16,7 @@ from mvdatasets.visualization.matplotlib import plot_image
 def main(args: Args):
 
     device = args.device
-    dataset_path = args.datasets_path
+    datasets_path = args.datasets_path
     dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
@@ -24,7 +24,7 @@ def main(args: Args):
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        dataset_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -38,11 +38,9 @@ def main(args: Args):
     rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
     
     # bounding box
-    scene_radius = mv_data.scene_radius
-    scene_diameter = scene_radius * 2
     bounding_volume = BoundingBox(
         pose=np.eye(4),
-        local_scale=np.array([scene_diameter, scene_diameter, scene_diameter]),
+        local_scale=mv_data.get_foreground_radius() * 2,
         device=device,
     )
     # bounding_volume intersection test
@@ -68,7 +66,9 @@ def main(args: Args):
 
     # bounding sphere
     bounding_volume = BoundingSphere(
-        pose=np.eye(4), local_scale=scene_radius, device=device
+        pose=np.eye(4),
+        local_scale=mv_data.get_foreground_radius(),
+        device=device
     )
     # bounding_volume intersection test
     is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)

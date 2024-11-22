@@ -16,6 +16,8 @@ from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 def main(args: Args):
 
     device = args.device
+    datasets_path = args.datasets_path
+    dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # Set profiler
@@ -23,25 +25,20 @@ def main(args: Args):
 
     # dataset loading
     mv_data = MVDataset(
-        args.dataset_name,
+        dataset_name,
         scene_name,
-        args.datasets_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
         verbose=True,
     )
 
-    # create bounding boxes
-    bounding_boxes = []
-
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=mv_data.scene_radius * 2,
-        line_width=2.0,
+        local_scale=mv_data.get_foreground_radius() * 2,
         device=device,
     )
-    bounding_boxes.append(bb)
 
     # only available for object centric datasets
     if not mv_data.cameras_on_hemisphere:
@@ -72,7 +69,7 @@ def main(args: Args):
         points_3d=point_cloud,
         azimuth_deg=20,
         elevation_deg=30,
-        scene_radius=mv_data.max_camera_distance,
+        scene_radius=mv_data.get_scene_radius(),
         up="z",
         figsize=(15, 15),
         title="sampled cameras",
@@ -125,10 +122,10 @@ def main(args: Args):
                 rays_d,
                 rgb=None,
                 mask=None,
-                bounding_boxes=bounding_boxes,
+                bounding_boxes=[bb],
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
-                scene_radius=mv_data.max_camera_distance,
+                scene_radius=mv_data.get_scene_radius(),
                 up="z",
                 figsize=(15, 15),
                 show=False,

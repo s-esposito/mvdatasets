@@ -38,6 +38,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         "test_camera_freq": 8,
         "train_test_overlap": False,
         "subsample_factor": 1,
+        "foreground_radius_mult": 1.0,
         "init_sphere_scale": 0.1,
         "pose_only": False,
     }
@@ -60,11 +61,11 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         if key in config and config[key] not in valid:
             print_error(f"{key} {config[key]} must be a value in {valid}")
 
-    # Set `target_cameras_max_distance` based on `scene_type`
+    # Set `target_max_camera_distance` based on `scene_type`
     if config["scene_type"] == "bounded":
-        config["target_cameras_max_distance"] = 1.0
+        config["target_max_camera_distance"] = 1.0
     elif config["scene_type"] == "unbounded":
-        config["target_cameras_max_distance"] = 0.5
+        config["target_max_camera_distance"] = 0.5
     elif config["scene_type"] == "forward-facing":
         print_error("forward-facing scene type not implemented yet")
 
@@ -230,23 +231,21 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
     # # scene_center = np.mean(camera_locations, axis=0)
     # # dists = np.linalg.norm(camera_locations - scene_center, axis=1)
     # dists = np.linalg.norm(camera_locations, axis=1)
-    # scene_scale = np.max(dists)
-    # print(f"Scene scale: {scene_scale:.3f}")
+    # scene_radius = np.max(dists)
+    # print(f"Scene scale: {scene_radius:.3f}")
 
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
-    print("min_camera_distance:", min_camera_distance)
-    print("max_camera_distance:", max_camera_distance)
-
-    # define scene scale
-    scene_scale = max_camera_distance
-    # round to 2 decimals
-    scene_scale = round(scene_scale, 2)
-
+    
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (
-        max_camera_distance + 1e-2
-    )
+    scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
+
+    # new scene scale
+    new_min_camera_distance = min_camera_distance * scene_radius_mult
+    new_max_camera_distance = max_camera_distance * scene_radius_mult
+    
+    # scene radius
+    scene_radius = new_max_camera_distance
 
     scene_transform = np.eye(4)
     # rotate and scale
@@ -268,7 +267,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
     local_transform = np.eye(4)
 
     # apply global transform
-    point_cloud *= scene_scale_mult
+    point_cloud *= scene_radius_mult
     point_cloud = apply_transformation_3d(point_cloud, scene_transform)
 
     # build cameras
@@ -302,7 +301,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
 
         # extrainsics
         c2w_mat = camera_meta[0]
-        c2w_mat[:3, 3] *= scene_scale_mult
+        c2w_mat[:3, 3] *= scene_radius_mult
         c2w_mat = scene_transform @ c2w_mat
         # create camera
         camera = Camera(
@@ -313,7 +312,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
             rgbs=cam_imgs,
             camera_idx=idx,
             subsample_factor=1,  # int(config["subsample_factor"]),
-            verbose=verbose,
+            # verbose=verbose,
         )
 
         cameras_all.append(camera)
@@ -340,14 +339,15 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
                     cameras_splits[split].append(camera)
 
     return {
+        "scene_type": config["scene_type"],
+        "init_sphere_scale": config["init_sphere_scale"],
+        "foreground_radius_mult": config["foreground_radius_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "point_clouds": [point_cloud],
-        "config": config,
-        "min_camera_distance": min_camera_distance,
-        "max_camera_distance": max_camera_distance,
-        "scene_scale": scene_scale,
-        "scene_scale_mult": scene_scale_mult,
+        "min_camera_distance": new_min_camera_distance,
+        "max_camera_distance": new_max_camera_distance,
+        "scene_radius": scene_radius
     }
 
 

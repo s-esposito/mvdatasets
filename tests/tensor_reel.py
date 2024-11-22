@@ -18,6 +18,8 @@ from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 def main(args: Args):
 
     device = args.device
+    datasets_path = args.datasets_path
+    dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
 
     # Set profiler
@@ -25,9 +27,9 @@ def main(args: Args):
 
     # dataset loading
     mv_data = MVDataset(
-        args.dataset_name,
+        dataset_name,
         scene_name,
-        args.datasets_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -39,7 +41,7 @@ def main(args: Args):
 
     bb = BoundingBox(
         pose=np.eye(4),
-        local_scale=mv_data.scene_radius * 2,
+        local_scale=mv_data.get_foreground_radius() * 2,
         line_width=2.0,
         device=device,
     )
@@ -50,14 +52,14 @@ def main(args: Args):
     tensor_reel = TensorReel(mv_data["train"], device=device)
     print(tensor_reel)
 
-    benchmark = False
+    benchmark = True
     batch_size = 512
-    nr_iterations = 10
+    nr_iterations = 10000
     cameras_idx = None
     frame_idx = None
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)
     azimuth_deg = 0
-    azimuth_deg_delta = 360 / (nr_iterations / 2)
+    azimuth_deg_delta = 1  # 360 / (nr_iterations / 2)
     for i in pbar:
 
         # cameras_idx = np.random.permutation(len(mv_data["train"]))[:2]
@@ -67,7 +69,7 @@ def main(args: Args):
 
         # get rays and gt values
         (
-            camera_idx,
+            cameras_idx,
             rays_o,
             rays_d,
             vals,
@@ -91,7 +93,7 @@ def main(args: Args):
             else:
                 gt_mask = None
 
-            print("camera_idx", camera_idx.shape, camera_idx.device, camera_idx.dtype)
+            print("cameras_idx", cameras_idx.shape, cameras_idx.device, cameras_idx.dtype)
             print("rays_o", rays_o.shape, rays_o.device, rays_o.dtype)
             print("rays_d", rays_d.shape, rays_d.device, rays_d.dtype)
             print("gt_rgb", gt_rgb.shape, gt_rgb.device, gt_rgb.dtype)
@@ -100,16 +102,16 @@ def main(args: Args):
             print("frame_idx", frame_idx.shape, frame_idx.device, frame_idx.dtype)
 
             plot_current_batch(
-                mv_data["train"],
-                camera_idx,
-                rays_o,
-                rays_d,
-                rgb=gt_rgb,
-                mask=gt_mask,
+                cameras=mv_data["train"],
+                cameras_idx=cameras_idx.cpu().numpy(),
+                rays_o=rays_o.cpu().numpy(),
+                rays_d=rays_d.cpu().numpy(),
+                rgbs=gt_rgb.cpu().numpy(),
+                masks=gt_mask.cpu().numpy() if gt_mask is not None else None,
                 bounding_boxes=bounding_boxes,
                 azimuth_deg=azimuth_deg,
                 elevation_deg=30,
-                scene_radius=mv_data.max_camera_distance,
+                scene_radius=mv_data.get_scene_radius(),
                 up="z",
                 figsize=(15, 15),
                 show=False,

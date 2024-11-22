@@ -126,7 +126,7 @@ class Camera:
         if subsample_factor > 1:
             self.resize(subsample_factor)
 
-        if verbose:
+        if self.verbose:
             print(self.__str__())
 
     def _validate_data(self) -> None:
@@ -165,6 +165,22 @@ class Camera:
         self.intrinsics[1, :] *= s_height
         self.intrinsics_inv = np.linalg.inv(self.intrinsics)
 
+    def get_temporal_dim(self) -> int:
+        """return camera temporal dimension"""
+        return self.temporal_dim
+    
+    def get_resolution(self) -> Tuple[int, int]:
+        """return camera image resolution (width, height)"""
+        return self.width, self.height
+    
+    def get_width(self) -> int:
+        """return camera image width"""
+        return self.width
+    
+    def get_height(self) -> int:
+        """return camera image height"""
+        return self.height
+    
     def get_intrinsics(self) -> np.ndarray:
         """return camera intrinsics"""
         return self.intrinsics

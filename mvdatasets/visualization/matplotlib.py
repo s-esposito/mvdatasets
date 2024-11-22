@@ -16,6 +16,7 @@ PAD_INCHES = 0
 DPI = 300
 COLORBAR_FRACTION = 0.04625
 SCALE_MULTIPLIER = 0.1
+RAY_LENGHT_MULTIPLIER = 1.5
 
 # from mvdatasets.scenes.camera import Camera
 # import math
@@ -79,7 +80,7 @@ def _draw_bounding_cube(
     r = [-scale, scale]
     for s, e in combinations(np.array(list(product(r, r, r))), 2):
         if np.sum(np.abs(s - e)) == r[1] - r[0]:
-            ax.plot3D(*zip(s, e), color="black")
+            ax.plot3D(*zip(s, e), color="orange", alpha=0.1)
 
 
 def _draw_rays(
@@ -116,7 +117,7 @@ def _draw_rays(
             if t_far is not None:
                 t_far = t_far[idx]
 
-    ray_lenght = 4 * scene_radius
+    ray_lenght = RAY_LENGHT_MULTIPLIER * scene_radius
 
     # draw rays
     for i, (ray_o, ray_d) in enumerate(zip(rays_o, rays_d)):
@@ -631,6 +632,7 @@ def _draw_point_clouds(
     points_3d_colors: list[np.ndarray] = None,
     points_3d_labels: list[str] = None,
     points_3d_sizes: list[float] = None,
+    points_3d_markers: list[str] = None,
     max_nr_points: int = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0
@@ -652,6 +654,10 @@ def _draw_point_clouds(
     if points_3d_sizes is not None:
         if not len(points_3d) == len(points_3d_sizes):
             print_error("points_3d and points_3d_sizes must have the same length")
+            
+    if points_3d_markers is not None:
+        if not len(points_3d) == len(points_3d_markers):
+            print_error("points_3d and points_3d_markers must have the same length")
     
     # if pc are given
     if len(points_3d) > 0:
@@ -669,12 +675,14 @@ def _draw_point_clouds(
             color = points_3d_colors[i] if points_3d_colors is not None else None
             label = points_3d_labels[i] if points_3d_labels is not None else None
             size = points_3d_sizes[i] if points_3d_sizes is not None else None
+            marker = points_3d_markers[i] if points_3d_markers is not None else None
             _draw_point_cloud(
                 ax=ax,
                 points_3d=pc,
                 color=color,
                 label=label,
                 size=size,
+                marker=marker,
                 max_nr_points=max_nr_points_per_pc,
                 up=up,
                 scene_radius=scene_radius,
@@ -739,6 +747,8 @@ def plot_3d(
     points_3d: Union[list[np.ndarray], np.ndarray] = None,
     points_3d_colors: Union[list[np.ndarray], np.ndarray] = None,
     points_3d_labels: list[str] = None,
+    points_3d_markers: list[str] = None,
+    points_3d_sizes: list[float] = None,
     bounding_boxes: list[BoundingBox] = None,
     bounding_spheres: list[BoundingSphere] = None,
     nr_rays: int = 0,
@@ -791,10 +801,16 @@ def plot_3d(
         points_3d=points_3d,
         points_3d_colors=points_3d_colors,
         points_3d_labels=points_3d_labels,
+        points_3d_sizes=points_3d_sizes,
+        points_3d_markers=points_3d_markers,
         max_nr_points=max_nr_points,
         up=up,
         scene_radius=scene_radius
     )
+    
+    # activate legend if labels are given
+    if points_3d_labels is not None:
+        ax.legend()
 
     # draw bounding cube
     if draw_bounding_cube:
@@ -1185,6 +1201,7 @@ def plot_rays_samples(
     scene_radius: float = 1.0,
     up: Literal["z", "y"] = "z",
     draw_origin: bool = True,
+    draw_bounding_cube: bool = True,
     draw_contraction_spheres: bool = True,
     figsize: Tuple[int, int] = (15, 15),
     title: str = None,
@@ -1273,6 +1290,9 @@ def plot_rays_samples(
 
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)
+        
+    if draw_bounding_cube:
+        _draw_bounding_cube(ax)
 
     # Get current axes and check if there are any labels
     handles, labels = plt.gca().get_legend_handles_labels()

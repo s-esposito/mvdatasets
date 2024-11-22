@@ -41,7 +41,7 @@ def load_ingp(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
         "subsample_factor": 1,
         "test_camera_freq": 8,
         "train_test_overlap": False,
-        "target_cameras_max_distance": 1.0,
+        "target_max_camera_distance": 1.0,
         "init_sphere_scale": 0.5,
         "pose_only": False,
     }
@@ -92,7 +92,7 @@ def load_ingp(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
     scene_scale = round(scene_scale, 2)
 
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (
+    scene_scale_mult = config["target_max_camera_distance"] / (
         max_camera_distance + 1e-2
     )
 

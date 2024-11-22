@@ -16,7 +16,7 @@ from mvdatasets.utils.printing import print_error
 def main(args: Args):
 
     device = args.device
-    dataset_path = args.datasets_path
+    datasets_path = args.datasets_path
     dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
@@ -24,7 +24,7 @@ def main(args: Args):
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        dataset_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
@@ -78,16 +78,18 @@ def main(args: Args):
         cameras=[camera],
         points_3d=[point_cloud, points_3d],
         points_3d_colors=["red", "blue"],
-        points_3d_labels=["point cloud", "reprojected points"],
+        points_3d_labels=["point cloud", "unprojected points"],
+        points_3d_markers=["o", "x"],
+        points_3d_sizes=[150, 100],
         azimuth_deg=20,
         elevation_deg=30,
         up="z",
-        scene_radius=mv_data.scene_radius,
+        scene_radius=mv_data.get_scene_radius(),
         draw_bounding_cube=True,
         draw_image_planes=True,
         figsize=(15, 15),
-        title="point_cloud_unprojection",
-        show=True,
+        title="point cloud unprojection",
+        show=False,
         save_path=os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
     )
     
@@ -111,9 +113,9 @@ def main(args: Args):
     #     marker="x",
     #     label="reprojected points",
     # )
-    # ax.set_xlabel("X Label")
-    # ax.set_ylabel("Y Label")
-    # ax.set_zlabel("Z Label")
+    # ax.set_xlabel("X")
+    # ax.set_ylabel("Y")
+    # ax.set_zlabel("Z")
     # ax.legend()
     
     # # plt.show()

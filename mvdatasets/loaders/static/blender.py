@@ -43,8 +43,8 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         "subsample_factor": 1,
         "white_bg": True,
         "test_skip": 20,
-        "scene_radius_mult": 0.5,
-        "target_cameras_max_distance": 1.0,
+        "target_max_camera_distance": 1.0,
+        "foreground_radius_mult": 0.5,
         "init_sphere_scale": 0.3,
         "pose_only": False,
     }
@@ -78,21 +78,21 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
 
-    # define scene scale
-    scene_scale = max_camera_distance * config["scene_radius_mult"]
-    # round to 2 decimals
-    scene_scale = round(scene_scale, 2)
-
     # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_cameras_max_distance"] / (
-        max_camera_distance + 1e-2
-    )
+    scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
+
+    # new scene scale
+    new_min_camera_distance = min_camera_distance * scene_radius_mult
+    new_max_camera_distance = max_camera_distance * scene_radius_mult
+    
+    # scene radius
+    scene_radius = new_max_camera_distance
 
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(
+    global_transform[:3, :3] = scene_radius_mult * rot_x_3d(
         deg2rad(rotate_scene_x_axis_deg)
     )
 
@@ -219,17 +219,18 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
                 width=width,
                 height=height,
                 subsample_factor=int(config["subsample_factor"]),
-                verbose=verbose,
+                # verbose=verbose,
             )
 
             cameras_splits[split].append(camera)
 
     return {
+        "scene_type": config["scene_type"],
+        "init_sphere_scale": config["init_sphere_scale"],
+        "foreground_radius_mult": config["foreground_radius_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "config": config,
-        "min_camera_distance": min_camera_distance,
-        "max_camera_distance": max_camera_distance,
-        "scene_scale": scene_scale,
-        "scene_scale_mult": scene_scale_mult,
+        "min_camera_distance": new_min_camera_distance,
+        "max_camera_distance": new_max_camera_distance,
+        "scene_radius": scene_radius
     }

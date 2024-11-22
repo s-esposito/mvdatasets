@@ -7,15 +7,16 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-from mvdatasets.visualization.matplotlib import plot_3d, plot_image, plot_rays_samples
+from mvdatasets.visualization.matplotlib import plot_3d, plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.geometry.primitives import BoundingBox
+from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
+from mvdatasets.utils.printing import print_error
 
 
 def main(args: Args):
 
     device = args.device
-    dataset_path = args.datasets_path
+    datasets_path = args.datasets_path
     dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
@@ -23,12 +24,37 @@ def main(args: Args):
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        dataset_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
         verbose=True,
     )
+    
+    bbs = []
+    draw_bounding_cube = True
+    draw_contraction_spheres = False
+    scene_type = config.get("scene_type", None)
+    if scene_type == "bounded":
+        # bounding box
+        bb = BoundingBox(
+            pose=np.eye(4),
+            local_scale=mv_data.get_foreground_radius() * 2,
+            device=device,
+        )
+        bbs.append(bb)
+    elif scene_type == "unbounded":
+        draw_bounding_cube = False
+        draw_contraction_spheres = True
+        # bounding sphere
+        bs = BoundingSphere(
+            pose=np.eye(4),
+            local_scale=0.5,
+            device=device,
+        )
+
+    else:
+        print_error("scene_type not supported")
 
     if len(mv_data.point_clouds) > 0:
         point_cloud = mv_data.point_clouds[0]
@@ -46,13 +72,16 @@ def main(args: Args):
     plot_3d(
         cameras=[camera],
         points_3d=[point_cloud],
+        bounding_boxes=bbs,
         nr_rays=256,
         azimuth_deg=20,
         elevation_deg=30,
-        scene_radius=mv_data.scene_radius,
+        scene_radius=mv_data.get_scene_radius(),
+        draw_bounding_cube=draw_bounding_cube,
         up="z",
         draw_image_planes=True,
         draw_cameras_frustums=False,
+        draw_contraction_spheres=draw_contraction_spheres,
         figsize=(15, 15),
         title=f"test camera {rand_idx} rays",
         show=True,
@@ -61,18 +90,16 @@ def main(args: Args):
     
     # Visualize intersections with bounding box
     
-    # bounding box
-    bounding_volume = BoundingBox(
-        pose=np.eye(4),
-        local_scale=mv_data.scene_radius*2,
-        device=device,
-    )
-    
     # shoot rays from camera
     rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
     
-    # bounding_volume intersection test
-    is_hit, t_near, t_far, p_near, p_far = bounding_volume.intersect(rays_o, rays_d)
+    # bounding primitive intersection test
+    if scene_type == "bounded":
+        is_hit, t_near, t_far, p_near, p_far = bb.intersect(rays_o, rays_d)
+    elif scene_type == "unbounded":
+        is_hit, t_near, t_far, p_near, p_far = bs.intersect(rays_o, rays_d)
+    else:
+        print_error("scene_type not supported")
 
     plot_rays_samples(
         rays_o=rays_o.cpu().numpy(),
@@ -81,8 +108,10 @@ def main(args: Args):
         t_far=t_far.cpu().numpy(),
         nr_rays=32,
         camera=camera,
-        bounding_boxes=[bounding_volume],
-        scene_radius=mv_data.scene_radius,
+        bounding_boxes=bbs,
+        scene_radius=mv_data.get_scene_radius(),
+        draw_bounding_cube=draw_bounding_cube,
+        draw_contraction_spheres=draw_contraction_spheres,
         title="bounding box intersections",
         show=True,
         save_path=os.path.join("plots", f"{dataset_name}_bounding_box_intersections.png"),

@@ -25,7 +25,7 @@ def main(args: Args):
     profiler = Profiler()  # nb: might slow down the code
 
     device = args.device
-    dataset_path = args.datasets_path
+    datasets_path = args.datasets_path
     dataset_name = args.dataset_name
     scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
 
@@ -36,7 +36,7 @@ def main(args: Args):
     mv_data = MVDataset(
         dataset_name,
         scene_name,
-        dataset_path,
+        datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
         config=config,
