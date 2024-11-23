@@ -75,14 +75,14 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test blended-mvs
-    if dataset_name == "blended-mvs":
+    elif dataset_name == "blended-mvs":
         scene_name = "bmvs_bear"
         pc_paths = []
         # dataset specific config
         config = {}
 
     # test blender
-    if dataset_name == "blender":
+    elif dataset_name == "blender":
         scene_name = "lego"
         pc_paths = ["tests/assets/point_clouds/blender/lego.ply"]
         # dataset specific config
@@ -91,14 +91,14 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test shelly
-    if dataset_name == "shelly":
+    elif dataset_name == "shelly":
         scene_name = "khady"
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
         config = {"test_skip": 4, "init_sphere_scale": 0.2}
 
     # test blendernerf
-    if dataset_name == "blendernerf":
+    elif dataset_name == "blendernerf":
         scene_name = "plushy"
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
@@ -107,7 +107,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test dmsr
-    if dataset_name == "dmsr":
+    elif dataset_name == "dmsr":
         scene_name = "dinning"
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
@@ -116,7 +116,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test refnerf
-    if dataset_name == "refnerf":
+    elif dataset_name == "refnerf":
         scene_name = "car"
         pc_paths = []
         # dataset specific config
@@ -125,14 +125,14 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test ingp
-    if dataset_name == "ingp":
+    elif dataset_name == "ingp":
         scene_name = "fox"
         pc_paths = []
         # dataset specific config
         config = {}
 
     # test llff
-    if dataset_name == "llff":
+    elif dataset_name == "llff":
         scene_name = "fern"
         pc_paths = ["tests/assets/point_clouds/llff/fern.ply"]
         # dataset specific config
@@ -141,7 +141,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         }
 
     # test mipnerf360
-    if dataset_name == "mipnerf360":
+    elif dataset_name == "mipnerf360":
         scene_name = "garden"
         pc_paths = []
 
@@ -179,5 +179,15 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         if scene_name == "stump":
             config["rotate_scene_x_axis_deg"] = -137
             config["translate_scene_z"] = 0.25
+            
+    # test d-nerf
+    elif dataset_name == "d-nerf":
+        scene_name = "bouncingballs"
+        pc_paths = []
+        # dataset specific config
+        config = {}
+        
+    else:
+        print_error(f"{self.dataset_name} does not have a test preset.")
 
     return scene_name, pc_paths, config

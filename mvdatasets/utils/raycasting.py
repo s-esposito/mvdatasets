@@ -225,8 +225,8 @@ def get_rays_per_points_2d_screen(
 
 def get_data_per_pixels(
     pixels: torch.Tensor,
-    cameras_idx: torch.Tensor = None,
-    frames_idx: torch.Tensor = None,
+    cameras_idx: Union[torch.Tensor, np.ndarray] = None,
+    frames_idx: Union[torch.Tensor, np.ndarray] = None,
     data_dict: dict = {},
     verbose: bool = False,
 ):
@@ -251,13 +251,19 @@ def get_data_per_pixels(
     assert pixels.dtype == torch.int32, "pixels must be int32"
     if cameras_idx is not None:
         assert cameras_idx.ndim == 1, f"cameras_idx: {cameras_idx.shape[0]} must be 1D"
-        assert cameras_idx.dtype == torch.int32, "cameras_idx must be int32"
+        if isinstance(cameras_idx, np.ndarray):
+            assert cameras_idx.dtype == np.int32, "cameras_idx must be int32"
+        if isinstance(cameras_idx, torch.Tensor):
+            assert cameras_idx.dtype == torch.int32, "cameras_idx must be int32"
         assert (
             cameras_idx.shape[0] == pixels.shape[0]
         ), f"cameras_idx: {cameras_idx.shape[0]} must have the same length as pixels: {pixels.shape[0]}"
     if frames_idx is not None:
         assert frames_idx.ndim == 1, f"frames_idx must: {frames_idx} be 1D"
-        assert frames_idx.dtype == torch.int32, "frames_idx must be int32"
+        if isinstance(frames_idx, np.ndarray):
+            assert frames_idx.dtype == np.int32, "frames_idx must be int32"
+        if isinstance(frames_idx, torch.Tensor):
+            assert frames_idx.dtype == torch.int32, "frames_idx must be int32"
         assert (
             frames_idx.shape[0] == pixels.shape[0]
         ), f"frames_idx: {frames_idx.shape[0]} must have the same length as pixels: {pixels.shape[0]}"
@@ -305,16 +311,16 @@ def get_data_per_pixels(
 
 def get_data_per_points_2d_screen(
     points_2d_screen: torch.Tensor,
-    cameras_idx: torch.Tensor = None,
-    frames_idx: torch.Tensor = None,
+    cameras_idx: Union[torch.Tensor, np.ndarray] = None,
+    frames_idx: Union[torch.Tensor, np.ndarray] = None,
     data_dict: dict = {},
 ):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
     args:
         points_2d_screen (torch.Tensor, float): (N, 2) with values in [0, W-1], [0, H-1]
-        cameras_idx (optional, torch.Tensor): (N) camera indices
-        frames_idx (optional, torch.Tensor): (N) frame indices
+        cameras_idx (optional, torch.Tensor or np.ndarray): (N) camera indices
+        frames_idx (optional, torch.Tensor or np.ndarray): (N) frame indices
         data_dict (dict, uint8):
             rgbs (torch.Tensor, uint8): (H, W, 3)
             mask (torch.Tensor, uint8): (H, W, 1)
@@ -330,13 +336,19 @@ def get_data_per_points_2d_screen(
     assert points_2d_screen.dtype == torch.float32, "points_2d_screen must be float32"
     if cameras_idx is not None:
         assert cameras_idx.ndim == 1, f"cameras_idx: {cameras_idx} must be 1D"
-        assert cameras_idx.dtype == torch.int32, "cameras_idx must be int32"
+        if isinstance(cameras_idx, np.ndarray):
+            assert cameras_idx.dtype == np.int32, "cameras_idx must be int32"
+        if isinstance(cameras_idx, torch.Tensor):
+            assert cameras_idx.dtype == torch.int32, "cameras_idx must be int32"
         assert (
             cameras_idx.shape[0] == points_2d_screen.shape[0]
         ), f"cameras_idx: {cameras_idx.shape[0]} must have the same length as points_2d_screen: {points_2d_screen.shape[0]}"
     if frames_idx is not None:
         assert frames_idx.ndim == 1, f"frames_idx must: {frames_idx} be 1D"
-        assert frames_idx.dtype == torch.int32, "cameras_idx must be int32"
+        if isinstance(frames_idx, np.ndarray):
+            assert frames_idx.dtype == np.int32, "frames_idx must be int32"
+        if isinstance(frames_idx, torch.Tensor):
+            assert frames_idx.dtype == torch.int32, "frames_idx must be int32"
         assert (
             frames_idx.shape[0] == points_2d_screen.shape[0]
         ), f"frames_idx: {frames_idx.shape[0]} must have the same length as points_2d_screen: {points_2d_screen.shape[0]}"

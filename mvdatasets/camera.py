@@ -40,6 +40,7 @@ class Camera:
         semantic_masks: np.ndarray = None,
         global_transform: np.ndarray = None,
         local_transform: np.ndarray = None,
+        timestamps: np.ndarray = np.array([0.0]),
         camera_idx: int = 0,
         width: int = None,
         height: int = None,
@@ -59,6 +60,7 @@ class Camera:
             depths (np.ndarray, optional): (T, H, W, 1) Depth maps, uint8 or float32.
             instance_masks (np.ndarray, optional): (T, H, W, 1) Instance segmentation masks, uint8.
             semantic_masks (np.ndarray, optional): (T, H, W, 1) Semantic segmentation masks, uint8.
+            timestamps (np.ndarray): (T,) Per-frame timestamp. Default value is [0.0].
             global_transform (np.ndarray, optional): Global transformation matrix.
             local_transform (np.ndarray, optional): Local transformation matrix.
             camera_idx (int, optional): Camera index. Defaults to 0.
@@ -79,6 +81,7 @@ class Camera:
         self.intrinsics_inv = np.linalg.inv(intrinsics)
         self.pose = pose
         self.camera_idx = camera_idx
+        self.timestamps = timestamps
 
         # assert shapes are correct
         if rgbs is not None:
@@ -101,6 +104,8 @@ class Camera:
         # Infer dimensions from provided images
         if rgbs is not None:
             self.temporal_dim, self.height, self.width = rgbs.shape[:3]
+            if self.timestamps.shape[0] != self.temporal_dim:
+                print_error("timestamps not provided for all frames")
         elif width is not None and height is not None:
             self.height = height
             self.width = width
@@ -180,6 +185,10 @@ class Camera:
     def get_height(self) -> int:
         """return camera image height"""
         return self.height
+    
+    def get_timestamps(self) -> np.ndarray:
+        """return camera timestamps"""
+        return self.timestamps
 
     def get_intrinsics(self) -> np.ndarray:
         """return camera intrinsics"""
@@ -316,24 +325,36 @@ class Camera:
         return self.get_semantic_masks()[frame_idx]
 
     def get_pose(self) -> np.ndarray:
-        """returns camera pose in world space"""
+        """returns camera pose in world space
+        Returns:
+            np.ndarray: (4, 4) camera pose
+        """
         pose = self.global_transform @ self.pose @ self.local_transform
         return pose
 
     def get_pose_inv(self) -> np.ndarray:
-        """returns camera pose in world space"""
+        """returns camera pose in world space
+        Returns:
+            np.ndarray: (4, 4) camera pose
+        """
         pose = self.get_pose()
         pose_inv = np.linalg.inv(pose)
         return pose_inv
 
     def get_rotation(self) -> np.ndarray:
-        """returns camera rotation in world space"""
+        """returns camera rotation in world space
+        Returns:
+            np.ndarray: (3, 3) camera rotation
+        """
         pose = self.get_pose()
         rotation = pose[:3, :3]
         return rotation
 
     def get_center(self) -> np.ndarray:
-        """returns camera center in world space"""
+        """returns camera center in world space
+        Returns:
+            np.ndarray: (3,) camera center
+        """
         pose = self.get_pose()
         center = pose[:3, 3]
         return center

@@ -12,7 +12,7 @@ from mvdatasets.utils.raycasting import (
     get_random_pixels_from_error_map,
 )
 from mvdatasets import Camera
-from mvdatasets.utils.printing import print_error
+from mvdatasets.utils.printing import print_error, print_info
 
 
 class TensorReel:
@@ -43,17 +43,15 @@ class TensorReel:
             print_error("tensor reel has no cameras")
 
         data = {}
-        poses = []
-        intrinsics_inv = []
-        projections = []
+        poses = []  # list of (4, 4) matrices
+        intrinsics_inv = []  # list of (3, 3) matrices
+        # projections = []
+        timestamps = []  # list of (T) tensors
 
         # collect data from all cameras
-        if verbose:
-            pbar = tqdm(cameras, desc="tensor reel", ncols=100)
-        else:
-            pbar = cameras
+        pbar = tqdm(cameras, desc="tensor reel", ncols=100)
         for camera in pbar:
-
+            # get camera data
             for key, val in camera.data.items():
                 # populate data dict
                 if key in modalities:
@@ -62,13 +60,14 @@ class TensorReel:
                     if val is not None:
                         data[key].append(torch.from_numpy(val))
                     else:
-                        print_error(f"camera {camera.camera_id} has no {key} data")
+                        print_error(f"camera {camera.camera_idx} has no {key} data")
 
             # camera matrices
             poses.append(torch.from_numpy(camera.get_pose()).float())
             intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
-            proj = camera.get_projection()
-            projections.append(torch.from_numpy(proj).float())
+            timestamps.append(torch.from_numpy(camera.get_timestamps()).float())
+            # proj = camera.get_projection()
+            # projections.append(torch.from_numpy(proj).float())
 
         # concat data and move to device
         for key, val in data.items():
@@ -76,19 +75,17 @@ class TensorReel:
         self.data = data
 
         # concat cameras matrices
-        self.poses = torch.stack(poses).to(device).contiguous()
-        self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()
-        self.projections = torch.stack(projections).to(device).contiguous()
+        self.poses = torch.stack(poses).to(device).contiguous()  # (N, 4, 4)
+        self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()  # (N, 3, 3)
+        self.timestamps = torch.stack(timestamps).to(device).contiguous()  # (N, T)
+        # self.projections = torch.stack(projections).to(device).contiguous()
 
         self.temporal_dim = cameras[0].get_temporal_dim()
         self.width, self.height = cameras[0].get_resolution()
         self.device = device
 
         if verbose:
-            if self.device != "cpu":
-                print("tensor reel on gpu")
-            else:
-                print("tensor reel on cpu")
+            print_info(f"tensor reel on {self.device}")
 
     # TODO: deprecated
     # @torch.no_grad()
@@ -204,8 +201,8 @@ class TensorReel:
     def get_next_rays_batch(
         self,
         batch_size: int = 512,
-        cameras_idx: torch.Tensor = None,
-        frames_idx: torch.Tensor = None,
+        cameras_idx: np.ndarray = None,
+        frames_idx: np.ndarray = None,
         jitter_pixels: bool = False,
         nr_rays_per_pixel: int = 1,
     ):
@@ -213,19 +210,20 @@ class TensorReel:
 
         Args:
             batch_size (int, optional): Defaults to 512.
-            cameras_idx (torch.Tensor, optional): (N) Defaults to None.
-            frames_idx (torch.Tensor, optional): (N) Defaults to None.
+            cameras_idx (np.ndarray, optional): (N) Defaults to None.
+            frames_idx (np.ndarray, optional): (N) Defaults to None.
             jitter_pixels (bool, optional): Defaults to False.
             nr_rays_per_pixel (int, optional): Defaults to 1.
 
         Returns:
-            cameras_idx (batch_size)
-            rays_o (batch_size, 3)
-            rays_d (batch_size, 3)
+            cameras_idx (np.ndarray): (batch_size)
+            frames_idx (np.ndarray): (batch_size)
+            rays_o (torch.Tensor): (batch_size, 3)
+            rays_d (torch.Tensor): (batch_size, 3)
             vals (dict):
-                rgb (batch_size, 3)
-                mask (batch_size, 1)
-            frame_idx (batch_size)
+                rgb (torch.Tensor): (batch_size, H, W, 3)
+                mask: (torch.Tensor): (batch_size, H, W, 1)
+            timestamps (torch.Tensor): (batch_size)
         """
 
         assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
@@ -238,31 +236,23 @@ class TensorReel:
         # sample cameras_idx
         nr_cameras = self.poses.shape[0]
         if cameras_idx is None:
-            # sample among all cameras with repetitions
-            cameras_idx = torch.randint(
-                nr_cameras, (real_batch_size,), device=self.device
-            )
+            # Sample among all cameras with repetitions
+            cameras_idx = np.random.randint(0, nr_cameras, size=real_batch_size)
         else:
-            # sample among given cameras indices with repetitions
-            sampled_idx = torch.randint(
-                len(cameras_idx), (real_batch_size,), device=self.device
-            )
+            # Sample among given camera indices with repetitions
+            sampled_idx = np.random.randint(0, len(cameras_idx), size=real_batch_size)
             cameras_idx = cameras_idx[sampled_idx]
-        cameras_idx = cameras_idx.int()
+        cameras_idx = cameras_idx.astype(np.int32)
 
         # sample frames_idx
         if frames_idx is None:
-            # sample among all frames with repetitions
-            frames_idx = torch.randint(
-                self.temporal_dim, (real_batch_size,), device=self.device
-            )
+            # Sample among all frames with repetitions
+            frames_idx = np.random.randint(0, self.temporal_dim, size=real_batch_size)
         else:
-            # sample among given frames indices with repetitions
-            sampled_idx = torch.randint(
-                len(frames_idx), (real_batch_size,), device=self.device
-            )
+            # Sample among given frame indices with repetitions
+            sampled_idx = np.random.randint(0, len(frames_idx), size=real_batch_size)
             frames_idx = frames_idx[sampled_idx]
-        frames_idx = frames_idx.int()
+        frames_idx = frames_idx.astype(np.int32)
 
         # get random pixels
         pixels = get_random_pixels(
@@ -271,8 +261,11 @@ class TensorReel:
 
         # repeat pixels if needed
         if nr_rays_per_pixel > 1:
+            # torch Tensors
             pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)  # (N, 2)
-            cameras_idx = cameras_idx.repeat_interleave(nr_rays_per_pixel, dim=0)  # (N)
+            # numpy arrays
+            cameras_idx = np.repeat(cameras_idx, nr_rays_per_pixel, axis=0)  # (N)
+            frames_idx = np.repeat(frames_idx, nr_rays_per_pixel, axis=0)  # (N)
 
         # get 2d points on the image plane
         points_2d_screen = get_points_2d_screen_from_pixels(
@@ -293,8 +286,18 @@ class TensorReel:
             intrinsics_inv=self.intrinsics_inv[cameras_idx],
             points_2d_screen=points_2d_screen,
         )
+        
+        # timestamps
+        timestamps = self.timestamps[cameras_idx, frames_idx]  # (N)
 
-        return cameras_idx, rays_o, rays_d, vals, frames_idx
+        return {
+            "cameras_idx": cameras_idx,
+            "rays_o": rays_o,
+            "rays_d": rays_d,
+            "vals": vals,
+            "timestamps": timestamps,
+            "frames_idx": frames_idx
+        }
 
     # TODO: deprecated
     # def get_cameras_rays_per_points_2d(c2w_all, intrinsics_inv_all, points_2d_screen):
@@ -400,7 +403,7 @@ class TensorReel:
         string += f"device: {self.device}\n"
         string += f"poses: {self.poses.shape}, {self.poses.dtype}\n"
         string += f"intrinsics_inv: {self.intrinsics_inv.shape}, {self.intrinsics_inv.dtype}\n"
-        string += f"projections: {self.projections.shape}, {self.projections.dtype}\n"
+        # string += f"projections: {self.projections.shape}, {self.projections.dtype}\n"
         for key, val in self.data.items():
             string += f"{key}: {val.shape}, {val.dtype}\n"
         return string

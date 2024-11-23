@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.geometry.common import apply_transformation_3d
-from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
 
 
@@ -146,11 +146,25 @@ class MVDataset:
         if self.init_sphere_radius > self.foreground_radius:
             print_error("init_sphere_radius > scene_radius, this can't be true")
 
+        # dynamic scenes
+        if "nr_per_camera_frames" in res:
+            self.nr_per_camera_frames = res["nr_per_camera_frames"]
+        else:
+            self.nr_per_camera_frames = 1
+        print("nr_per_camera_frames:", self.nr_per_camera_frames)
+            
+        if "nr_sequence_frames" in res:
+            self.nr_sequence_frames = res["nr_sequence_frames"]
+        else:
+            self.nr_sequence_frames = 1
+        print("nr_sequence_frames:", self.nr_sequence_frames)
+            
         # optional
         if "point_clouds" in res:
             self.point_clouds = res["point_clouds"]
         else:
             self.point_clouds = []
+        print("loaded scene has", len(self.point_clouds), "point clouds")
 
         # ---------------------------------------------------------------------
 
@@ -180,7 +194,10 @@ class MVDataset:
 
         # printing
         for split in splits:
-            print(f"{split} split has {len(self.data[split])} cameras")
+            print_fn = print_info
+            if len(self.data[split]) == 0:
+                print_fn = print_error
+            print_fn(f"{split} split has {len(self.data[split])} cameras")
 
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
@@ -199,6 +216,14 @@ class MVDataset:
                     return True
         return False
 
+    def get_nr_per_camera_frames(self) -> int:
+        """Returns the sequence length of the dataset"""
+        return self.nr_per_camera_frames
+    
+    def get_nr_sequence_frames(self) -> int:
+        """Returns the sequence length of the dataset"""
+        return self.nr_sequence_frames
+    
     def get_width(self, split: str = "train", camera_id: int = 0) -> int:
         """Returns the width of a camera
 

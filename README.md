@@ -78,15 +78,16 @@ Config.datasets_path = Path("/home/stefano/Data")
 
 ```bash
 # reproduce images
-python tests/train_test_splits.py --dataset-name dtu
-python tests/camera_rays.py --dataset-name dtu
-python tests/reproject_points.py --dataset-name dtu
-python tests/tensor_reel.py --dataset-name dtu
-python tests/pixels_sampling.py --dataset-name dtu
-python tests/overlay_bounding_primitives.py --dataset-name dtu
+python tests/cameras_splits.py --dataset-name blender
+python tests/camera_rays.py --dataset-name blender
+python tests/reproject_points.py --dataset-name blender
+python tests/cameras_rays_batch_sampling.py --dataset-name blender
+python tests/virtual_cameras_rays_batch_sampling.py --dataset-name blender
+python tests/pixels_sampling.py --dataset-name blender
+python tests/overlay_bounding_primitives.py --dataset-name blender
 ```
 
-e.g.: `python tests/train_test_splits.py --dataset-name blender` should render:
+e.g.: `python tests/cameras_splits.py --dataset-name blender` should render:
 
 <p float="left">
   <img src="imgs/blender_training_cameras.png" width="400"/>
