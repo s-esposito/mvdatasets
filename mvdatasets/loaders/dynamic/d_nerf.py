@@ -21,11 +21,18 @@ from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uin
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
+def load(
+    dataset_path: Path,
+    scene_name: str,
+    splits: list[str] = ["train", "test"],
+    config: dict = {},
+    verbose: bool = False
+):
     """Dynamic Blender data format loader.
 
     Args:
-        scene_path (Path): Path to the dataset scene folder.
+        dataset_path (Path): Path to the dataset folder.
+        scene_name (str): Name of the scene / sequence to load.
         splits (list): Splits to load (e.g., ["train", "test", "val"]).
         config (dict): Dictionary of configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
@@ -34,6 +41,9 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
+        
+    scene_path = dataset_path / scene_name
+    
     # Default configuration
     defaults = {
         "scene_type": "bounded",
@@ -44,7 +54,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
         "foreground_radius_mult": 0.5,
-        "init_sphere_scale": 0.3,
+        "init_sphere_radius_mult": 0.3,
         "pose_only": False,
     }
     
@@ -230,7 +240,7 @@ def load(scene_path: Path, splits: list, config: dict = {}, verbose: bool = Fals
         
     return {
         "scene_type": config["scene_type"],
-        "init_sphere_scale": config["init_sphere_scale"],
+        "init_sphere_radius_mult": config["init_sphere_radius_mult"],
         "foreground_radius_mult": config["foreground_radius_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,

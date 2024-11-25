@@ -21,6 +21,7 @@ setup(
         "open3d>=0.18.0",
         "rich>=13.9.4",
         "tyro==0.8.5",
+        "ffmpeg==1.4",
         "pycolmap@git+https://github.com/rmbrualla/pycolmap@cc7ea4b7301720ac29287dbe450952511b32125e",
     ],
 )

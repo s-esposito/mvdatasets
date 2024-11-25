@@ -15,7 +15,11 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    test_preset = get_dataset_test_preset(dataset_name)
+    scene_name = test_preset["scene_name"]
+    pc_paths = test_preset["pc_paths"]
+    config = test_preset["config"]
+    splits = test_preset["splits"]
 
     # dataset loading
     mv_data = MVDataset(
@@ -23,7 +27,7 @@ def main(args: Args):
         scene_name,
         datasets_path,
         point_clouds_paths=pc_paths,
-        splits=["train", "test"],
+        splits=splits,
         config=config,
         verbose=True,
     )
@@ -59,46 +63,27 @@ def main(args: Args):
         draw_contraction_spheres = True
 
     # Visualize cameras
-    plot_3d(
-        cameras=mv_data["train"],
-        points_3d=[point_cloud],
-        points_3d_colors=["black"],
-        bounding_boxes=bbs,
-        bounding_spheres=[bs],
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="z",
-        scene_radius=mv_data.get_scene_radius(),
-        draw_bounding_cube=draw_bounding_cube,
-        draw_image_planes=True,
-        draw_cameras_frustums=False,
-        draw_contraction_spheres=draw_contraction_spheres,
-        figsize=(15, 15),
-        title="training cameras",
-        show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_train_cameras.png"),
-    )
-
-    # Visualize cameras
-    plot_3d(
-        cameras=mv_data["test"],
-        points_3d=[point_cloud],
-        points_3d_colors=["black"],
-        bounding_boxes=bbs,
-        bounding_spheres=[bs],
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="z",
-        scene_radius=mv_data.get_scene_radius(),
-        draw_bounding_cube=draw_bounding_cube,
-        draw_image_planes=True,
-        draw_cameras_frustums=False,
-        draw_contraction_spheres=draw_contraction_spheres,
-        figsize=(15, 15),
-        title="test cameras",
-        show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_test_cameras.png"),
-    )
+    for split in mv_data.get_splits():
+        plot_3d(
+            cameras=mv_data[split],
+            draw_every_n_cameras=10,
+            points_3d=[point_cloud],
+            points_3d_colors=["black"],
+            bounding_boxes=bbs,
+            bounding_spheres=[bs],
+            azimuth_deg=20,
+            elevation_deg=30,
+            up="z",
+            scene_radius=mv_data.get_scene_radius(),
+            draw_bounding_cube=draw_bounding_cube,
+            draw_image_planes=True,
+            draw_cameras_frustums=False,
+            draw_contraction_spheres=draw_contraction_spheres,
+            figsize=(15, 15),
+            title=f"{split} cameras",
+            show=True,
+            save_path=os.path.join("plots", f"{dataset_name}_{split}_cameras.png"),
+        )
 
     print("done")
 

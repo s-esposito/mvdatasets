@@ -20,7 +20,7 @@ class MVDataset:
         dataset_name: str,
         scene_name: str,
         datasets_path: Path,
-        splits: list = ["train", "test"],
+        splits: list,
         point_clouds_paths: list = [],
         config: dict = {},  # if not specified, use default config
         pose_only: bool = False,  # if set, does not load images
@@ -33,17 +33,11 @@ class MVDataset:
         config["pose_only"] = pose_only
 
         # datasets_path/dataset_name/scene_name
-        data_path = Path(datasets_path) / dataset_name / scene_name
+        dataset_path = Path(datasets_path) / dataset_name
 
         # check if path exists
-        if not data_path.exists():
-            print_error(f"data path {data_path} does not exist")
-
-        # load scene cameras
-        if splits is None:
-            splits = ["all"]
-        elif "train" not in splits and "test" not in splits:
-            print_error("splits must contain at least one of 'train' or 'test'")
+        if not dataset_path.exists():
+            print_error(f"data path {dataset_path} does not exist")
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
@@ -57,7 +51,7 @@ class MVDataset:
         if self.dataset_name == "dtu" or self.dataset_name == "blended-mvs":
             from mvdatasets.loaders.static.dtu import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # load blender
         # load blendernerf
@@ -71,47 +65,52 @@ class MVDataset:
         ):
             from mvdatasets.loaders.static.blender import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
 
         # # load ingp
         # elif self.dataset_name == "ingp":
-        #     res = load_ingp(data_path, splits, config, verbose=verbose)
+        #     res = load_ingp(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # load dmsr
         elif self.dataset_name == "dmsr":
             from mvdatasets.loaders.static.dmsr import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # load llff
         # load mipnerf360
         elif self.dataset_name == "llff" or self.dataset_name == "mipnerf360":
             from mvdatasets.loaders.static.colmap import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
         elif self.dataset_name == "d-nerf":
             from mvdatasets.loaders.dynamic.d_nerf import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            
+        elif self.dataset_name == "visor":
+            from mvdatasets.loaders.dynamic.visor import load
+
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         elif self.dataset_name == "panoptic-sports":
             from mvdatasets.loaders.dynamic.panoptic_sports import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         elif self.dataset_name == "nerfies":
             from mvdatasets.loaders.dynamic.nerfies import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         elif self.dataset_name == "iphone":
             from mvdatasets.loaders.dynamic.iphone import load
 
-            res = load(data_path, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # UNPACK -------------------------------------------------------------
 
@@ -131,16 +130,25 @@ class MVDataset:
         print("max_camera_distance:", self.max_camera_distance)
 
         self.scene_radius = res["scene_radius"]
-        self.foreground_radius_mult = res["foreground_radius_mult"]
-        self.foreground_radius = self.scene_radius * self.foreground_radius_mult
         print("scene_radius:", self.scene_radius)
+        
+        if "foreground_radius_mult" not in res:
+            print_warning("foreground_radius_mult not found, setting to 0.5")
+            self.foreground_radius_mult = 0.5
+        else:
+            self.foreground_radius_mult = res["foreground_radius_mult"]
+
+        self.foreground_radius = self.scene_radius * self.foreground_radius_mult
         print("foreground_radius:", self.foreground_radius)
 
         # SDF sphere init radius
-        # for SDF reconstruction
-        self.init_sphere_radius = self.min_camera_distance * res["init_sphere_scale"]
-        # round to 2 decimals
-        self.init_sphere_radius = round(self.init_sphere_radius, 2)
+        if "init_sphere_radius_mult" not in res:
+            print_warning("init_sphere_radius_mult not found, setting to 0.1")
+            self.init_sphere_radius_mult = 0.1
+        else:
+            self.init_sphere_radius_mult = res["init_sphere_radius_mult"]
+        
+        self.init_sphere_radius = self.min_camera_distance * self.init_sphere_radius_mult
         print("init_sphere_radius:", self.init_sphere_radius)
 
         if self.init_sphere_radius > self.foreground_radius:
@@ -199,6 +207,10 @@ class MVDataset:
                 print_fn = print_error
             print_fn(f"{split} split has {len(self.data[split])} cameras")
 
+    def get_splits(self) -> List[str]:
+        """Returns the list of splits"""
+        return list(self.data.keys())
+    
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
 

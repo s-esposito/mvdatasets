@@ -19,7 +19,11 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
-    scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
+    test_preset = get_dataset_test_preset(dataset_name)
+    scene_name = test_preset["scene_name"]
+    pc_paths = test_preset["pc_paths"]
+    config = test_preset["config"]
+    splits = test_preset["splits"]
 
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
@@ -30,7 +34,7 @@ def main(args: Args):
         scene_name,
         datasets_path,
         point_clouds_paths=pc_paths,
-        splits=["train", "test"],
+        splits=splits,
         config=config,
         verbose=True,
     )

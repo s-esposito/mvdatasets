@@ -5,15 +5,15 @@ from typing import Union, Optional, Literal, Tuple
 from pathlib import Path
 from itertools import product, combinations
 from mvdatasets.camera import Camera
-from mvdatasets.geometry.common import get_mask_points_out_image
+from mvdatasets.geometry.common import get_mask_points_in_image_range
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
-from mvdatasets.utils.printing import print_error
+from mvdatasets.utils.printing import print_error, print_log
 
 
-TRANSPARENT = True
-BBOX_INCHES = "tight"
-PAD_INCHES = 0
-DPI = 300
+TRANSPARENT = False
+BBOX_INCHES = "tight"  # "tight" or "auto"
+PAD_INCHES = 0.1
+DPI = 72
 COLORBAR_FRACTION = 0.04625
 SCALE_MULTIPLIER = 0.1
 RAY_LENGHT_MULTIPLIER = 1.5
@@ -160,6 +160,7 @@ def _draw_point_cloud(
     points_3d: np.ndarray,
     size: float = None,
     color: np.ndarray = None,
+    alpha: float = None,
     marker: str = None,
     label: str = None,
     max_nr_points: int = None,
@@ -179,8 +180,10 @@ def _draw_point_cloud(
 
     if color is None:
         color = "black"
+    if alpha is None:
+        alpha = 0.25
     if size is None:
-        size = 10
+        size = 5
     if marker is None:
         marker = "o"
 
@@ -192,6 +195,7 @@ def _draw_point_cloud(
             points_3d[:, 2],
             s=scale * size,
             color=color,
+            alpha=alpha,
             marker=marker,
             label=label,
         )
@@ -202,6 +206,7 @@ def _draw_point_cloud(
             points_3d[:, 1],
             s=scale * size,
             color=color,
+            alpha=alpha,
             marker=marker,
             label=label,
         )
@@ -366,7 +371,7 @@ def _draw_bounding_box(
 
 def _draw_bounding_boxes(
     ax: plt.Axes,
-    bounding_boxes: list[BoundingBox] = [],
+    bounding_boxes: list[BoundingBox] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_frame: bool = False,
@@ -418,7 +423,7 @@ def _draw_bounding_sphere(
 
 def _draw_bounding_spheres(
     ax: plt.Axes,
-    bounding_spheres: list[BoundingSphere] = [],
+    bounding_spheres: list[BoundingSphere] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_frame: bool = False,
@@ -594,7 +599,7 @@ def _draw_camera_frame(
 
 def _draw_point_clouds(
     ax: plt.Axes,
-    points_3d: list[np.ndarray] = [],
+    points_3d: list[np.ndarray] = None,
     points_3d_colors: list[np.ndarray] = None,
     points_3d_labels: list[str] = None,
     points_3d_sizes: list[float] = None,
@@ -657,8 +662,9 @@ def _draw_point_clouds(
 
 def _draw_cameras(
     ax: plt.Axes,
-    cameras: list[Camera] = [],
+    cameras: list[Camera] = None,
     nr_rays: int = 0,
+    draw_every_n_cameras: int = 1,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_image_planes=True,
@@ -669,31 +675,114 @@ def _draw_cameras(
 
     if not isinstance(cameras, list):
         print_error("cameras must be a list of Cameras")
-
+    
     if len(cameras) > 0:
-        nr_rays_per_camera = nr_rays // len(cameras)
+        nr_cameras = len(cameras) // draw_every_n_cameras
+        nr_rays_per_camera = nr_rays // nr_cameras
 
         # draw camera frames
-        for camera in cameras:
-            pose = camera.get_pose()
-            camera_idx = camera.camera_idx
-            _draw_camera_frame(
-                ax=ax, pose=pose, idx=camera_idx, up=up, scene_radius=scene_radius
+        for i, camera in enumerate(cameras):
+            
+            if i % draw_every_n_cameras == 0:
+            
+                pose = camera.get_pose()
+                camera_idx = camera.camera_idx
+                _draw_camera_frame(
+                    ax=ax, pose=pose, idx=camera_idx, up=up, scene_radius=scene_radius
+                )
+                if draw_image_planes:
+                    _draw_image_plane(
+                        ax=ax, camera=camera, up=up, scene_radius=scene_radius
+                    )
+                if draw_cameras_frustums:
+                    _draw_frustum(ax=ax, camera=camera, up=up, scene_radius=scene_radius)
+                if nr_rays_per_camera > 0:
+                    _draw_camera_rays(
+                        ax=ax,
+                        camera=camera,
+                        nr_rays=nr_rays_per_camera,
+                        up=up,
+                        scene_radius=scene_radius,
+                    )
+            
+            else:
+                # skip camera
+                pass
+
+
+def _draw_camera_trajectory(
+    ax: plt.Axes,
+    cameras: list[Camera] = None,
+    last_frame_idx: int = None,
+    up: Literal["z", "y"] = "z",
+    scene_radius: float = 1.0,
+):
+    if cameras is None:
+        return
+    
+    if not isinstance(cameras, list):
+        print_error("cameras must be a list of Cameras")
+    
+    # collect cameras timestamps
+    # all_timestamps = []
+    all_centers = []
+    # all_indices = []
+    # all_cameras_idxs = []
+    for i, camera in enumerate(cameras):
+        timestamps = camera.get_timestamps()  # (N,)
+        center = camera.get_center()  # (3,)
+        center = center.repeat(timestamps.shape[0])  # (N, 3)
+        all_centers.append(center)
+    #     camera_idx = camera.get_camera_idx()  # int
+    #     indices = np.ones_like(timestamps) * i
+    #     all_timestamps.append(timestamps)
+    #     all_indices.append(indices)
+    #     all_cameras_idxs.append(camera_idx)
+    sequence_lenght = len(cameras)
+        
+    # # concatenate all timestamps, centers, indices
+    # all_timestamps = np.stack(all_timestamps, axis=0)  # (N, 1)
+    all_centers = np.stack(all_centers, axis=0)  # (N, 3)
+    
+    # # sort all timestamps, return permutation
+    # perm = np.argsort(all_timestamps.flatten())
+    # all_centers = all_centers[perm]
+    
+    if last_frame_idx is not None:
+        all_centers = all_centers[:(last_frame_idx+1)]
+
+    scale = scene_radius * SCALE_MULTIPLIER
+    
+    # sample colors
+    colors = plt.cm.jet(np.linspace(0, 1, sequence_lenght))[:, :3]
+    for i in range(all_centers.shape[0] - 1):
+        # center at timestamp i
+        center_i = all_centers[i]  # (3,)
+        # center at timestamp i+1
+        center_i1 = all_centers[i+1]  # (3,)
+        # get color
+        color = colors[i]
+        # alpha
+        alpha = 0.5
+        # plot line segment
+        if up == "z":
+            ax.plot3D(
+                [center_i[0], center_i1[0]],
+                [center_i[1], center_i1[1]],
+                [center_i[2], center_i1[2]],
+                color=color,
+                alpha=alpha,
+                linewidth=2.0 * scale
             )
-            if draw_image_planes:
-                _draw_image_plane(
-                    ax=ax, camera=camera, up=up, scene_radius=scene_radius
-                )
-            if draw_cameras_frustums:
-                _draw_frustum(ax=ax, camera=camera, up=up, scene_radius=scene_radius)
-            if nr_rays_per_camera > 0:
-                _draw_camera_rays(
-                    ax=ax,
-                    camera=camera,
-                    nr_rays=nr_rays_per_camera,
-                    up=up,
-                    scene_radius=scene_radius,
-                )
+        else:
+            ax.plot3D(
+                [center_i[0], center_i1[0]],
+                [center_i[2], center_i1[2]],
+                [center_i[1], center_i1[1]],
+                color=color,
+                alpha=alpha,
+                linewidth=2.0 * scale
+            )
 
 
 def plot_3d(
@@ -706,6 +795,7 @@ def plot_3d(
     bounding_boxes: list[BoundingBox] = None,
     bounding_spheres: list[BoundingSphere] = None,
     nr_rays: int = 0,
+    draw_every_n_cameras: int = 1,
     max_nr_points: int = 1000,
     azimuth_deg: float = 60.0,
     elevation_deg: float = 30.0,
@@ -771,6 +861,7 @@ def plot_3d(
         ax=ax,
         cameras=cameras,
         nr_rays=nr_rays,
+        draw_every_n_cameras=draw_every_n_cameras,
         up=up,
         scene_radius=scene_radius,
         draw_image_planes=draw_image_planes,
@@ -802,6 +893,135 @@ def plot_3d(
             pad_inches=PAD_INCHES,
             dpi=DPI,
         )
+        print_log(f"saved figure to {save_path}")
+
+    if show:
+        plt.show()
+
+    plt.close()
+
+
+def plot_camera_trajectory(
+    cameras: list[Camera] = None,
+    points_3d: Union[list[np.ndarray], np.ndarray] = None,
+    points_3d_colors: Union[list[np.ndarray], np.ndarray] = None,
+    points_3d_labels: list[str] = None,
+    points_3d_markers: list[str] = None,
+    points_3d_sizes: list[float] = None,
+    max_nr_points: int = 1000,
+    draw_every_n_cameras: int = 1,
+    last_frame_idx: int = -1,
+    azimuth_deg: float = 60.0,
+    elevation_deg: float = 30.0,
+    scene_radius: float = 1.0,
+    up: Literal["z", "y"] = "z",
+    draw_all_cameras_frames: bool = False,
+    draw_origin: bool = True,
+    draw_image_planes: bool = True,
+    draw_cameras_frustums: bool = False,
+    draw_rgb_frame: bool = True,
+    figsize: Tuple[int, int] = (15, 15),
+    title: str = None,
+    show: bool = True,
+    save_path: Path = None,  # if set, saves the figure to the given path
+) -> None:
+    """
+    out:
+        None
+    """
+
+    if not (up == "z" or up == "y"):
+        raise ValueError("up must be either 'y' or 'z'")
+
+    if draw_rgb_frame:
+        figsize = (2 * figsize[0], figsize[1])
+    
+    # init figure
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(1, 2, 1, projection="3d")
+    if title is not None:
+        ax.set_title(title)
+    _draw_3d_init(
+        ax=ax,
+        scene_radius=scene_radius,
+        up=up,
+        elevation_deg=elevation_deg,
+        azimuth_deg=azimuth_deg,
+    )
+
+    if draw_origin:
+        _draw_cartesian_axis(ax=ax, up=up, scene_radius=scene_radius)
+
+    # draw points
+    _draw_point_clouds(
+        ax=ax,
+        points_3d=points_3d,
+        points_3d_colors=points_3d_colors,
+        points_3d_labels=points_3d_labels,
+        points_3d_sizes=points_3d_sizes,
+        points_3d_markers=points_3d_markers,
+        max_nr_points=max_nr_points,
+        up=up,
+        scene_radius=scene_radius,
+    )
+
+    # activate legend if labels are given
+    if points_3d_labels is not None:
+        ax.legend()
+
+    # 
+    if last_frame_idx == -1:
+        last_frame_idx = len(cameras) - 1
+    print_log(f"last_frame_idx: {last_frame_idx}")
+    
+    # draw cameras trajectory
+    _draw_camera_trajectory(
+        ax=ax,
+        cameras=cameras,
+        last_frame_idx=last_frame_idx,
+        up=up,
+        scene_radius=scene_radius
+    )
+    
+    # draw camera frames
+    if draw_all_cameras_frames:
+        # draw all camera frames
+        cameras_ = cameras
+    else:
+        cameras_ = [cameras[last_frame_idx]]  # draw only last camera frame
+        
+    _draw_cameras(
+        ax=ax,
+        cameras=cameras_,
+        nr_rays=0,
+        draw_every_n_cameras=draw_every_n_cameras,
+        up=up,
+        scene_radius=scene_radius,
+        draw_image_planes=draw_image_planes,
+        draw_cameras_frustums=draw_cameras_frustums,
+    )
+    
+    # add subplot for rgb frame
+    if draw_rgb_frame:
+        ax_rgb = fig.add_subplot(1, 2, 2)
+        ax_rgb.axis("off")
+        data = cameras[last_frame_idx].get_data(keys=["rgbs"])
+        camera_width = cameras[last_frame_idx].width
+        camera_height = cameras[last_frame_idx].height
+        rgb = data["rgbs"].reshape(camera_width, camera_height, 3)
+        # transpose to (H, W, C)
+        rgb = np.transpose(rgb, (1, 0, 2))
+        ax_rgb.imshow(rgb)
+    
+    if save_path is not None:
+        plt.savefig(
+            save_path,
+            transparent=TRANSPARENT,
+            bbox_inches=BBOX_INCHES,
+            pad_inches=PAD_INCHES,
+            dpi=DPI,
+        )
+        print_log(f"saved figure to {save_path}")
 
     if show:
         plt.show()
@@ -917,13 +1137,14 @@ def plot_current_batch(
     rays_d: np.ndarray,
     rgbs: np.ndarray = None,
     masks: np.ndarray = None,
-    bounding_boxes: list[BoundingBox] = [],
+    bounding_boxes: list[BoundingBox] = None,
     azimuth_deg: float = 60.0,
     elevation_deg: float = 30.0,
     scene_radius: float = 1.0,
     up: Literal["z", "y"] = "z",
     draw_origin: bool = True,
     draw_bounding_cube: bool = True,
+    draw_image_planes: bool = True,
     figsize: Tuple[int, int] = (15, 15),
     title: str = None,
     show: bool = True,
@@ -967,18 +1188,18 @@ def plot_current_batch(
 
     # draw bounding cube
     if draw_bounding_cube:
-        _draw_bounding_cube(ax)
+        _draw_bounding_cube(ax=ax)
 
-    # get all unique camera poses
-    poses = []
+    # iterate over all unique cameras in batch
     for idx in unique_cameras_idx:
-        poses.append(cameras[idx].get_pose())
-
-    # plot unique camera poses
-    for pose, camera_idx in zip(poses, unique_cameras_idx):
+        camera = cameras[idx]
+        pose = camera.get_pose()
+        camera_idx = camera.camera_idx
         _draw_camera_frame(
             ax=ax, pose=pose, idx=camera_idx, up=up, scene_radius=scene_radius
         )
+        if draw_image_planes:
+            _draw_image_plane(ax=ax, camera=camera, up=up, scene_radius=scene_radius)
 
     # draw rays
     _draw_rays(
@@ -1005,6 +1226,7 @@ def plot_current_batch(
             pad_inches=PAD_INCHES,
             dpi=DPI,
         )
+        print_log(f"saved figure to {save_path}")
 
     if show:
         plt.show()
@@ -1047,7 +1269,7 @@ def plot_points_2d_on_image(
     rgb = np.transpose(rgb, (1, 0, 2))
 
     # init figure
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
 
     if title is not None:
         plt.title(title)
@@ -1058,7 +1280,7 @@ def plot_points_2d_on_image(
     im_ratio = rgb.shape[0] / rgb.shape[1]
 
     # filter out points outside image range
-    points_mask = get_mask_points_out_image(
+    points_mask = get_mask_points_in_image_range(
         points_2d_screen, camera.width, camera.height
     )
     points_2d_screen = points_2d_screen[points_mask]
@@ -1117,6 +1339,7 @@ def plot_points_2d_on_image(
             pad_inches=PAD_INCHES,
             dpi=DPI,
         )
+        print_log(f"saved figure to {save_path}")
 
     if show:
         plt.show()
@@ -1169,6 +1392,20 @@ def plot_rays_samples(
         elevation_deg=elevation_deg,
         azimuth_deg=azimuth_deg,
     )
+    
+    if draw_origin:
+        _draw_cartesian_axis(ax=ax, up=up, scene_radius=scene_radius)
+    
+    # draw points
+    _draw_point_clouds(
+        ax=ax,
+        points_3d=points_samples,
+        points_3d_colors=points_samples_colors,
+        points_3d_labels=points_samples_labels,
+        points_3d_sizes=points_samples_sizes,
+        up=up,
+        scene_radius=scene_radius,
+    )
 
     # draw rays
     _draw_rays(
@@ -1181,9 +1418,6 @@ def plot_rays_samples(
         up=up,
         scene_radius=scene_radius,
     )
-
-    if draw_origin:
-        _draw_cartesian_axis(ax=ax, up=up, scene_radius=scene_radius)
 
     # draw camera
     if camera is not None:
@@ -1214,17 +1448,6 @@ def plot_rays_samples(
         draw_frame=False,
     )
 
-    # draw points
-    _draw_point_clouds(
-        ax=ax,
-        points_3d=points_samples,
-        points_3d_colors=points_samples_colors,
-        points_3d_labels=points_samples_labels,
-        points_3d_sizes=points_samples_sizes,
-        up=up,
-        scene_radius=scene_radius,
-    )
-
     if draw_contraction_spheres:
         _draw_contraction_spheres(ax)
 
@@ -1246,6 +1469,7 @@ def plot_rays_samples(
             pad_inches=PAD_INCHES,
             dpi=DPI,
         )
+        print_log(f"saved figure to {save_path}")
 
     if show:
         plt.show()
@@ -1272,7 +1496,7 @@ def plot_image(
     """
 
     # init figure
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
 
     if image.ndim == 2:
         image = np.expand_dims(image, axis=-1)
@@ -1308,6 +1532,7 @@ def plot_image(
             pad_inches=PAD_INCHES,
             dpi=DPI,
         )
+        print_log(f"saved figure to {save_path}")
 
     if show:
         plt.show()

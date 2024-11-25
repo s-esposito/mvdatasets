@@ -49,6 +49,7 @@ def is_dataset_supported(dataset_name: str) -> bool:
         "mipnerf360",
         "shelly",
         "d-nerf",
+        "visor",
         "iphone",
         "panoptic-sports",
         "nerfies",
@@ -68,6 +69,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test dtu
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
+        splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
         config = {
@@ -77,6 +79,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test blended-mvs
     elif dataset_name == "blended-mvs":
         scene_name = "bmvs_bear"
+        splits = ["train", "test"]
         pc_paths = []
         # dataset specific config
         config = {}
@@ -84,6 +87,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test blender
     elif dataset_name == "blender":
         scene_name = "lego"
+        splits = ["train", "test"]
         pc_paths = ["tests/assets/point_clouds/blender/lego.ply"]
         # dataset specific config
         config = {
@@ -93,13 +97,15 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test shelly
     elif dataset_name == "shelly":
         scene_name = "khady"
+        splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
-        config = {"test_skip": 4, "init_sphere_scale": 0.2}
+        config = {"test_skip": 4, "init_sphere_radius_mult": 0.2}
 
     # test blendernerf
     elif dataset_name == "blendernerf":
         scene_name = "plushy"
+        splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
         config = {
@@ -109,6 +115,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test dmsr
     elif dataset_name == "dmsr":
         scene_name = "dinning"
+        splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
         # dataset specific config
         config = {
@@ -118,6 +125,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test refnerf
     elif dataset_name == "refnerf":
         scene_name = "car"
+        splits = ["train", "test"]
         pc_paths = []
         # dataset specific config
         config = {
@@ -127,6 +135,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test ingp
     elif dataset_name == "ingp":
         scene_name = "fox"
+        splits = ["train", "test"]
         pc_paths = []
         # dataset specific config
         config = {}
@@ -134,6 +143,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test llff
     elif dataset_name == "llff":
         scene_name = "fern"
+        splits = ["train", "test"]
         pc_paths = ["tests/assets/point_clouds/llff/fern.ply"]
         # dataset specific config
         config = {
@@ -143,6 +153,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test mipnerf360
     elif dataset_name == "mipnerf360":
         scene_name = "garden"
+        splits = ["train", "test"]
         pc_paths = []
 
         # dataset specific config
@@ -183,11 +194,25 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test d-nerf
     elif dataset_name == "d-nerf":
         scene_name = "bouncingballs"
+        splits = ["train", "test"]
+        pc_paths = []
+        # dataset specific config
+        config = {}
+        
+    # test visor
+    elif dataset_name == "visor":
+        scene_name = "P01_01"
+        splits = ["train", "test"]  # ["train", "val"]
         pc_paths = []
         # dataset specific config
         config = {}
         
     else:
-        print_error(f"{self.dataset_name} does not have a test preset.")
+        print_error(f"{dataset_name} does not have a test preset.")
 
-    return scene_name, pc_paths, config
+    return {
+        "scene_name": scene_name,
+        "splits": splits,
+        "pc_paths": pc_paths,
+        "config": config,
+    }

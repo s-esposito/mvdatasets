@@ -9,7 +9,7 @@ from mvdatasets.geometry.common import (
     global_inv_perspective_projection,
     opengl_projection_matrix_from_intrinsics,
     opengl_matrix_world_from_w2c,
-    get_mask_points_out_image,
+    get_mask_points_in_image_range,
 )
 from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets.utils.raycasting import (
@@ -178,6 +178,10 @@ class Camera:
         """return camera image resolution (width, height)"""
         return self.width, self.height
 
+    def get_camera_idx(self) -> int:
+        """return camera index"""
+        return self.camera_idx
+    
     def get_width(self) -> int:
         """return camera image width"""
         return self.width
@@ -531,8 +535,8 @@ class Camera:
             points_3d (np.ndarray or torch.Tensor): 3D points in world space of shape (N, 3).
 
         Returns:
-            np.ndarray or torch.Tensor: 2D screen points of shape (N, 2).
-            np.ndarray or torch.Tensor: Mask of points outside the image bounds.
+            points_2d_screen (np.ndarray or torch.Tensor): 2D screen points of shape (N, 2).
+            points_mask (np.ndarray or torch.Tensor): Mask of points outside the image bounds.
         """
 
         # Retrieve camera intrinsics and pose
@@ -540,13 +544,19 @@ class Camera:
         c2w = self.get_pose()
 
         # Delegate to the helper function
-        points_2d_screen = global_perspective_projection(intrinsics, c2w, points_3d)
+        points_2d_screen, in_front_of_camera_mask = global_perspective_projection(
+            intrinsics=intrinsics,
+            c2w=c2w,
+            points_3d_world=points_3d
+        )
 
         if filter_points:
-            # Filter points outside the image bounds
-            points_mask = get_mask_points_out_image(
+            # Mask points outside the image bounds
+            in_image_range_mask = get_mask_points_in_image_range(
                 points_2d_screen, self.width, self.height
             )
+            # Combine masks
+            points_mask = in_front_of_camera_mask & in_image_range_mask
             points_2d_screen = points_2d_screen[points_mask]
         else:
             points_mask = None

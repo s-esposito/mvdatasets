@@ -27,7 +27,7 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
-    scene_name, pc_paths, config = get_dataset_test_preset(dataset_name)
+    test_preset = get_dataset_test_preset(dataset_name)
 
     if dataset_name != "plushy":
         raise ValueError("This test is only for the plushy dataset.")

@@ -749,7 +749,8 @@ def global_perspective_projection(
         points_3d_world (np.ndarray or torch.Tensor): 3D points in world space of shape (N, 3).
 
     Returns:
-        np.ndarray or torch.Tensor: 2D screen points of shape (N, 2).
+        points_2d_screen (np.ndarray or torch.Tensor): 2D screen points of shape (N, 2).
+        in_front_of_camera_mask (np.ndarray or torch.Tensor): Boolean mask indicating points in front of the camera.
 
     Raises:
         ValueError: If inputs have incorrect types or shapes.
@@ -771,11 +772,14 @@ def global_perspective_projection(
 
     # Transform 3D points from world space to camera space
     points_3d_camera = apply_transformation_3d(points_3d_world, w2c)
-
+    
+    # Get points in front of the camera (z > 0)
+    in_front_of_camera_mask = points_3d_camera[..., 2] > 0
+    
     # Project 3D camera space points to 2D screen space
     points_2d_screen = local_perspective_projection(intrinsics, points_3d_camera)
 
-    return points_2d_screen
+    return points_2d_screen, in_front_of_camera_mask
 
 
 def global_inv_perspective_projection(
@@ -934,7 +938,7 @@ def look_at(
     return pose
 
 
-def get_mask_points_out_image(
+def get_mask_points_in_image_range(
     points_2d_screen: Union[np.ndarray, torch.Tensor], width: int, height: int
 ) -> Union[np.ndarray, torch.Tensor]:
     """Filter out points that are outside the image."""

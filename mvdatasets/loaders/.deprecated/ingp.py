@@ -21,11 +21,12 @@ from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uin
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_ingp(scene_path: Path, splits: list, config: dict = {}, verbose: bool = False):
+def load_ingp(dataset_path: Path, scene_name: str, splits: list, config: dict = {}, verbose: bool = False):
     """INGP data format loader.
 
     Args:
-        scene_path (Path): Path to the dataset scene folder.
+        dataset_path (Path): Path to the dataset folder.
+        scene_name (str): Name of the scene / sequence to load.
         splits (list): Splits to load (e.g., ["train", "test"]).
         config (dict): Dictionary of configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
@@ -42,7 +43,7 @@ def load_ingp(scene_path: Path, splits: list, config: dict = {}, verbose: bool =
         "test_camera_freq": 8,
         "train_test_overlap": False,
         "target_max_camera_distance": 1.0,
-        "init_sphere_scale": 0.5,
+        "init_sphere_radius_mult": 0.5,
         "pose_only": False,
     }
 
