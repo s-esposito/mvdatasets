@@ -63,7 +63,7 @@ if __name__ == "__main__":
     splits = ["test", "train"]
     for split in splits:
         save_path = os.path.join(args.datasets_path, dataset_name, scene_name, split)
-        for camera in mv_data[split]:
+        for camera in mv_data.get_split(split):
             # print(camera.camera_idx)
             imgs = render_o3d_scene(camera, o3d_scene)
             geom_ids = imgs["geom_ids"]

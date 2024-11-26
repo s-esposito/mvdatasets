@@ -207,6 +207,14 @@ class MVDataset:
                 print_fn = print_error
             print_fn(f"{split} split has {len(self.data[split])} cameras")
 
+    def get_split(self, split: str) -> List[Camera]:
+        """Returns the list of cameras for a split"""
+        if split not in self.data:
+            print_error(
+                f"split {split} does not exist, available splits: {list(self.data.keys())}"
+            )
+        return self.data[split]
+    
     def get_splits(self) -> List[str]:
         """Returns the list of splits"""
         return list(self.data.keys())

@@ -76,10 +76,10 @@ def load(
         "train_test_overlap": False,
         "rotate_scene_x_axis_deg": 205,
         "subsample_factor": 1,
-        "foreground_radius_mult": 0.5,
         "init_sphere_radius_mult": 0.1,
+        "target_max_camera_distance": 0.5,
+        "foreground_radius_mult": 1.0,
         "pose_only": False,
-        "target_max_camera_distance": 1.0,
     }
 
     # Update config with defaults and handle warnings

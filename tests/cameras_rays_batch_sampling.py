@@ -50,10 +50,10 @@ def main(args: Args):
 
     # TensorReel (~1300 it/s), camera's data in concatenated in big tensors on GPU
 
-    tensor_reel = TensorReel(mv_data["train"], device=device)
+    tensor_reel = TensorReel(mv_data.get_split("train"), device=device)
     print(tensor_reel)
 
-    nr_cameras = len(mv_data["train"])
+    nr_cameras = len(mv_data.get_split("train"))
     nr_per_camera_frames = mv_data.get_nr_per_camera_frames()
     benchmark = False
     batch_size = 512
@@ -67,7 +67,7 @@ def main(args: Args):
     azimuth_deg_delta = 1  # 360 / (nr_iterations / 2)
     for i in pbar:
 
-        # cameras_idx = np.random.permutation(len(mv_data["train"]))[:2]
+        # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:2]
 
         if profiler is not None:
             profiler.start("get_next_rays_batch")
@@ -116,7 +116,7 @@ def main(args: Args):
                 gt_mask = None
 
             plot_current_batch(
-                cameras=mv_data["train"],
+                cameras=mv_data.get_split("train"),
                 cameras_idx=batch_cameras_idx,
                 rays_o=batch_rays_o.cpu().numpy(),
                 rays_d=batch_rays_d.cpu().numpy(),

@@ -1,20 +1,57 @@
 from rich import print
 from pathlib import Path
 import os
-import copy
-import cv2
-import glob
 import numpy as np
 import json
-from pycolmap import SceneManager
 from tqdm import tqdm
 from PIL import Image
-from copy import deepcopy
+import cv2
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
 from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning, print_log
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
+
+
+def _generate_mask_from_polygons(
+    annotations: list[dict],
+    width: int,
+    height: int,
+):
+    img = np.zeros((height, width, 1), dtype=np.uint8)
+    for annotation in annotations:
+        segments = annotation["segments"]
+        polygons = []
+        polygons.append(segments)
+        ps = []
+        for polygon in polygons:
+            for poly in polygon:
+                if poly == []:
+                    poly = [[0.0, 0.0]]
+                ps.append(np.array(poly, dtype=np.int32))
+        cv2.fillPoly(img, ps, 255)
+    return img
+
+
+def _generate_semantic_mask_from_polygons(
+    annotations: list[dict],
+    width: int,
+    height: int,
+):
+    img = np.zeros((height, width, 1), dtype=np.uint8)
+    for annotation in annotations:
+        class_id = annotation["class_id"]
+        segments = annotation["segments"]
+        polygons = []
+        polygons.append(segments)
+        ps = []
+        for polygon in polygons:
+            for poly in polygon:
+                if poly == []:
+                    poly = [[0.0, 0.0]]
+                ps.append(np.array(poly, dtype=np.int32))
+        cv2.fillPoly(img, ps, class_id)
+    return img
 
 
 def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, sparse_annotations_path, split):
@@ -40,21 +77,17 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
     
     # load VISOR data
     frames_idxs = []
-    images_names = []
+    # images_names = []
     mapped_images_names = []
     images_paths = []
     w2c_mats = []
-    images_segments_dict = {}  # indexed by VISOR image name
+    images_segments_dict = {}  # indexed by mapped image names
     pbar = tqdm(video_data, desc="frames", ncols=100)
     for frame_data in pbar:
         
-        video_name = frame_data["image"]["video"]
-        video_name_prefix = video_name.split("_")[0]
-        
-        # get image name
+        video_name = frame_data["image"]["video"]  # e.g.: P01_01
+        video_name_prefix = video_name.split("_")[0]  # e.g.: P01
         image_name = frame_data["image"]["name"]  # e.g.: P01_01_frame_0000000140.jpg
-        
-        # map image name
         mapped_image_name = frame_mapping[image_name]  # e.g.: frame_0000000145.jpg
         
         # check if mapped image name is in JSON_DATA
@@ -82,23 +115,16 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
         frame_idx = int(mapped_image_name.split(".")[0].split("_")[-1])
         frames_idxs.append(frame_idx)
         
-        # get image path
+        # get rgb image
         image_path = os.path.join(sparse_annotations_path, "rgb_frames", split, video_name_prefix, image_name)
         images_paths.append(image_path)
         
         # append image names
-        images_names.append(image_name)
+        # images_names.append(image_name)
         mapped_images_names.append(mapped_image_name)
         
         # get annotations
-        for annotation in frame_data["annotations"]:
-            # id = frame_annotation["id"]
-            # name = frame_annotation["name"]
-            # exhaustive = frame_annotation["exhaustive"]
-            images_segments_dict[image_name] = (
-                annotation["class_id"],
-                annotation["segments"]
-            )
+        images_segments_dict[mapped_image_name] = frame_data["annotations"]
             
     # Concatenate poses
     w2c_mats = np.stack(w2c_mats, axis=0)  # (N, 4, 4)
@@ -112,17 +138,17 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
     
     # reorder images names and paths
     new_images_paths = []
-    new_images_names = []
+    # new_images_names = []
     new_mapped_images_names = []
     for idx in inds:
         new_images_paths.append(images_paths[idx])
-        new_images_names.append(images_names[idx])
+        # new_images_names.append(images_names[idx])
         new_mapped_images_names.append(mapped_images_names[idx])
     images_paths = new_images_paths
-    images_names = new_images_names
+    # images_names = new_images_names
     mapped_images_names = new_mapped_images_names
     
-    return c2w_mats, frames_idxs, images_paths, images_names, mapped_images_names, images_segments_dict
+    return c2w_mats, frames_idxs, images_paths, mapped_images_names, images_segments_dict
 
 
 def load(
@@ -247,9 +273,8 @@ def load(
     c2w_mats = res[0]
     frames_idxs = res[1]
     images_paths = res[2]
-    # images_names = res[3]
-    # mapped_images_names = res[4]
-    # images_segments_dict = res[5]
+    mapped_images_names = res[3]
+    images_segments_dict = res[4]
     
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
@@ -290,7 +315,7 @@ def load(
     
     # build cameras
     cameras_all = []
-    pbar = tqdm(zip(c2w_mats, images_paths, frames_idxs), desc="images", ncols=100)
+    pbar = tqdm(zip(c2w_mats, images_paths, frames_idxs, mapped_images_names), desc="images", ncols=100)
     for idx, camera_meta in enumerate(pbar):
 
         # unpack
@@ -309,6 +334,25 @@ def load(
         img_pil = Image.open(img_path)
         img_np = np.array(img_pil)[..., :3]
         cam_imgs = img_np[None, ...]  # (1, H, W, 3)
+        
+        # get annotations
+        mapped_image_name = camera_meta[3]
+        annotations = images_segments_dict[mapped_image_name]
+        
+        # get mask
+        mask_np = _generate_mask_from_polygons(
+            annotations=annotations,
+            width=target_width,
+            height=target_height
+        ) # (H, W, 1)
+        cam_masks = mask_np[None, ...]  # (1, H, W, 1)
+        
+        semantic_mask_np = _generate_semantic_mask_from_polygons(
+            annotations=annotations,
+            width=target_width,
+            height=target_height
+        ) # (H, W, 1)
+        cam_semantic_masks = semantic_mask_np[None, ...]  # (1, H, W, 1)
 
         # create camera
         camera = Camera(
@@ -317,6 +361,8 @@ def load(
             global_transform=global_transform,
             local_transform=local_transform,
             rgbs=cam_imgs,
+            masks=cam_masks,
+            semantic_masks=cam_semantic_masks,
             timestamps=cam_timestamp,
             camera_idx=frame_idx,
             subsample_factor=int(config["subsample_factor"]),

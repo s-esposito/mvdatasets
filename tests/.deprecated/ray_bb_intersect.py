@@ -63,7 +63,7 @@ if __name__ == "__main__":
     else:
         point_cloud = np.empty((0, 3))
 
-    camera = mv_data["test"][0]
+    camera = mv_data.get_split("test")[0]
     width = camera.width
     height = camera.height
     # width = 800

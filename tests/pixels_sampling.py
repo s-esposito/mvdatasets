@@ -7,7 +7,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
+from mvdatasets.visualization.matplotlib import plot_camera_2d
 from mvdatasets.mvdataset import MVDataset
 
 
@@ -34,8 +34,8 @@ def main(args: Args):
     )
 
     # random camera index
-    rand_idx = 2  # torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["train"][rand_idx])
+    rand_idx = 2  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
+    camera = deepcopy(mv_data.get_split("train")[rand_idx])
 
     # resize camera
     taget_dim = 100
@@ -49,7 +49,7 @@ def main(args: Args):
 
     # gen rays
     rays_o, rays_d, points_2d_screen = camera.get_rays(jitter_pixels=True)
-    plot_points_2d_on_image(
+    plot_camera_2d(
         camera,
         points_2d_screen,
         show_ticks=True,
@@ -63,7 +63,7 @@ def main(args: Args):
 
     # gen rays
     rays_o, rays_d, points_2d_screen = camera.get_rays(jitter_pixels=False)
-    plot_points_2d_on_image(
+    plot_camera_2d(
         camera,
         points_2d_screen,
         show_ticks=True,

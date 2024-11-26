@@ -1,9 +1,11 @@
 import tyro
 import os
 import numpy as np
+from pathlib import Path
 from config import get_dataset_test_preset
 from config import Args
 from mvdatasets.visualization.matplotlib import plot_camera_trajectory
+from mvdatasets.visualization.video_gen import make_video_camera_trajectory
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.printing import print_warning, print_log
 
@@ -47,59 +49,58 @@ def main(args: Args):
         print_warning(f"{dataset_name} is not a monocular sequence")
         return
     
-    # uniform sampling of sequence lenght
-    sequence_len = mv_data.get_nr_sequence_frames()
-    nr_frames = sequence_len
-    step_size = sequence_len // nr_frames
-    frames_idxs = np.arange(0, sequence_len, step_size)
-    
-    # subsample point cloud
-    max_nr_points = 1000
-    if max_nr_points is not None:
-        if max_nr_points < point_cloud.shape[0]:
-            idx = np.random.permutation(point_cloud.shape[0])[:max_nr_points]
-            point_cloud = point_cloud[idx]
-    
-    # create output folder
-    output_path = os.path.join("plots", f"{dataset_name}_trajectory")
-    os.makedirs(output_path, exist_ok=True)
-    
-    # Visualize cameras
-    for _, last_frame_idx in enumerate(frames_idxs):
-        
-        # get camera
-        camera = mv_data["train"][last_frame_idx]
-        
-        # get timestamp
-        ts = camera.get_timestamps()[0]
-        # round to 3 decimal places
-        ts = round(ts, 3)
-        
-        plot_camera_trajectory(
-            cameras=mv_data["train"],
-            last_frame_idx=last_frame_idx,
-            draw_every_n_cameras=1,
-            points_3d=[point_cloud],
-            points_3d_colors=["black"],
-            azimuth_deg=60,
-            elevation_deg=30,
-            max_nr_points=None,
-            up="z",
-            scene_radius=mv_data.get_scene_radius(),
-            draw_rgb_frame=True,
-            draw_all_cameras_frames=False,
-            draw_image_planes=True,
-            draw_cameras_frustums=True,
-            figsize=(15, 15),
-            title=f"{dataset_name} camera trajectory up to time {ts} [s]",
-            show=False,
-            save_path=os.path.join(output_path, f"{dataset_name}_trajectory_{format(last_frame_idx, '09d')}.png"),
-        )
-        
     # make video
-    video_path = os.path.join(output_path, f"{dataset_name}_trajectory.mp4")
-    os.system(f'ffmpeg -y -r 10 -i {output_path}/{dataset_name}_trajectory_%09d.png -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -vcodec libx264 -crf 25 -pix_fmt yuv420p {video_path}')
-    print_log(f"Video saved at {video_path}")
+    make_video_camera_trajectory(
+        cameras=mv_data.get_split("train"),
+        points_3d=point_cloud,
+        dataset_name=dataset_name,
+        nr_frames=-1,  # -1 means all frames
+        remove_tmp_files=True,
+        scene_radius=mv_data.get_scene_radius(),
+        save_path=Path(os.path.join("plots", f"{dataset_name}_trajectory.mp4")),
+        fps=10,
+    )
+    
+    # # create output folder
+    # output_path = os.path.join("plots", f"{dataset_name}_trajectory")
+    # os.makedirs(output_path, exist_ok=True)
+    
+    # # Visualize cameras
+    # for _, last_frame_idx in enumerate(frames_idxs):
+        
+    #     # get camera
+    #     camera = mv_data.get_split("train")[last_frame_idx]
+        
+    #     # get timestamp
+    #     ts = camera.get_timestamps()[0]
+    #     # round to 3 decimal places
+    #     ts = round(ts, 3)
+        
+    #     plot_camera_trajectory(
+    #         cameras=mv_data.get_split("train"),
+    #         last_frame_idx=last_frame_idx,
+    #         draw_every_n_cameras=1,
+    #         points_3d=[point_cloud],
+    #         points_3d_colors=["black"],
+    #         azimuth_deg=60,
+    #         elevation_deg=30,
+    #         max_nr_points=None,
+    #         up="z",
+    #         scene_radius=mv_data.get_scene_radius(),
+    #         draw_rgb_frame=True,
+    #         draw_all_cameras_frames=False,
+    #         draw_image_planes=True,
+    #         draw_cameras_frustums=True,
+    #         figsize=(15, 15),
+    #         title=f"{dataset_name} camera trajectory up to time {ts} [s]",
+    #         show=False,
+    #         save_path=os.path.join(output_path, f"{dataset_name}_trajectory_{format(last_frame_idx, '09d')}.png"),
+    #     )
+        
+    # # make video
+    # video_path = os.path.join(output_path, f"{dataset_name}_trajectory.mp4")
+    # os.system(f'ffmpeg -y -r 10 -i {output_path}/{dataset_name}_trajectory_%09d.png -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -vcodec libx264 -crf 25 -pix_fmt yuv420p {video_path}')
+    # print_log(f"Video saved at {video_path}")
     
 
 if __name__ == "__main__":

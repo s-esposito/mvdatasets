@@ -39,6 +39,7 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 - [ ] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
 - [ ] [iPhone](#): monocular, unbounded
 - [ ] [DynamicScenes](#): monocular, unbounded
+- [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded
 - [ ] ...
 
 </td>

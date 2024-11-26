@@ -6,7 +6,7 @@ from mvdatasets.geometry.common import (
     local_inv_perspective_projection,
     apply_rotation_3d,
 )
-from mvdatasets.utils.images import image_uint8_to_float32
+# from mvdatasets.utils.images import image_uint8_to_float32
 
 
 def get_pixels(height: int, width: int, device: str = "cpu") -> torch.Tensor:
@@ -273,6 +273,16 @@ def get_data_per_pixels(
 
     # prepare output
     vals = {}
+    
+    # # TODO: handle this in a better way
+    # cast_modality = {
+    #     "rgbs": True,
+    #     "masks": True,
+    #     "normals": True,
+    #     "depths": True,
+    #     "instance_masks": False,
+    #     "semantic_masks": False,
+    # }
 
     for key, val in data_dict.items():
         if val is not None:
@@ -284,7 +294,9 @@ def get_data_per_pixels(
                 vals[key] = val[cameras_idx, frames_idx, i, j]  # (N, C)
             else:
                 vals[key] = val[frames_idx, i, j]  # (N, C)
-            vals[key] = image_uint8_to_float32(vals[key])
+            # # cast to float32 (if needed)
+            # if cast_modality[key]:
+            #     vals[key] = image_uint8_to_float32(vals[key])
         else:
             vals[key] = None
 
@@ -314,6 +326,7 @@ def get_data_per_points_2d_screen(
     cameras_idx: Union[torch.Tensor, np.ndarray] = None,
     frames_idx: Union[torch.Tensor, np.ndarray] = None,
     data_dict: dict = {},
+    verbose: bool = False,
 ):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
@@ -361,4 +374,5 @@ def get_data_per_points_2d_screen(
         cameras_idx=cameras_idx,
         frames_idx=frames_idx,
         data_dict=data_dict,
+        verbose=verbose,
     )

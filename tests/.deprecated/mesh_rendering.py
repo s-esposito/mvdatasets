@@ -35,7 +35,7 @@ if __name__ == "__main__":
     triangle_mesh.compute_vertex_normals()
 
     # render mesh
-    camera = mv_data["test"][2]
+    camera = mv_data.get_split("test")[2]
     imgs = render_o3d_mesh(camera, triangle_mesh)
     plt.imshow(imgs["depth"])
     plt.colorbar()

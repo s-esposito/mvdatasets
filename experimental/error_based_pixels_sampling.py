@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from config import Args
 from config import get_dataset_test_preset
-from mvdatasets.visualization.matplotlib import plot_points_2d_on_image
+from mvdatasets.visualization.matplotlib import plot_camera_2d
 from mvdatasets.utils.raycasting import (
     get_points_2d_screen_from_pixels,
     get_random_pixels,
@@ -44,8 +44,8 @@ def main(args: Args):
     )
 
     # random camera index
-    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
+    rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
+    camera = deepcopy(mv_data.get_split("test")[rand_idx])
 
     # # resize camera
     # taget_dim = 100
@@ -76,7 +76,7 @@ def main(args: Args):
 
     points_2d_screen = points_2d_screen.cpu().numpy()
 
-    plot_points_2d_on_image(
+    plot_camera_2d(
         camera,
         points_2d_screen,  # [:, [1, 0]],
         show_ticks=False,
@@ -106,7 +106,7 @@ def main(args: Args):
 
     points_2d_screen = points_2d_screen.cpu().numpy()
 
-    plot_points_2d_on_image(
+    plot_camera_2d(
         camera,
         points_2d_screen,  # [:, [1, 0]],
         show_ticks=False,

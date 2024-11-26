@@ -36,8 +36,8 @@ def main(args: Args):
     )
 
     # random camera index
-    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
+    rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
+    camera = deepcopy(mv_data.get_split("test")[rand_idx])
     # shoot rays from camera
     rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
 

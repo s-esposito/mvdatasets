@@ -64,7 +64,7 @@ if __name__ == "__main__":
     scene["resolution"] = [mv_data.get_width(), mv_data.get_height()]
     scene["meshes"] = []
     scene["cameras"] = {"test": {}, "train": {}}
-    for camera in mv_data["test"]:
+    for camera in mv_data.get_split("test"):
         camera_idx = camera.camera_idx
         projectionMatrix = camera.get_opengl_projection_matrix(near=0.1, far=100.0)
         matrixWorld = camera.get_opengl_matrix_world()

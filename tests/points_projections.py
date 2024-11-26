@@ -8,7 +8,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from config import get_dataset_test_preset
 from config import Args
-from mvdatasets.visualization.matplotlib import plot_points_2d_on_image, plot_3d
+from mvdatasets.visualization.matplotlib import plot_camera_2d, plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.printing import print_error
 
@@ -36,8 +36,8 @@ def main(args: Args):
     )
 
     # random camera index
-    rand_idx = torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
+    rand_idx = torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
+    camera = deepcopy(mv_data.get_split("test")[rand_idx])
     print(camera)
 
     if len(mv_data.point_clouds) > 0:
@@ -57,7 +57,7 @@ def main(args: Args):
     camera_points_dists = camera.distance_to_points_3d_world(point_cloud)
     print("camera_points_dist", camera_points_dists.shape)
 
-    plot_points_2d_on_image(
+    plot_camera_2d(
         camera,
         points_2d_screen,
         title="point cloud projection",

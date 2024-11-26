@@ -10,7 +10,7 @@ from config import Args
 from mvdatasets.visualization.matplotlib import plot_3d, plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
-from mvdatasets.utils.printing import print_error
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 def main(args: Args):
@@ -35,27 +35,26 @@ def main(args: Args):
         verbose=True,
     )
 
-    bbs = []
-    draw_bounding_cube = True
-    draw_contraction_spheres = False
+    # list of bounding boxes to draw
+    bb = None
+    bs = None
+
     scene_type = config.get("scene_type", None)
     if scene_type == "bounded":
+        draw_bounding_cube = True
+        draw_contraction_spheres = False
         # bounding box
         bb = BoundingBox(
             pose=np.eye(4),
             local_scale=mv_data.get_foreground_radius() * 2,
             device=device,
         )
-        bbs.append(bb)
     elif scene_type == "unbounded":
         draw_bounding_cube = False
         draw_contraction_spheres = True
-        # bounding sphere
-        bs = BoundingSphere(
-            pose=np.eye(4),
-            local_scale=0.5,
-            device=device,
-        )
+        if mv_data.get_scene_radius() > 1.0:
+            print_warning("scene radius is greater than 1.0, contraction spheres will not be displayed")
+            draw_contraction_spheres = False
 
     else:
         print_error("scene_type not supported")
@@ -66,8 +65,8 @@ def main(args: Args):
         point_cloud = None
 
     # random camera index
-    rand_idx = 0  # torch.randint(0, len(mv_data["test"]), (1,)).item()
-    camera = deepcopy(mv_data["test"][rand_idx])
+    rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
+    camera = deepcopy(mv_data.get_split("test")[rand_idx])
 
     # resize camera
     camera.resize(subsample_factor=10)
@@ -76,7 +75,7 @@ def main(args: Args):
     plot_3d(
         cameras=[camera],
         points_3d=[point_cloud],
-        bounding_boxes=bbs,
+        # bounding_boxes=[bb] if bb is not None else None,
         nr_rays=256,
         azimuth_deg=20,
         elevation_deg=30,
@@ -101,7 +100,16 @@ def main(args: Args):
     if scene_type == "bounded":
         is_hit, t_near, t_far, p_near, p_far = bb.intersect(rays_o, rays_d)
     elif scene_type == "unbounded":
+        # bounding sphere
+        bs = BoundingSphere(
+            pose=np.eye(4),
+            local_scale=0.5,
+            device=device,
+        )
         is_hit, t_near, t_far, p_near, p_far = bs.intersect(rays_o, rays_d)
+        if mv_data.get_scene_radius() > 1.0:
+            print_warning("scene radius is greater than 1.0, bounding box is not defined")
+            exit(0)
     else:
         print_error("scene_type not supported")
 
@@ -112,7 +120,9 @@ def main(args: Args):
         t_far=t_far.cpu().numpy(),
         nr_rays=32,
         camera=camera,
-        bounding_boxes=bbs,
+        bounding_boxes=[bb] if bb is not None else None,
+        azimuth_deg=20,
+        elevation_deg=30,
         scene_radius=mv_data.get_scene_radius(),
         draw_bounding_cube=draw_bounding_cube,
         draw_contraction_spheres=draw_contraction_spheres,

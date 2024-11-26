@@ -8,6 +8,7 @@ from mvdatasets.camera import Camera
 from mvdatasets.geometry.common import get_mask_points_in_image_range
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
 from mvdatasets.utils.printing import print_error, print_log
+from mvdatasets.visualization.colormaps import davis_palette
 
 
 TRANSPARENT = False
@@ -787,8 +788,8 @@ def _draw_camera_trajectory(
 
 def plot_3d(
     cameras: list[Camera] = None,
-    points_3d: Union[list[np.ndarray], np.ndarray] = None,
-    points_3d_colors: Union[list[np.ndarray], np.ndarray] = None,
+    points_3d: list[np.ndarray] = None,
+    points_3d_colors: list[np.ndarray] = None,
     points_3d_labels: list[str] = None,
     points_3d_markers: list[str] = None,
     points_3d_sizes: list[float] = None,
@@ -903,8 +904,8 @@ def plot_3d(
 
 def plot_camera_trajectory(
     cameras: list[Camera] = None,
-    points_3d: Union[list[np.ndarray], np.ndarray] = None,
-    points_3d_colors: Union[list[np.ndarray], np.ndarray] = None,
+    points_3d: list[np.ndarray] = None,
+    points_3d_colors: list[np.ndarray] = None,
     points_3d_labels: list[str] = None,
     points_3d_markers: list[str] = None,
     points_3d_sizes: list[float] = None,
@@ -969,10 +970,9 @@ def plot_camera_trajectory(
     if points_3d_labels is not None:
         ax.legend()
 
-    # 
+    # use last frame if not set
     if last_frame_idx == -1:
         last_frame_idx = len(cameras) - 1
-    print_log(f"last_frame_idx: {last_frame_idx}")
     
     # draw cameras trajectory
     _draw_camera_trajectory(
@@ -1040,6 +1040,7 @@ def _draw_camera_rays(
     rays_o, rays_d, points_2d_screen = camera.get_rays()  # torch.Tensor
     rays_o = rays_o.cpu().numpy()
     rays_d = rays_d.cpu().numpy()
+    vals = camera.get_data(points_2d_screen, frame_idx=frame_idx)  # torch.Tensor
 
     if not camera.has_rgbs():
         # color rays with their uv coordinates
@@ -1050,14 +1051,12 @@ def _draw_camera_rays(
         rgbs[:, 1] /= np.max(rgbs[:, 1])
     else:
         # use frame rgb
-        vals = camera.get_data(points_2d_screen, frame_idx=frame_idx)  # torch.Tensor
         rgbs = vals["rgbs"].cpu().numpy()
 
     if not camera.has_masks():
         # set to ones
         masks = np.ones((camera.height, camera.width, 1)).reshape(-1, 1) * 0.5
     else:
-        vals = camera.get_data(points_2d_screen)  # torch.Tensor
         masks = vals["masks"].cpu().numpy()
 
     # draw rays
@@ -1234,9 +1233,58 @@ def plot_current_batch(
     plt.close()
 
 
-def plot_points_2d_on_image(
+def _draw_segmentations_on_2d_image(
+    ax: plt.Axes,
+    # segmentations: np.ndarray,
+): 
+    # TODO: implement
+    pass
+
+
+def _draw_camera_2d(
+    ax: plt.Axes,
     camera: Camera,
-    points_2d_screen: np.ndarray,
+    frame_idx: int = 0,
+):
+    data = camera.get_data(frame_idx=frame_idx, verbose=True)  # torch.Tensor
+    
+    rgb = None
+    if camera.has_rgbs():
+        rgb = data["rgbs"].cpu().numpy()
+    else:
+        # set to black
+        rgb = np.zeros((camera.width*camera.height, 3))
+    # rgb is (H*W, 3)
+    
+    semantic_mask = None
+    if camera.has_semantic_masks():
+        semantic_mask = data["semantic_masks"].squeeze().cpu().numpy()
+        semantic_mask = davis_palette[semantic_mask]
+    # semantic_mask is (H*W, 3) or None
+    
+    mask = None
+    if camera.has_masks():
+        mask = data["masks"].cpu().numpy()
+    # mask is (H*W, 1) or None
+    
+    if semantic_mask is not None:
+        # convert semantic mask to rgb and display overlayed
+        rgb = rgb * 0.5 + semantic_mask * 0.5
+    elif mask is not None:
+        # overlay mask on rgb
+        rgb = rgb * np.clip(mask + 0.2, 0, 1)
+
+    # reshape to (W, H, -1)
+    rgb = rgb.reshape(camera.width, camera.height, -1)
+    # transpose to (H, W, -1)
+    rgb = np.transpose(rgb, (1, 0, 2))
+    # display image
+    ax.imshow(rgb / 255.0)
+
+
+def plot_camera_2d(
+    camera: Camera,
+    points_2d_screen: np.ndarray = None,
     points_norms: np.ndarray = None,
     frame_idx: int = 0,
     show_ticks: bool = False,
@@ -1248,88 +1296,76 @@ def plot_points_2d_on_image(
     """
     args:
         camera (Camera): camera object
-        points_2d_screen (np.ndarray, float): (N, 2), (H, W)
+        points_2d_screen (np.ndarray, float, optional): (N, 2), (H, W)
         frame_idx (int, optional): Defaults to 0.
     out:
         None
     """
-    if not camera.has_rgbs():
-        raise ValueError("camera has no rgb modality")
-
-    data = camera.get_data(keys=["rgbs", "masks"], frame_idx=frame_idx)
-    rgb = data["rgbs"]
-    mask = None
-    if camera.has_masks():
-        mask = data["masks"]
-        rgb = rgb * np.clip(mask + 0.2, 0, 1)
-
-    # reshape to (W, H, -1)
-    rgb = rgb.reshape(camera.width, camera.height, -1)
-    # transpose to (H, W, -1)
-    rgb = np.transpose(rgb, (1, 0, 2))
-
+    
     # init figure
-    plt.figure(figsize=figsize)
-
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
     if title is not None:
         plt.title(title)
 
-    plt.imshow(rgb, alpha=0.8, resample=True)
-
-    # Calculate (height_of_image / width_of_image)
-    im_ratio = rgb.shape[0] / rgb.shape[1]
-
-    # filter out points outside image range
-    points_mask = get_mask_points_in_image_range(
-        points_2d_screen, camera.width, camera.height
+    _draw_camera_2d(
+        ax=ax,
+        camera=camera,
+        frame_idx=frame_idx,
     )
-    points_2d_screen = points_2d_screen[points_mask]
-
-    if points_norms is None:
-        # color points with their uv coordinates
-        color = np.column_stack(
-            [points_2d_screen, np.zeros((points_2d_screen.shape[0], 1))]
+    
+    if points_2d_screen is not None:
+        # filter out points outside image range
+        points_mask = get_mask_points_in_image_range(
+            points_2d_screen, camera.width, camera.height
         )
-        color[:, 0] /= camera.width
-        color[:, 1] /= camera.height
-    else:
-        points_norms = points_norms[points_mask]
-        # apply cmap to points norms
-        from matplotlib import cm
+        points_2d_screen = points_2d_screen[points_mask]
 
-        norm = plt.Normalize(vmin=np.min(points_norms), vmax=np.max(points_norms))
-        cmap = cm.get_cmap("jet")
-        color = cmap(norm(points_norms))
-        # TODO: fix
-        # make the colorbar for points_norms
-        # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        # sm.set_array([])
-        # Add a colorbar to the plot
-        # plt.colorbar(sm, fraction=COLORBAR_FRACTION*im_ratio)
-    points_2d_screen -= 0.5  # to avoid imshow shift
+        if points_norms is None:
+            # color points with their uv coordinates
+            color = np.column_stack(
+                [points_2d_screen, np.zeros((points_2d_screen.shape[0], 1))]
+            )
+            color[:, 0] /= camera.width
+            color[:, 1] /= camera.height
+        else:
+            points_norms = points_norms[points_mask]
+            # apply cmap to points norms
+            from matplotlib import cm
 
-    plt.scatter(
-        points_2d_screen[:, 0], points_2d_screen[:, 1], s=5, c=color, marker="."
-    )
+            norm = plt.Normalize(vmin=np.min(points_norms), vmax=np.max(points_norms))
+            cmap = cm.get_cmap("jet")
+            color = cmap(norm(points_norms))
+            # TODO: fix
+            # Calculate (height_of_image / width_of_image)
+            # im_ratio = rgb.shape[0] / rgb.shape[1]
+            # make the colorbar for points_norms
+            # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+            # sm.set_array([])
+            # Add a colorbar to the plot
+            # plt.colorbar(sm, fraction=COLORBAR_FRACTION*im_ratio)
+        points_2d_screen -= 0.5  # to avoid imshow shift
 
-    # plt.gca().set_aspect("equal", adjustable="box")
+        ax.scatter(
+            points_2d_screen[:, 0], points_2d_screen[:, 1], s=5, c=color, marker="."
+        )
 
     if show_ticks:
-        plt.xticks(np.arange(-0.5, camera.width, 1), minor=True)
-        plt.yticks(np.arange(-0.5, camera.height, 1), minor=True)
-        plt.xticks(
+        ax.set_xticks(np.arange(-0.5, camera.width, 1), minor=True)
+        ax.set_yticks(np.arange(-0.5, camera.height, 1), minor=True)
+        ax.set_xticks(
             np.arange(-0.5, camera.width, 20),
             labels=np.arange(0.0, camera.width + 1, 20),
         )
-        plt.yticks(
+        ax.set_yticks(
             np.arange(-0.5, camera.height, 20),
             labels=np.arange(0.0, camera.height + 1, 20),
         )
-        plt.grid(which="minor", alpha=0.2)
-        plt.grid(which="major", alpha=0.2)
+        ax.grid(which="minor", alpha=0.2)
+        ax.grid(which="major", alpha=0.2)
 
-    plt.xlabel("W")
-    plt.ylabel("H")
+    ax.set_xlabel("W")
+    ax.set_ylabel("H")
 
     if save_path is not None:
         plt.savefig(
@@ -1341,9 +1377,56 @@ def plot_points_2d_on_image(
         )
         print_log(f"saved figure to {save_path}")
 
-    if show:
+    if show:        
         plt.show()
 
+    plt.close()
+
+
+def plot_cameras_2d(
+    cameras: list[Camera],
+    title: str = None,
+    figsize: Tuple[int, int] = (15, 15)
+):
+    camera_idx = 0
+    frame_idx = 0
+    
+    def draw():
+        nonlocal camera_idx, frame_idx
+        if title is not None:
+            plt.title(f"{title} - camera_idx: {camera_idx} - frame_idx: {frame_idx}")
+        else:
+            plt.title(f"camera_idx: {camera_idx} - frame_idx: {frame_idx}")
+        _draw_camera_2d(
+            ax=ax,
+            camera=cameras[camera_idx],
+            frame_idx=frame_idx,
+        )
+        plt.draw()
+    
+    # use arrows to navigate through the video
+    def on_camera_idx_change(event):
+        nonlocal camera_idx
+        if event.key == 'right':
+            camera_idx = min(camera_idx + 1, len(cameras) - 1)
+        elif event.key == 'left':
+            camera_idx = max(camera_idx - 1, 0)
+        else:
+            return
+        print(f"camera_idx: {camera_idx}")
+        draw()
+    
+    # init figure
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    if title is not None:
+        plt.title(title)
+    draw()
+        
+    plt.connect('key_press_event', on_camera_idx_change)
+    plt.show()
+    
+    # clear when window is closed
     plt.close()
 
 

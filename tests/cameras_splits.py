@@ -7,7 +7,7 @@ from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
-from mvdatasets.utils.printing import print_error
+from mvdatasets.utils.printing import print_error, print_warning
 
 
 def main(args: Args):
@@ -37,40 +37,50 @@ def main(args: Args):
     else:
         point_cloud = None
 
-    # sdf init
-
-    bs = BoundingSphere(
-        pose=np.eye(4),
-        local_scale=mv_data.get_sphere_init_radius(),
-        device=device,
-        verbose=True,
-    )
-
-    bbs = []
-    draw_bounding_cube = True
-    draw_contraction_spheres = False
+    # # sdf init
+    # bs = BoundingSphere(
+    #     pose=np.eye(4),
+    #     local_scale=mv_data.get_sphere_init_radius(),
+    #     device=device,
+    #     verbose=True,
+    # )
+    
+    # scene type
+    bb = None
     scene_type = config.get("scene_type", None)
     if scene_type == "bounded":
-        # scene scale bb
+        draw_bounding_cube = True
+        draw_contraction_spheres = False
+        # foreground bb
         bb = BoundingBox(
             pose=np.eye(4),
             local_scale=mv_data.get_foreground_radius() * 2,
             device=device,
         )
-        bbs.append(bb)
     if scene_type == "unbounded":
         draw_bounding_cube = False
         draw_contraction_spheres = True
+        if mv_data.get_scene_radius() > 1.0:
+            print_warning("scene radius is greater than 1.0, contraction spheres will not be displayed")
+            draw_contraction_spheres = False
 
     # Visualize cameras
     for split in mv_data.get_splits():
+        
+        nr_cameras = len(mv_data.get_split(split))
+        if nr_cameras > 50:
+            draw_every_n_cameras = nr_cameras // 50
+            print_warning(f"{split} has too many cameras; displaying one every {draw_every_n_cameras}")
+        else:
+            draw_every_n_cameras = 1
+            
         plot_3d(
-            cameras=mv_data[split],
-            draw_every_n_cameras=10,
+            cameras=mv_data.get_split(split),
+            draw_every_n_cameras=draw_every_n_cameras,
             points_3d=[point_cloud],
             points_3d_colors=["black"],
-            bounding_boxes=bbs,
-            bounding_spheres=[bs],
+            bounding_boxes=[bb] if bb is not None else [],
+            # bounding_spheres=[bs],
             azimuth_deg=20,
             elevation_deg=30,
             up="z",

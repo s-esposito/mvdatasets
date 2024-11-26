@@ -54,10 +54,10 @@ def main(args: Args):
     else:
         point_cloud = None
 
-    intrinsics = mv_data["train"][0].get_intrinsics()
-    width = mv_data["train"][0].width
-    height = mv_data["train"][0].height
-    camera_center = mv_data["train"][0].get_center()
+    intrinsics = mv_data.get_split("train")[0].get_intrinsics()
+    width = mv_data.get_split("train")[0].width
+    height = mv_data.get_split("train")[0].height
+    camera_center = mv_data.get_split("train")[0].get_center()
     camera_radius = np.linalg.norm(camera_center)
 
     sampled_cameras = sample_cameras_on_hemisphere(
@@ -90,7 +90,7 @@ def main(args: Args):
         device=device
     )
 
-    nr_cameras = len(mv_data["train"])
+    nr_cameras = len(mv_data.get_split("train"))
     nr_per_camera_frames = mv_data.get_nr_per_camera_frames()
     benchmark = False
     batch_size = 512
@@ -104,7 +104,7 @@ def main(args: Args):
     azimuth_deg_delta = 1  # 360 / (nr_iterations / 2)
     for i in pbar:
 
-        # cameras_idx = np.random.permutation(len(mv_data["train"]))[:2]
+        # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:2]
 
         if profiler is not None:
             profiler.start("get_next_rays_batch")

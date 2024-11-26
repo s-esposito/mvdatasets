@@ -48,8 +48,8 @@ def load(
         "test_camera_freq": 8,
         "train_test_overlap": False,
         "subsample_factor": 1,
-        "foreground_radius_mult": 1.0,
         "init_sphere_radius_mult": 0.1,
+        "foreground_radius_mult": 1.0,
         "pose_only": False,
     }
 

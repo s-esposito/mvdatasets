@@ -54,10 +54,10 @@ class Camera:
         Args:
             intrinsics (np.ndarray): (3, 3) Camera intrinsic matrix (camtopix).
             pose (np.ndarray): (4, 4) Camera extrinsic matrix (camera-to-world transformation).
-            rgbs (np.ndarray, optional): (T, H, W, 3) RGB images, uint8 or float32.
-            masks (np.ndarray, optional): (T, H, W, 1) Binary masks, uint8 or float32.
-            normals (np.ndarray, optional): (T, H, W, 3) Surface normals, uint8 or float32.
-            depths (np.ndarray, optional): (T, H, W, 1) Depth maps, uint8 or float32.
+            rgbs (np.ndarray, optional): (T, H, W, 3) RGB images, uint8.
+            masks (np.ndarray, optional): (T, H, W, 1) Binary masks, uint8.
+            normals (np.ndarray, optional): (T, H, W, 3) Surface normals, uint8.
+            depths (np.ndarray, optional): (T, H, W, 1) Depth maps, uint8.
             instance_masks (np.ndarray, optional): (T, H, W, 1) Instance segmentation masks, uint8.
             semantic_masks (np.ndarray, optional): (T, H, W, 1) Semantic segmentation masks, uint8.
             timestamps (np.ndarray): (T,) Per-frame timestamp. Default value is [0.0].
@@ -71,8 +71,6 @@ class Camera:
         Raises:
             ValueError: If both images and width/height are missing.
         """
-
-        self.verbose = verbose
 
         # Validate input dimensions
         assert intrinsics.shape == (3, 3), "`intrinsics` must be a 3x3 matrix."
@@ -131,7 +129,7 @@ class Camera:
         if subsample_factor > 1:
             self.resize(subsample_factor)
 
-        if self.verbose:
+        if verbose:
             print(self.__str__())
 
     def _validate_data(self) -> None:
@@ -363,7 +361,7 @@ class Camera:
         center = pose[:3, 3]
         return center
 
-    def resize(self, subsample_factor) -> None:
+    def resize(self, subsample_factor: float, verbose: bool = False) -> None:
         """make frames smaller by scaling them by scale factor (inplace operation)
         Args:
             subsample_factor (float): inverse of scale factor
@@ -380,7 +378,7 @@ class Camera:
         # scale intrinsics accordingly
         self._scale_intrinsics(s_width, s_height)
         self.height, self.width = new_height, new_width
-        if self.verbose:
+        if verbose:
             print(
                 f"camera image plane resized from {old_height}, {old_width} to {self.height}, {self.width}"
             )
@@ -461,8 +459,9 @@ class Camera:
         self,
         points_2d_screen: torch.Tensor = None,
         frame_idx: int = 0,
-        keys: list = ["rgbs", "masks"],
+        keys: list = None,
         device: str = "cpu",
+        verbose: bool = False,
     ):
         """return data values for points_2d_screen
         out:
@@ -480,19 +479,25 @@ class Camera:
         frames_idx = torch.full(
             (points_2d_screen.shape[0],), frame_idx, dtype=torch.int32, device=device
         )
+        
+        # get all data keys if not provided
+        if keys is None:
+            # get all data keys
+            keys = self.data.keys()
 
-        data = {}
+        selected_data_dict = {} 
         for key in keys:
             if key not in self.data.keys() or self.data[key] is None:
                 print_warning(f"data {key} not found for camera {self.camera_idx}")
             else:
-                data[key] = self.data[key]
+                selected_data_dict[key] = self.data[key]
 
         vals = get_data_per_points_2d_screen(
             points_2d_screen=points_2d_screen,
             cameras_idx=None,
             frames_idx=frames_idx,
-            data_dict=self.data,
+            data_dict=selected_data_dict,
+            verbose=verbose,
         )
 
         # convert to torch tensors
