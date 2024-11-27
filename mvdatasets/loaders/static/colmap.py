@@ -10,6 +10,7 @@ from PIL import Image
 from copy import deepcopy
 
 from mvdatasets import Camera
+from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
 from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning
@@ -49,7 +50,7 @@ def load(
         "train_test_overlap": False,
         "subsample_factor": 1,
         "init_sphere_radius_mult": 0.1,
-        "foreground_radius_mult": 1.0,
+        "foreground_radius_mult": 0.5,
         "pose_only": False,
     }
 
@@ -117,7 +118,13 @@ def load(
     manager.load_cameras()
     manager.load_images()
     manager.load_points3D()
-    point_cloud = manager.points3D.astype(np.float32)
+    # get points
+    points_3d = manager.points3D.astype(np.float32)
+    points_rgb = manager.point3D_colors
+    # get points colors
+    if points_rgb is not None:
+        points_rgb = points_rgb.astype(np.uint8)
+    point_cloud = PointCloud(points_3d, points_rgb)
 
     # Extract extrinsic matrices in world-to-camera format.
     imdata = manager.images
@@ -255,21 +262,34 @@ def load(
     new_max_camera_distance = max_camera_distance * scene_radius_mult
 
     # scene radius
-    scene_radius = new_max_camera_distance
+    if config["scene_type"] == "bounded":
+        scene_radius = new_max_camera_distance
+    elif config["scene_type"] == "unbounded":
+        scene_radius = 1.0
 
     scene_transform = np.eye(4)
-    # rotate and scale
+    
+    # scene rotation
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    # translate
+    
+    # scene translation
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [
         config["translate_scene_x"],
         config["translate_scene_y"],
         config["translate_scene_z"],
     ]
+    
+    # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
+    
+    # Create scaling matrix
+    scaling_matrix = np.diag([scene_radius_mult, scene_radius_mult, scene_radius_mult, 1])
 
+    # Incorporate scaling into scene_transform
+    scene_transform = scaling_matrix @ scene_transform
+    
     # global transform
     global_transform = np.eye(4)
 
@@ -277,8 +297,8 @@ def load(
     local_transform = np.eye(4)
 
     # apply global transform
-    point_cloud *= scene_radius_mult
-    point_cloud = apply_transformation_3d(point_cloud, scene_transform)
+    # point_cloud *= scene_radius_mult
+    point_cloud.transform(scene_transform)
 
     # build cameras
     cameras_all = []
@@ -311,7 +331,7 @@ def load(
 
         # extrainsics
         c2w_mat = camera_meta[0]
-        c2w_mat[:3, 3] *= scene_radius_mult
+        # c2w_mat[:3, 3] *= scene_radius_mult
         c2w_mat = scene_transform @ c2w_mat
         # create camera
         camera = Camera(

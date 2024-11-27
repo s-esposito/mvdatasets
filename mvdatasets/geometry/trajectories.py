@@ -22,7 +22,9 @@ def _viewmatrix(
     vec2 = _normalize(lookdir)
     vec0 = _normalize(np.cross(up, vec2))
     vec1 = _normalize(np.cross(vec2, vec0))
+    bottom = np.array([0.0, 0.0, 0.0, 1.0])
     m = np.stack([vec0, vec1, vec2, position], axis=1)
+    m = np.concatenate([m, [bottom]], axis=0)
     return m
 
 

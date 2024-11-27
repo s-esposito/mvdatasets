@@ -6,7 +6,7 @@ from pathlib import Path
 from itertools import product, combinations
 from mvdatasets.camera import Camera
 from mvdatasets.geometry.common import get_mask_points_in_image_range
-from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
+from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere, PointCloud
 from mvdatasets.utils.printing import print_error, print_log
 from mvdatasets.visualization.colormaps import davis_palette
 
@@ -14,9 +14,10 @@ from mvdatasets.visualization.colormaps import davis_palette
 TRANSPARENT = False
 BBOX_INCHES = "tight"  # "tight" or "auto"
 PAD_INCHES = 0.1
-DPI = 72
+DPI = 300
 COLORBAR_FRACTION = 0.04625
-SCALE_MULTIPLIER = 0.1
+LARGE_SCALE_MULTIPLIER = 0.05
+SCALE_MULTIPLIER = 0.05
 RAY_LENGHT_MULTIPLIER = 1.5
 
 # from mvdatasets.scenes.camera import Camera
@@ -47,6 +48,14 @@ RAY_LENGHT_MULTIPLIER = 1.5
 #     scene_radius = np.max(camera_distances_from_origin)
 #     # scene_radius = max(np.max(camera_distances_from_origin) * 0.75, 1.0)
 #     return scene_radius
+
+
+def get_scale(scene_radius: float) -> float:
+    scale = SCALE_MULTIPLIER
+    if scene_radius <= 1.0:
+        return scale
+    else:
+        return scale + (scene_radius * LARGE_SCALE_MULTIPLIER)
 
 
 def _draw_3d_init(
@@ -158,35 +167,59 @@ def _draw_rays(
 
 def _draw_point_cloud(
     ax: plt.Axes,
-    points_3d: np.ndarray,
-    size: float = None,
-    color: np.ndarray = None,
+    point_cloud: PointCloud,
+    # points_3d: np.ndarray,
+    # size: float = None,
+    # color: np.ndarray = None,
     alpha: float = None,
-    marker: str = None,
-    label: str = None,
+    # marker: str = None,
+    # label: str = None,
     max_nr_points: int = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
-    if points_3d is None:
+    if point_cloud is None:
         return
+    
+    scale = get_scale(scene_radius)
 
+    points_3d = point_cloud.points_3d
+    points_rgb = point_cloud.points_rgb  # could be None
+    
     # subsample
-    if max_nr_points is not None:
-        if max_nr_points < points_3d.shape[0]:
-            idx = np.random.permutation(points_3d.shape[0])[:max_nr_points]
-            points_3d = points_3d[idx]
-
-    scale = scene_radius * SCALE_MULTIPLIER
-
-    if color is None:
-        color = "black"
-    if alpha is None:
-        alpha = 0.25
+    if max_nr_points is not None and max_nr_points < point_cloud.points_3d.shape[0]:
+        # random subsample
+        idx = np.random.permutation(points_3d.shape[0])[:max_nr_points]
+    else:
+        # keep all points
+        idx = np.arange(points_3d.shape[0])
+        
+    points_3d = points_3d[idx]
+    if points_rgb is not None:
+        points_rgb = points_rgb[idx]
+    
+    colors = point_cloud.color
+    if colors is None:
+        colors = "black"
+        
+    # prioritize points_rgb over color
+    if points_rgb is not None:
+        colors = points_rgb / 255.0
+        
+    size = point_cloud.size
     if size is None:
-        size = 5
+        size = 10.0
+    size = max(5.0, size * scale)
+    
+    marker = point_cloud.marker
     if marker is None:
         marker = "o"
+        
+    label = point_cloud.label
+    # if None, keep it None
+        
+    if alpha is None:
+        alpha = 0.25
 
     # draw points
     if up == "z":
@@ -194,8 +227,8 @@ def _draw_point_cloud(
             points_3d[:, 0],
             points_3d[:, 1],
             points_3d[:, 2],
-            s=scale * size,
-            color=color,
+            s=size,
+            color=colors,
             alpha=alpha,
             marker=marker,
             label=label,
@@ -205,12 +238,15 @@ def _draw_point_cloud(
             points_3d[:, 0],
             points_3d[:, 2],
             points_3d[:, 1],
-            s=scale * size,
-            color=color,
+            s=size,
+            color=colors,
             alpha=alpha,
             marker=marker,
             label=label,
         )
+        
+    if label is not None:
+        ax.legend()
 
 
 def _draw_frame(
@@ -223,7 +259,7 @@ def _draw_frame(
     if pose is None:
         return
 
-    scale = scene_radius * SCALE_MULTIPLIER
+    scale = get_scale(scene_radius)
 
     # get axis directions (normalized)
     x_dir = pose[:3, 0]
@@ -293,7 +329,7 @@ def _draw_bounding_box(
     if bb is None:
         return
 
-    scale = scene_radius * SCALE_MULTIPLIER
+    scale = get_scale(scene_radius)
 
     # draw bounding box
     segments_indices = np.array(
@@ -323,10 +359,13 @@ def _draw_bounding_box(
 
     vertices_pairs = vertices[segments_indices]
 
-    if bb.color is not None:
-        color = bb.color
-    else:
+    color = bb.color
+    if bb.color is None:
         color = "black"
+
+    line_width = bb.line_width
+    if line_width is None:
+        line_width = 1.0
 
     # visualize min, max vertices
     min_vertex = vertices[0]
@@ -356,7 +395,7 @@ def _draw_bounding_box(
                 pair[1] if up == "z" else pair[1][[0, 2, 1]],
             ),
             color=color,
-            linewidth=bb.line_width,
+            linewidth=line_width,
             alpha=0.2
         )
 
@@ -392,30 +431,37 @@ def _draw_bounding_boxes(
 
 def _draw_bounding_sphere(
     ax: plt.Axes,
-    sphere,
+    bs: BoundingSphere,
     idx: int = 0,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_frame: bool = False,
 ):
-    if sphere is None:
+    if bs is None:
         return
+    
+    color = bs.color
+    if bs.color is None:
+        color = "black"
+    
+    line_width = bs.line_width
+    if bs.line_width is None:
+        line_width = 1.0
 
     # draw sphere at origin
-    radius = sphere.get_radius()
+    radius = bs.get_radius()
     u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 10j]
     x = np.cos(u) * np.sin(v) * radius
     y = np.sin(u) * np.sin(v) * radius
     z = np.cos(v) * radius
-    ax.plot_wireframe(x, y, z, color="black", alpha=0.1)
+    ax.plot_wireframe(x, y, z, color=color, alpha=0.1, linewidth=line_width)
 
-    if sphere.label is not None:
-        label = sphere.label
-    else:
+    label = bs.label
+    if bs.label is None:
         label = idx
 
     # get bb pose
-    pose = sphere.get_pose()
+    pose = bs.get_pose()
 
     # draw bb frame
     if draw_frame:
@@ -436,10 +482,10 @@ def _draw_bounding_spheres(
         print_error("bounding_spheres must be a list of BoundingSpheres")
 
     # draw bounding spheres
-    for i, sphere in enumerate(bounding_spheres):
+    for i, bs in enumerate(bounding_spheres):
         _draw_bounding_sphere(
             ax=ax,
-            sphere=sphere,
+            bs=bs,
             idx=i,
             up=up,
             scene_radius=scene_radius,
@@ -453,7 +499,7 @@ def _draw_image_plane(
     if camera is None:
         return
 
-    scale = scene_radius * SCALE_MULTIPLIER
+    scale = get_scale(scene_radius)
 
     # get image plane corner points in 3D
     # from screen coordinates
@@ -547,7 +593,7 @@ def _draw_camera_frame(
     if pose is None:
         return
 
-    scale = scene_radius * SCALE_MULTIPLIER
+    scale = get_scale(scene_radius)
 
     # get axis directions (normalized)
     x_dir = pose[:3, 0]
@@ -600,61 +646,65 @@ def _draw_camera_frame(
 
 def _draw_point_clouds(
     ax: plt.Axes,
-    points_3d: list[np.ndarray] = None,
-    points_3d_colors: list[np.ndarray] = None,
-    points_3d_labels: list[str] = None,
-    points_3d_sizes: list[float] = None,
-    points_3d_markers: list[str] = None,
+    point_clouds: list[PointCloud] = None,
+    # points_3d: list[np.ndarray] = None,
+    # points_3d_colors: list[np.ndarray] = None,
+    # points_3d_labels: list[str] = None,
+    # points_3d_sizes: list[float] = None,
+    # points_3d_markers: list[str] = None,
     max_nr_points: int = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
-    if points_3d is None:
+    if point_clouds is None:
         return
 
-    if not isinstance(points_3d, list):
-        print_error("points_3d must be a list of numpy arrays")
+    if not isinstance(point_clouds, list):
+        print_error("point_clouds must be a list of numpy arrays")
+    
+    # if not isinstance(points_3d, list):
+    #     print_error("points_3d must be a list of numpy arrays")
 
-    if points_3d_colors is not None:
-        if not len(points_3d) == len(points_3d_colors):
-            print_error("points_3d and points_3d_colors must have the same length")
+    # if points_3d_colors is not None:
+    #     if not len(points_3d) == len(points_3d_colors):
+    #         print_error("points_3d and points_3d_colors must have the same length")
 
-    if points_3d_labels is not None:
-        if not len(points_3d) == len(points_3d_labels):
-            print_error("points_3d and points_3d_labels must have the same length")
+    # if points_3d_labels is not None:
+    #     if not len(points_3d) == len(points_3d_labels):
+    #         print_error("points_3d and points_3d_labels must have the same length")
 
-    if points_3d_sizes is not None:
-        if not len(points_3d) == len(points_3d_sizes):
-            print_error("points_3d and points_3d_sizes must have the same length")
+    # if points_3d_sizes is not None:
+    #     if not len(points_3d) == len(points_3d_sizes):
+    #         print_error("points_3d and points_3d_sizes must have the same length")
 
-    if points_3d_markers is not None:
-        if not len(points_3d) == len(points_3d_markers):
-            print_error("points_3d and points_3d_markers must have the same length")
+    # if points_3d_markers is not None:
+    #     if not len(points_3d) == len(points_3d_markers):
+    #         print_error("points_3d and points_3d_markers must have the same length")
 
     # if pc are given
-    if len(points_3d) > 0:
+    if len(point_clouds) > 0:
 
         # split max_nr_points among point clouds
         if max_nr_points is not None:
-            max_nr_points_per_pc = max_nr_points // len(points_3d)
+            max_nr_points_per_pc = max_nr_points // len(point_clouds)
             if max_nr_points_per_pc == 0:
                 max_nr_points_per_pc = 1
         else:
             max_nr_points_per_pc = None
 
         # plot point clouds
-        for i, pc in enumerate(points_3d):
-            color = points_3d_colors[i] if points_3d_colors is not None else None
-            label = points_3d_labels[i] if points_3d_labels is not None else None
-            size = points_3d_sizes[i] if points_3d_sizes is not None else None
-            marker = points_3d_markers[i] if points_3d_markers is not None else None
+        for i, pc in enumerate(point_clouds):
+            # color = points_3d_colors[i] if points_3d_colors is not None else None
+            # label = points_3d_labels[i] if points_3d_labels is not None else None
+            # size = points_3d_sizes[i] if points_3d_sizes is not None else None
+            # marker = points_3d_markers[i] if points_3d_markers is not None else None
             _draw_point_cloud(
                 ax=ax,
-                points_3d=pc,
-                color=color,
-                label=label,
-                size=size,
-                marker=marker,
+                point_cloud=pc,
+                # color=color,
+                # label=label,
+                # size=size,
+                # marker=marker,
                 max_nr_points=max_nr_points_per_pc,
                 up=up,
                 scene_radius=scene_radius,
@@ -752,7 +802,7 @@ def _draw_camera_trajectory(
     if last_frame_idx is not None:
         all_centers = all_centers[:(last_frame_idx+1)]
 
-    scale = scene_radius * SCALE_MULTIPLIER
+    scale = get_scale(scene_radius)
     
     # sample colors
     colors = plt.cm.jet(np.linspace(0, 1, sequence_lenght))[:, :3]
@@ -788,11 +838,12 @@ def _draw_camera_trajectory(
 
 def plot_3d(
     cameras: list[Camera] = None,
-    points_3d: list[np.ndarray] = None,
-    points_3d_colors: list[np.ndarray] = None,
-    points_3d_labels: list[str] = None,
-    points_3d_markers: list[str] = None,
-    points_3d_sizes: list[float] = None,
+    point_clouds: list[PointCloud] = None,
+    # points_3d: list[np.ndarray] = None,
+    # points_3d_colors: list[np.ndarray] = None,
+    # points_3d_labels: list[str] = None,
+    # points_3d_markers: list[str] = None,
+    # points_3d_sizes: list[float] = None,
     bounding_boxes: list[BoundingBox] = None,
     bounding_spheres: list[BoundingSphere] = None,
     nr_rays: int = 0,
@@ -839,19 +890,16 @@ def plot_3d(
     # draw points
     _draw_point_clouds(
         ax=ax,
-        points_3d=points_3d,
-        points_3d_colors=points_3d_colors,
-        points_3d_labels=points_3d_labels,
-        points_3d_sizes=points_3d_sizes,
-        points_3d_markers=points_3d_markers,
+        point_clouds=point_clouds,
+        # points_3d=points_3d,
+        # points_3d_colors=points_3d_colors,
+        # points_3d_labels=points_3d_labels,
+        # points_3d_sizes=points_3d_sizes,
+        # points_3d_markers=points_3d_markers,
         max_nr_points=max_nr_points,
         up=up,
         scene_radius=scene_radius,
     )
-
-    # activate legend if labels are given
-    if points_3d_labels is not None:
-        ax.legend()
 
     # draw bounding cube
     if draw_bounding_cube:
@@ -904,11 +952,12 @@ def plot_3d(
 
 def plot_camera_trajectory(
     cameras: list[Camera] = None,
-    points_3d: list[np.ndarray] = None,
-    points_3d_colors: list[np.ndarray] = None,
-    points_3d_labels: list[str] = None,
-    points_3d_markers: list[str] = None,
-    points_3d_sizes: list[float] = None,
+    point_clouds: list[PointCloud] = None,
+    # points_3d: list[np.ndarray] = None,
+    # points_3d_colors: list[np.ndarray] = None,
+    # points_3d_labels: list[str] = None,
+    # points_3d_markers: list[str] = None,
+    # points_3d_sizes: list[float] = None,
     max_nr_points: int = 1000,
     draw_every_n_cameras: int = 1,
     last_frame_idx: int = -1,
@@ -956,19 +1005,16 @@ def plot_camera_trajectory(
     # draw points
     _draw_point_clouds(
         ax=ax,
-        points_3d=points_3d,
-        points_3d_colors=points_3d_colors,
-        points_3d_labels=points_3d_labels,
-        points_3d_sizes=points_3d_sizes,
-        points_3d_markers=points_3d_markers,
+        point_clouds=point_clouds,
+        # points_3d=points_3d,
+        # points_3d_colors=points_3d_colors,
+        # points_3d_labels=points_3d_labels,
+        # points_3d_sizes=points_3d_sizes,
+        # points_3d_markers=points_3d_markers,
         max_nr_points=max_nr_points,
         up=up,
         scene_radius=scene_radius,
     )
-
-    # activate legend if labels are given
-    if points_3d_labels is not None:
-        ax.legend()
 
     # use last frame if not set
     if last_frame_idx == -1:
@@ -1115,15 +1161,19 @@ def _draw_near_far_points(
     p_boundaries = np.concatenate(
         [p_near[:, np.newaxis, :], p_far[:, np.newaxis, :]], axis=1
     )
+    
+    pc = PointCloud(
+        points_3d=p_boundaries.reshape(-1, 3),
+        size=200,
+        color="black",
+        marker="x"
+    )
 
     for i in range(p_boundaries.shape[0]):
         # draw t_near, t_far points
         _draw_point_cloud(
             ax=ax,
-            points_3d=p_boundaries.reshape(-1, 3),
-            size=200,
-            color="black",
-            marker="x",
+            point_cloud=pc,
             up=up,
             scene_radius=scene_radius,
         )
@@ -1436,10 +1486,11 @@ def plot_rays_samples(
     t_near: np.ndarray = None,
     t_far: np.ndarray = None,
     nr_rays: int = 32,
-    points_samples: list[np.ndarray] = None,
-    points_samples_colors: list[np.ndarray] = None,
-    points_samples_sizes: list[float] = None,
-    points_samples_labels: list[str] = None,
+    point_clouds: list[PointCloud] = None,
+    # points_samples: list[np.ndarray] = None,
+    # points_samples_colors: list[np.ndarray] = None,
+    # points_samples_sizes: list[float] = None,
+    # points_samples_labels: list[str] = None,
     camera: Camera = None,
     bounding_boxes: list[BoundingBox] = None,
     bounding_spheres: list[BoundingSphere] = None,
@@ -1482,10 +1533,11 @@ def plot_rays_samples(
     # draw points
     _draw_point_clouds(
         ax=ax,
-        points_3d=points_samples,
-        points_3d_colors=points_samples_colors,
-        points_3d_labels=points_samples_labels,
-        points_3d_sizes=points_samples_sizes,
+        point_clouds=point_clouds,
+        # points_3d=points_samples,
+        # points_3d_colors=points_samples_colors,
+        # points_3d_labels=points_samples_labels,
+        # points_3d_sizes=points_samples_sizes,
         up=up,
         scene_radius=scene_radius,
     )

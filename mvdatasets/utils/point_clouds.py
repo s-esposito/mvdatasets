@@ -3,6 +3,7 @@ import open3d as o3d
 import os
 import numpy as np
 from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.geometry.primitives.point_cloud import PointCloud
 
 
 def load_point_cloud(point_cloud_path, max_nr_points=None, verbose=False):
@@ -55,5 +56,6 @@ def load_point_clouds(point_clouds_paths, max_nr_points=10000, verbose=False):
     point_clouds = []
     for pc_path in point_clouds_paths:
         points_3d = load_point_cloud(pc_path, max_nr_points, verbose=verbose)
-        point_clouds.append(points_3d)
+        point_cloud = PointCloud(points_3d)
+        point_clouds.append(point_cloud)
     return point_clouds

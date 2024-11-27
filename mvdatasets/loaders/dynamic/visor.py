@@ -6,6 +6,7 @@ import json
 from tqdm import tqdm
 from PIL import Image
 import cv2
+from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
 from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning, print_log
@@ -252,11 +253,15 @@ def load(
     # load point cloud
     points = sequence_data["points"]
     points_3d = []
+    points_rgb = []
     for point in points:
         point_3d = np.array(point[:3])
+        point_rgb = np.array(point[3:])
         points_3d.append(point_3d)
-    point_cloud = np.stack(points_3d, axis=0)
-    print(point_cloud.shape)
+        points_rgb.append(point_rgb)
+    points_3d = np.stack(points_3d, axis=0)
+    points_rgb = np.stack(points_rgb, axis=0)
+    point_cloud = PointCloud(points_3d, points_rgb=points_rgb)
     
     # load VISOR annotations
     sparse_annotations_path = dataset_path / "GroundTruth-SparseAnnotations"
@@ -289,11 +294,12 @@ def load(
     # scene radius
     scene_radius = new_max_camera_distance
 
-    # scene transform
     scene_transform = np.eye(4)
-    # rotate and scale
+    
+    # scene rotation
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+    
     # translate
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [
@@ -301,7 +307,15 @@ def load(
         config["translate_scene_y"],
         config["translate_scene_z"],
     ]
+    
+    # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
+    
+    # Create scaling matrix
+    scaling_matrix = np.diag([scene_radius_mult, scene_radius_mult, scene_radius_mult, 1])
+    
+    # Incorporate scaling into scene_transform
+    scene_transform = scaling_matrix @ scene_transform
     
     # global transform
     global_transform = np.eye(4)
@@ -310,8 +324,8 @@ def load(
     local_transform = np.eye(4)
 
     # apply global transform
-    point_cloud *= scene_radius_mult
-    point_cloud = apply_transformation_3d(point_cloud, scene_transform)
+    # point_cloud *= scene_radius_mult
+    point_cloud.transform(scene_transform)
     
     # build cameras
     cameras_all = []
@@ -321,7 +335,7 @@ def load(
         # unpack
         # c2w
         c2w_mat = camera_meta[0]
-        c2w_mat[:3, 3] *= scene_radius_mult
+        # c2w_mat[:3, 3] *= scene_radius_mult
         c2w_mat = scene_transform @ c2w_mat
         # img path
         img_path = camera_meta[1]

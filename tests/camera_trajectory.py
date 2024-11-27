@@ -31,11 +31,6 @@ def main(args: Args):
         config=config,
         verbose=True,
     )
-
-    if len(mv_data.point_clouds) > 0:
-        point_cloud = mv_data.point_clouds[0]
-    else:
-        point_cloud = None
     
     # check if camera trajectory is available
     print("nr_sequence_frames:", mv_data.get_nr_sequence_frames())
@@ -52,7 +47,7 @@ def main(args: Args):
     # make video
     make_video_camera_trajectory(
         cameras=mv_data.get_split("train"),
-        points_3d=point_cloud,
+        points_3d=mv_data.point_clouds,
         dataset_name=dataset_name,
         nr_frames=-1,  # -1 means all frames
         remove_tmp_files=True,

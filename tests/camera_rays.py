@@ -59,11 +59,6 @@ def main(args: Args):
     else:
         print_error("scene_type not supported")
 
-    if len(mv_data.point_clouds) > 0:
-        point_cloud = mv_data.point_clouds[0]
-    else:
-        point_cloud = None
-
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
     camera = deepcopy(mv_data.get_split("test")[rand_idx])
@@ -74,7 +69,7 @@ def main(args: Args):
     # Visualize cameras
     plot_3d(
         cameras=[camera],
-        points_3d=[point_cloud],
+        points_3d=mv_data.point_clouds
         # bounding_boxes=[bb] if bb is not None else None,
         nr_rays=256,
         azimuth_deg=20,

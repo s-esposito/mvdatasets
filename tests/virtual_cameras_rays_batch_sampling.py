@@ -49,11 +49,6 @@ def main(args: Args):
     if not mv_data.cameras_on_hemisphere:
         print_error(f"{dataset_name} does not have cameras on hemisphere")
 
-    if len(mv_data.point_clouds) > 0:
-        point_cloud = mv_data.point_clouds[0]
-    else:
-        point_cloud = None
-
     intrinsics = mv_data.get_split("train")[0].get_intrinsics()
     width = mv_data.get_split("train")[0].width
     height = mv_data.get_split("train")[0].height
@@ -71,7 +66,7 @@ def main(args: Args):
     # Visualize cameras
     plot_3d(
         cameras=sampled_cameras,
-        points_3d=[point_cloud],
+        points_3d=mv_data.point_clouds,
         bounding_boxes=[bb],
         azimuth_deg=20,
         elevation_deg=30,

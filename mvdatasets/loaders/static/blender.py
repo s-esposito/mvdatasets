@@ -19,6 +19,36 @@ from mvdatasets.geometry.common import (
 )
 from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
 from mvdatasets.utils.printing import print_error, print_warning
+from dataclasses import dataclass, asdict
+
+
+@dataclass
+class Config:
+    # Default configuration
+    # Type of scene (bounded or unbounded)
+    scene_type: str = "bounded"
+    # Load mask images
+    load_mask: bool = True
+    # Convert masks to binary
+    use_binary_mask: bool = True
+    # Rotate scene around x-axis
+    # TODO: scene_rot_deg: np.asarray = np.array([0.0, 0.0, 0.0])
+    # TODO: scene_transl: np.asarray = np.array([0.0, 0.0, 0.0])
+    rotate_scene_x_axis_deg: float = 0.0
+    # Loaded images subsampling factor
+    subsample_factor: int = 1
+    # Use white background (else black)
+    white_bg: bool = True
+    # Skip every test_skip images from test split
+    test_skip: int = 20
+    # Maximum distance of the furthest camera for rescaling
+    target_max_camera_distance: float = 1.0
+    # Foreground area radius multiplier
+    foreground_radius_mult: float = 0.5
+    # Initial sphere radius multiplier (for SDF initialization)
+    init_sphere_radius_mult: float = 0.3
+    # Does not load images, only poses
+    pose_only: bool = False
 
 
 def load(
@@ -45,19 +75,7 @@ def load(
     scene_path = dataset_path / scene_name
     
     # Default configuration
-    defaults = {
-        "scene_type": "bounded",
-        "load_mask": True,
-        "use_binary_mask": True,
-        "rotate_scene_x_axis_deg": 0.0,
-        "subsample_factor": 1,
-        "white_bg": True,
-        "test_skip": 20,
-        "target_max_camera_distance": 1.0,
-        "foreground_radius_mult": 0.5,
-        "init_sphere_radius_mult": 0.3,
-        "pose_only": False,
-    }
+    defaults = asdict(Config())  # Convert Config to dictionary
 
     # Update config with defaults
     for key, default_value in defaults.items():

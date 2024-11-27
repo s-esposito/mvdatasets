@@ -6,6 +6,7 @@ from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning, print_info
+from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets import Camera
 
 
@@ -190,12 +191,9 @@ class MVDataset:
             if len(point_clouds_paths) > 0:
                 print_warning("point_clouds_paths will be ignored")
 
-        transformed_point_clouds = []
         for point_cloud in self.point_clouds:
             # apply global transform
-            pc = apply_transformation_3d(point_cloud, self.global_transform)
-            transformed_point_clouds.append(pc)
-        self.point_clouds = transformed_point_clouds
+            point_cloud.transform(self.global_transform)
 
         # split data into train and test (or keep the all set)
         self.data = cameras_splits
@@ -206,6 +204,10 @@ class MVDataset:
             if len(self.data[split]) == 0:
                 print_fn = print_error
             print_fn(f"{split} split has {len(self.data[split])} cameras")
+            # print modalities loaded
+            for key, val in self.data[split][0].data.items():
+                if val is not None:
+                    print_info(f"{key} loaded with shape {val.shape}")
 
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""

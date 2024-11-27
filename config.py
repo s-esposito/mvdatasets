@@ -1,6 +1,8 @@
 import torch
+import sys
 import numpy as np
 from pathlib import Path
+import random
 from typing import List, Union, Tuple
 from mvdatasets.utils.printing import print_error
 from dataclasses import dataclass
@@ -15,8 +17,9 @@ class Args:
 
     def _set_seeds(self):
         # Set a random seed for reproducibility
-        torch.manual_seed(self.seed)
+        random.seed(self.seed)
         np.random.seed(self.seed)
+        torch.manual_seed(self.seed)
 
         # Check if CUDA (GPU support) is available
         if "cuda" in self.device:
