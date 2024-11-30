@@ -3,10 +3,12 @@ import torch
 import cv2 as cv
 from typing import Union, Tuple
 
-from mvdatasets.geometry.common import (
-    apply_transformation_3d,
-    global_perspective_projection,
+from mvdatasets.geometry.rigid import apply_transformation_3d
+from mvdatasets.geometry.projections import (
     global_inv_perspective_projection,
+    global_perspective_projection
+)
+from mvdatasets.geometry.common import (
     opengl_projection_matrix_from_intrinsics,
     opengl_matrix_world_from_w2c,
     get_mask_points_in_image_range,
@@ -44,25 +46,28 @@ class Camera:
         camera_idx: int = 0,
         width: int = None,
         height: int = None,
+        near: float = 0.1,
+        far: float = 10000.0,
         temporal_dim: int = 1,
         subsample_factor: int = 1,
         verbose: bool = False,
     ):
         """
-        Initialize a Camera object.
+        Initialize a Camera object. All data must have the same temporal and spatial dimensions.
+        Data type is preferably uint8, but can be anything as loaded by a dataset loader.
 
         Args:
-            intrinsics (np.ndarray): (3, 3) Camera intrinsic matrix (camtopix).
-            pose (np.ndarray): (4, 4) Camera extrinsic matrix (camera-to-world transformation).
+            intrinsics (np.ndarray, float32): (3, 3) Camera intrinsic matrix (camtopix).
+            pose (np.ndarray, float32): (4, 4) Camera extrinsic matrix (camera-to-world transformation).
             rgbs (np.ndarray, optional): (T, H, W, 3) RGB images, uint8.
             masks (np.ndarray, optional): (T, H, W, 1) Binary masks, uint8.
             normals (np.ndarray, optional): (T, H, W, 3) Surface normals, uint8.
             depths (np.ndarray, optional): (T, H, W, 1) Depth maps, uint8.
             instance_masks (np.ndarray, optional): (T, H, W, 1) Instance segmentation masks, uint8.
             semantic_masks (np.ndarray, optional): (T, H, W, 1) Semantic segmentation masks, uint8.
-            timestamps (np.ndarray): (T,) Per-frame timestamp. Default value is [0.0].
-            global_transform (np.ndarray, optional): Global transformation matrix.
-            local_transform (np.ndarray, optional): Local transformation matrix.
+            timestamps (np.ndarray, float32): (T,) Per-frame timestamp. Default value is [0.0].
+            global_transform (np.ndarray, optional, float32): Global transformation matrix.
+            local_transform (np.ndarray, optional, float32): Local transformation matrix.
             camera_idx (int, optional): Camera index. Defaults to 0.
             width (int, optional): Image width, required if no images are provided.
             height (int, optional): Image height, required if no images are provided.
@@ -75,11 +80,12 @@ class Camera:
         # Validate input dimensions
         assert intrinsics.shape == (3, 3), "`intrinsics` must be a 3x3 matrix."
         assert pose.shape == (4, 4), "`pose` must be a 4x4 matrix."
-        self.intrinsics = intrinsics
-        self.intrinsics_inv = np.linalg.inv(intrinsics)
-        self.pose = pose
+        self.set_intrinsics(intrinsics)
+        self.pose = pose.astype(np.float32)
         self.camera_idx = camera_idx
-        self.timestamps = timestamps
+        self.timestamps = timestamps.astype(np.float32)
+        self.near = near
+        self.far = far
 
         # assert shapes are correct
         if rgbs is not None:
@@ -115,15 +121,8 @@ class Camera:
         self._validate_data()
 
         # transforms
-        if global_transform is not None:
-            self.global_transform = global_transform
-        else:
-            self.global_transform = np.eye(4)
-
-        if local_transform is not None:
-            self.local_transform = local_transform
-        else:
-            self.local_transform = np.eye(4)
+        self.global_transform = global_transform.astype(np.float32) if global_transform is not None else None
+        self.local_transform = local_transform.astype(np.float32) if local_transform is not None else None
 
         # Subsample data if needed
         if subsample_factor > 1:
@@ -192,6 +191,11 @@ class Camera:
         """return camera timestamps"""
         return self.timestamps
 
+    def set_intrinsics(self, intrinsics: np.ndarray) -> None:
+        """set camera intrinsics"""
+        self.intrinsics = intrinsics.astype(np.float32)
+        self.intrinsics_inv = np.linalg.inv(intrinsics)
+    
     def get_intrinsics(self) -> np.ndarray:
         """return camera intrinsics"""
         return self.intrinsics
@@ -201,23 +205,24 @@ class Camera:
         return self.intrinsics_inv
 
     def get_projection(self) -> np.ndarray:
-        """return 4x4 camera projection matrix"""
-        # get camera data
-        intrinsics = self.get_intrinsics()
-        c2w = self.get_pose()
-        # opencv standard
-        intrinsics_padded = np.concatenate([intrinsics, np.zeros((3, 1))], axis=1)
+        """Return 4x4 camera projection matrix."""
+        # Get camera data
+        intrinsics = self.get_intrinsics()  # (3x3)
+        c2w = self.get_pose()  # (4x4)
+        
+        # Compute world-to-camera transformation
         w2c = np.linalg.inv(c2w)
-        proj = intrinsics_padded @ w2c
-        proj = np.concatenate([proj, np.zeros((1, 4))], axis=0)  # (4, 4)
+
+        # Combine intrinsics and extrinsics to form the projection matrix
+        intrinsics_padded = np.eye(4)
+        intrinsics_padded[:3, :3] = intrinsics  # Embed intrinsics into 4x4 form
+        proj = intrinsics_padded @ w2c  # Combine intrinsics and extrinsics
         return proj
 
-    def get_opengl_projection_matrix(
-        self, near: float = 0.1, far: float = 100.0
-    ) -> np.ndarray:
+    def get_opengl_projection_matrix(self) -> np.ndarray:
         # opengl standard
         projection_matrix = opengl_projection_matrix_from_intrinsics(
-            self.get_intrinsics(), self.width, self.height, near, far
+            self.get_intrinsics(), self.width, self.height, self.near, self.far
         )  # (4, 4)
         return projection_matrix
 
@@ -331,7 +336,12 @@ class Camera:
         Returns:
             np.ndarray: (4, 4) camera pose
         """
-        pose = self.global_transform @ self.pose @ self.local_transform
+        # pose = self.global_transform @ self.pose @ self.local_transform
+        pose = self.pose
+        if self.local_transform is not None:
+            pose = pose @ self.local_transform
+        if self.global_transform is not None:
+            pose = self.global_transform @ pose
         return pose
 
     def get_pose_inv(self) -> np.ndarray:
@@ -672,10 +682,12 @@ class Camera:
         string += str(self.intrinsics) + "\n"
         string += f"pose ({self.pose.dtype}):\n"
         string += str(self.pose) + "\n"
-        string += f"global_transform ({self.global_transform.dtype}):\n"
-        string += str(self.global_transform) + "\n"
-        string += f"local_transform ({self.local_transform.dtype}):\n"
-        string += str(self.local_transform) + "\n"
+        if self.global_transform is not None:
+            string += f"global_transform ({self.global_transform.dtype}):\n"
+            string += str(self.global_transform) + "\n"
+        if self.local_transform is not None:
+            string += f"local_transform ({self.local_transform.dtype}):\n"
+            string += str(self.local_transform) + "\n"
         for modality_name, modality_frames in self.data.items():
             if modality_frames is None:
                 # skip empty data

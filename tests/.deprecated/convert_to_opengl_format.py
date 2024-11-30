@@ -66,7 +66,7 @@ if __name__ == "__main__":
     scene["cameras"] = {"test": {}, "train": {}}
     for camera in mv_data.get_split("test"):
         camera_idx = camera.camera_idx
-        projectionMatrix = camera.get_opengl_projection_matrix(near=0.1, far=100.0)
+        projectionMatrix = camera.get_opengl_projection_matrix()
         matrixWorld = camera.get_opengl_matrix_world()
         scene["cameras"]["test"][camera_idx] = {
             "projectionMatrix": projectionMatrix.tolist(),

@@ -1,8 +1,6 @@
 from rich import print
 import torch
 import numpy as np
-
-# from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.geometry.common import deg2rad
 from mvdatasets.utils.printing import print_error, print_warning
 

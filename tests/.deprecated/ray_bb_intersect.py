@@ -16,11 +16,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.config import get_dataset_test_preset
+from config import get_dataset_test_preset
 from mvdatasets.utils.tensor_reel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
-from mvdatasets.geometry.common import deg2rad, rot_x_3d, rot_y_3d, rot_z_3d
 
 
 if __name__ == "__main__":

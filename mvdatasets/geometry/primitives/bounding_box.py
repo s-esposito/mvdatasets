@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 import open3d as o3d
 
-from mvdatasets.geometry.common import apply_transformation_3d
+from mvdatasets.geometry.rigid import apply_transformation_3d
 from mvdatasets.utils.printing import print_error
 
 

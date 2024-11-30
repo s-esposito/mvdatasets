@@ -8,7 +8,6 @@ from PIL import Image
 import cv2
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
-from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning, print_log
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera

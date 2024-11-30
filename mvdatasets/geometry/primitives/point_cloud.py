@@ -1,6 +1,6 @@
 from rich import print
 import numpy as np
-from mvdatasets.geometry.common import apply_transformation_3d
+from mvdatasets.geometry.rigid import apply_transformation_3d
 from mvdatasets.utils.printing import print_error
 
 

@@ -28,5 +28,6 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
     # Pass detailed exception info to the print_error function
     print_error(message, exc_type, exc_value, exc_traceback)
 
+
 # Set the custom exception handler globally
 sys.excepthook = custom_exception_handler

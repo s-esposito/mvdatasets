@@ -1,12 +1,8 @@
 import torch
 import numpy as np
 from typing import Tuple, Union
-
-from mvdatasets.geometry.common import (
-    local_inv_perspective_projection,
-    apply_rotation_3d,
-)
-# from mvdatasets.utils.images import image_uint8_to_float32
+from mvdatasets.geometry.projections import local_inv_perspective_projection
+from mvdatasets.geometry.rigid import apply_rotation_3d
 
 
 def get_pixels(height: int, width: int, device: str = "cpu") -> torch.Tensor:
@@ -294,9 +290,6 @@ def get_data_per_pixels(
                 vals[key] = val[cameras_idx, frames_idx, i, j]  # (N, C)
             else:
                 vals[key] = val[frames_idx, i, j]  # (N, C)
-            # # cast to float32 (if needed)
-            # if cast_modality[key]:
-            #     vals[key] = image_uint8_to_float32(vals[key])
         else:
             vals[key] = None
 

@@ -4,9 +4,7 @@ from typing import List
 import numpy as np
 from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
-from mvdatasets.geometry.common import apply_transformation_3d
 from mvdatasets.utils.printing import print_error, print_warning, print_info
-from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets import Camera
 
 

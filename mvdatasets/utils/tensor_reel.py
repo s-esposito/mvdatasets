@@ -45,7 +45,6 @@ class TensorReel:
         data = {}
         poses = []  # list of (4, 4) matrices
         intrinsics_inv = []  # list of (3, 3) matrices
-        # projections = []
         timestamps = []  # list of (T) tensors
 
         # collect data from all cameras
@@ -66,8 +65,6 @@ class TensorReel:
             poses.append(torch.from_numpy(camera.get_pose()).float())
             intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
             timestamps.append(torch.from_numpy(camera.get_timestamps()).float())
-            # proj = camera.get_projection()
-            # projections.append(torch.from_numpy(proj).float())
 
         # concat data and move to device
         for key, val in data.items():
@@ -78,7 +75,6 @@ class TensorReel:
         self.poses = torch.stack(poses).to(device).contiguous()  # (N, 4, 4)
         self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()  # (N, 3, 3)
         self.timestamps = torch.stack(timestamps).to(device).contiguous()  # (N, T)
-        # self.projections = torch.stack(projections).to(device).contiguous()
 
         self.temporal_dim = cameras[0].get_temporal_dim()
         self.width, self.height = cameras[0].get_resolution()
