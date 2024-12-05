@@ -16,7 +16,7 @@ from mvdatasets.geometry.common import (
     rot_z_3d,
     get_min_max_cameras_distances,
 )
-from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.utils.printing import print_error, print_warning, print_success
 
 
 def load(
@@ -24,7 +24,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "test"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """DMSR data format loader.
 
@@ -39,9 +39,9 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-        
+
     scene_path = dataset_path / scene_name
-    
+
     # Default configuration
     defaults = {
         "scene_type": "bounded",
@@ -63,6 +63,9 @@ def load(
             config[key] = default_value
             if verbose:
                 print_warning(f"{key} not in config, setting to {default_value}")
+        else:
+            if verbose:
+                print_success(f"Using '{key}': {config[key]}")
 
     # Check for unimplemented features
     unimplemented_features = {
@@ -87,7 +90,7 @@ def load(
 
     # read all poses
     poses_all = []
-    for split in splits:
+    for split in ["train", "test"]:
         # load current split transforms
         with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
             metas = json.load(fp)

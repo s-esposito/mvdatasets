@@ -43,7 +43,9 @@ class TensorReel:
             print_error("tensor reel has no cameras")
 
         data = {}
-        poses = []  # list of (4, 4) matrices
+        c2w_all = []  # list of (4, 4) matrices
+        w2c_all = []  # list of (4, 4) matrices
+        intrinsics = []  # list of (3, 3) matrices
         intrinsics_inv = []  # list of (3, 3) matrices
         timestamps = []  # list of (T) tensors
 
@@ -62,7 +64,9 @@ class TensorReel:
                         print_error(f"camera {camera.camera_idx} has no {key} data")
 
             # camera matrices
-            poses.append(torch.from_numpy(camera.get_pose()).float())
+            c2w_all.append(torch.from_numpy(camera.get_pose()).float())
+            w2c_all.append(torch.from_numpy(camera.get_pose_inv()).float())
+            intrinsics.append(torch.from_numpy(camera.get_intrinsics()).float())
             intrinsics_inv.append(torch.from_numpy(camera.get_intrinsics_inv()).float())
             timestamps.append(torch.from_numpy(camera.get_timestamps()).float())
 
@@ -72,8 +76,12 @@ class TensorReel:
         self.data = data
 
         # concat cameras matrices
-        self.poses = torch.stack(poses).to(device).contiguous()  # (N, 4, 4)
-        self.intrinsics_inv = torch.stack(intrinsics_inv).to(device).contiguous()  # (N, 3, 3)
+        self.c2w_all = torch.stack(c2w_all).to(device).contiguous()  # (N, 4, 4)
+        self.w2c_all = torch.stack(w2c_all).to(device).contiguous()  # (N, 4, 4)
+        self.intrinsics = torch.stack(intrinsics).to(device).contiguous()  # (N, 3, 3)
+        self.intrinsics_inv = (
+            torch.stack(intrinsics_inv).to(device).contiguous()
+        )  # (N, 3, 3)
         self.timestamps = torch.stack(timestamps).to(device).contiguous()  # (N, T)
 
         self.temporal_dim = cameras[0].get_temporal_dim()
@@ -104,7 +112,7 @@ class TensorReel:
     #     """
 
     #     # sample cameras_idx
-    #     nr_cameras = self.poses.shape[0]
+    #     nr_cameras = self.c2w_all.shape[0]
     #     if cameras_idx is None:
     #         # sample among all cameras
     #         if nr_cameras < batch_size:
@@ -176,7 +184,7 @@ class TensorReel:
     #     ).permute(0, 2, 1)
     #     # print("points_3d_camera", points_3d_camera.shape)
 
-    #     c2w_rot_all = self.poses[cameras_idx, :3, :3]  # (batch_size, 3, 3)
+    #     c2w_rot_all = self.c2w_all[cameras_idx, :3, :3]  # (batch_size, 3, 3)
     #     # print("c2w_rot_all", c2w_rot_all.shape)
 
     #     # rotate points to world space
@@ -230,7 +238,7 @@ class TensorReel:
         real_batch_size = batch_size // nr_rays_per_pixel
 
         # sample cameras_idx
-        nr_cameras = self.poses.shape[0]
+        nr_cameras = self.c2w_all.shape[0]
         if cameras_idx is None:
             # Sample among all cameras with repetitions
             cameras_idx = np.random.randint(0, nr_cameras, size=real_batch_size)
@@ -278,11 +286,11 @@ class TensorReel:
 
         # get a ray for each pixel in corresponding camera frame
         rays_o, rays_d = get_rays_per_points_2d_screen(
-            c2w=self.poses[cameras_idx],
+            c2w=self.c2w_all[cameras_idx],
             intrinsics_inv=self.intrinsics_inv[cameras_idx],
             points_2d_screen=points_2d_screen,
         )
-        
+
         # timestamps
         timestamps = self.timestamps[cameras_idx, frames_idx]  # (N)
 
@@ -292,7 +300,7 @@ class TensorReel:
             "rays_d": rays_d,
             "vals": vals,
             "timestamps": timestamps,
-            "frames_idx": frames_idx
+            "frames_idx": frames_idx,
         }
 
     # TODO: deprecated
@@ -397,7 +405,7 @@ class TensorReel:
     def __str__(self) -> str:
         string = "\nTensorReel\n"
         string += f"device: {self.device}\n"
-        string += f"poses: {self.poses.shape}, {self.poses.dtype}\n"
+        string += f"c2w_all: {self.c2w_all.shape}, {self.c2w_all.dtype}\n"
         string += f"intrinsics_inv: {self.intrinsics_inv.shape}, {self.intrinsics_inv.dtype}\n"
         # string += f"projections: {self.projections.shape}, {self.projections.dtype}\n"
         for key, val in self.data.items():

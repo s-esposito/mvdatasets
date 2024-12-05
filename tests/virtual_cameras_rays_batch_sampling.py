@@ -6,6 +6,7 @@ from config import Args
 from config import get_dataset_test_preset
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.visualization.matplotlib import plot_current_batch
+from mvdatasets.visualization.matplotlib import plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.utils.tensor_reel import TensorReel
@@ -60,13 +61,39 @@ def main(args: Args):
         width=width,
         height=height,
         radius=camera_radius,
+        up="z",
         nr_cameras=100,
     )
+
+    camera = sampled_cameras[0]
+
+    # shoot rays from camera
+    rays_o, rays_d, points_2d_screen = camera.get_rays(device=device)
+
+    plot_rays_samples(
+        rays_o=rays_o.cpu().numpy(),
+        rays_d=rays_d.cpu().numpy(),
+        # t_near=t_near.cpu().numpy(),
+        # t_far=t_far.cpu().numpy(),
+        nr_rays=32,
+        camera=camera,
+        # bounding_boxes=[bb] if bb is not None else None,
+        azimuth_deg=20,
+        elevation_deg=30,
+        scene_radius=camera_radius,
+        # draw_bounding_cube=draw_bounding_cube,
+        # draw_contraction_spheres=draw_contraction_spheres,
+        title="bounding box intersections",
+        show=True,
+        save_path=os.path.join("plots", "sampled_camera.png"),
+    )
+
+    exit(0)
 
     # Visualize cameras
     plot_3d(
         cameras=sampled_cameras,
-        points_3d=mv_data.point_clouds,
+        point_clouds=mv_data.point_clouds,
         bounding_boxes=[bb],
         azimuth_deg=20,
         elevation_deg=30,
@@ -74,16 +101,14 @@ def main(args: Args):
         up="z",
         figsize=(15, 15),
         title="sampled cameras",
-        show=False,
+        show=True,
         save_path=os.path.join("plots", f"{dataset_name}_sampled_cameras.png"),
     )
 
+    exit(0)
+
     # Create tensor reel
-    tensor_reel = TensorReel(
-        sampled_cameras,
-        modalities=[],  # no data
-        device=device
-    )
+    tensor_reel = TensorReel(sampled_cameras, modalities=[], device=device)  # no data
 
     nr_cameras = len(mv_data.get_split("train"))
     nr_per_camera_frames = mv_data.get_nr_per_camera_frames()
@@ -117,7 +142,7 @@ def main(args: Args):
             profiler.end("get_next_rays_batch")
 
         if not benchmark:
-            
+
             # unpack batch
             batch_cameras_idx = batch["cameras_idx"]
             batch_rays_o = batch["rays_o"]
@@ -127,17 +152,30 @@ def main(args: Args):
             batch_timestamps = batch["timestamps"]
 
             # print data shapes
-            print(
-                "batch_cameras_idx", batch_cameras_idx.shape, batch_cameras_idx.dtype
-            )
+            print("batch_cameras_idx", batch_cameras_idx.shape, batch_cameras_idx.dtype)
             print("batch_frames_idx", batch_frames_idx.shape, batch_frames_idx.dtype)
-            print("batch_rays_o", batch_rays_o.shape, batch_rays_o.device, batch_rays_o.dtype)
-            print("batch_rays_d", batch_rays_d.shape, batch_rays_d.device, batch_rays_d.dtype)
-            print("batch_timestamps", batch_timestamps.shape, batch_timestamps.device, batch_timestamps.dtype)
+            print(
+                "batch_rays_o",
+                batch_rays_o.shape,
+                batch_rays_o.device,
+                batch_rays_o.dtype,
+            )
+            print(
+                "batch_rays_d",
+                batch_rays_d.shape,
+                batch_rays_d.device,
+                batch_rays_d.dtype,
+            )
+            print(
+                "batch_timestamps",
+                batch_timestamps.shape,
+                batch_timestamps.device,
+                batch_timestamps.dtype,
+            )
             for k, v in batch_vals.items():
                 if v is not None:
                     print(f"{k}", v.shape, v.device, v.dtype)
-                    
+
             # print("timestamps", batch_timestamps)
 
             plot_current_batch(

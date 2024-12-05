@@ -10,17 +10,24 @@ def sample_cameras_on_hemisphere(
     height: int,
     radius: float = 1.0,
     nr_cameras: int = 10,
-    up: np.ndarray = np.array([0, 1, 0]),
+    up: str = "z",
     center: np.ndarray = np.array([0, 0, 0]),
 ) -> List[Camera]:
+
+    if up == "z":
+        up = np.array([0, 0, 1], dtype=np.float32)
+    elif up == "y":
+        up = np.array([0, 1, 0], dtype=np.float32)
+    else:
+        raise ValueError(f"Invalid `up` value: {up}, must be 'z' or 'y'.")
 
     azimuth_deg = np.random.uniform(0, 360, nr_cameras)
     elevation_deg = np.random.uniform(-90, 90, nr_cameras)
     azimuth_rad = deg2rad(azimuth_deg)
     elevation_rad = deg2rad(elevation_deg)
     x = np.cos(azimuth_rad) * np.cos(elevation_rad) * radius
-    y = np.sin(elevation_rad) * radius  # y is up
-    z = np.sin(azimuth_rad) * np.cos(elevation_rad) * radius
+    y = np.sin(azimuth_rad) * np.cos(elevation_rad) * radius  # y is up
+    z = np.sin(elevation_rad) * radius  # z is up
     # x = np.array(x)
     # y = np.array(y)
     # z = np.array(z)
@@ -33,18 +40,18 @@ def sample_cameras_on_hemisphere(
         pose = np.eye(4)
         pose = look_at(cameras_centers[i], center, up)
 
-        # local transform
-        local_transform = np.eye(4)
-        local_transform[:3, :3] = np.array(
-            [[-1, 0, 0], [0, -1, 0], [0, 0, -1]], dtype=np.float32
-        )
+        # # local transform
+        # local_transform = np.eye(4)
+        # local_transform[:3, :3] = np.array(
+        #     [[-1, 0, 0], [0, -1, 0], [0, 0, -1]], dtype=np.float32
+        # )
 
         camera = Camera(
             intrinsics,
             pose,
             width=width,
             height=height,
-            local_transform=local_transform,
+            # local_transform=local_transform,
             camera_idx=i,
         )
         cameras.append(camera)

@@ -168,24 +168,19 @@ def _draw_rays(
 def _draw_point_cloud(
     ax: plt.Axes,
     point_cloud: PointCloud,
-    # points_3d: np.ndarray,
-    # size: float = None,
-    # color: np.ndarray = None,
     alpha: float = None,
-    # marker: str = None,
-    # label: str = None,
     max_nr_points: int = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
     if point_cloud is None:
         return
-    
+
     scale = get_scale(scene_radius)
 
     points_3d = point_cloud.points_3d
     points_rgb = point_cloud.points_rgb  # could be None
-    
+
     # subsample
     if max_nr_points is not None and max_nr_points < point_cloud.points_3d.shape[0]:
         # random subsample
@@ -193,33 +188,33 @@ def _draw_point_cloud(
     else:
         # keep all points
         idx = np.arange(points_3d.shape[0])
-        
+
     points_3d = points_3d[idx]
     if points_rgb is not None:
         points_rgb = points_rgb[idx]
-    
+
     colors = point_cloud.color
     if colors is None:
         colors = "black"
-        
+
     # prioritize points_rgb over color
     if points_rgb is not None:
         colors = points_rgb / 255.0
-        
+
     size = point_cloud.size
     if size is None:
         size = 10.0
     size = max(5.0, size * scale)
-    
+
     marker = point_cloud.marker
     if marker is None:
         marker = "o"
-        
+
     label = point_cloud.label
     # if None, keep it None
-        
+
     if alpha is None:
-        alpha = 0.25
+        alpha = 0.5
 
     # draw points
     if up == "z":
@@ -244,7 +239,7 @@ def _draw_point_cloud(
             marker=marker,
             label=label,
         )
-        
+
     if label is not None:
         ax.legend()
 
@@ -396,7 +391,7 @@ def _draw_bounding_box(
             ),
             color=color,
             linewidth=line_width,
-            alpha=0.2
+            alpha=0.2,
         )
 
     if bb.label is not None:
@@ -439,11 +434,11 @@ def _draw_bounding_sphere(
 ):
     if bs is None:
         return
-    
+
     color = bs.color
     if bs.color is None:
         color = "black"
-    
+
     line_width = bs.line_width
     if bs.line_width is None:
         line_width = 1.0
@@ -521,7 +516,7 @@ def _draw_image_plane(
                 *zip(corner_points_3d_world[i], corner_points_3d_world[j]),
                 color="black",
                 linewidth=1.0,
-                alpha=0.5
+                alpha=0.5,
             )
         else:
             ax.plot3D(
@@ -531,7 +526,7 @@ def _draw_image_plane(
                 ),
                 color="black",
                 linewidth=1.0,
-                alpha=0.5
+                alpha=0.5,
             )
 
 
@@ -661,25 +656,6 @@ def _draw_point_clouds(
 
     if not isinstance(point_clouds, list):
         print_error("point_clouds must be a list of numpy arrays")
-    
-    # if not isinstance(points_3d, list):
-    #     print_error("points_3d must be a list of numpy arrays")
-
-    # if points_3d_colors is not None:
-    #     if not len(points_3d) == len(points_3d_colors):
-    #         print_error("points_3d and points_3d_colors must have the same length")
-
-    # if points_3d_labels is not None:
-    #     if not len(points_3d) == len(points_3d_labels):
-    #         print_error("points_3d and points_3d_labels must have the same length")
-
-    # if points_3d_sizes is not None:
-    #     if not len(points_3d) == len(points_3d_sizes):
-    #         print_error("points_3d and points_3d_sizes must have the same length")
-
-    # if points_3d_markers is not None:
-    #     if not len(points_3d) == len(points_3d_markers):
-    #         print_error("points_3d and points_3d_markers must have the same length")
 
     # if pc are given
     if len(point_clouds) > 0:
@@ -694,17 +670,9 @@ def _draw_point_clouds(
 
         # plot point clouds
         for i, pc in enumerate(point_clouds):
-            # color = points_3d_colors[i] if points_3d_colors is not None else None
-            # label = points_3d_labels[i] if points_3d_labels is not None else None
-            # size = points_3d_sizes[i] if points_3d_sizes is not None else None
-            # marker = points_3d_markers[i] if points_3d_markers is not None else None
             _draw_point_cloud(
                 ax=ax,
                 point_cloud=pc,
-                # color=color,
-                # label=label,
-                # size=size,
-                # marker=marker,
                 max_nr_points=max_nr_points_per_pc,
                 up=up,
                 scene_radius=scene_radius,
@@ -726,16 +694,16 @@ def _draw_cameras(
 
     if not isinstance(cameras, list):
         print_error("cameras must be a list of Cameras")
-    
+
     if len(cameras) > 0:
         nr_cameras = len(cameras) // draw_every_n_cameras
         nr_rays_per_camera = nr_rays // nr_cameras
 
         # draw camera frames
         for i, camera in enumerate(cameras):
-            
+
             if i % draw_every_n_cameras == 0:
-            
+
                 pose = camera.get_pose()
                 camera_idx = camera.camera_idx
                 _draw_camera_frame(
@@ -746,7 +714,9 @@ def _draw_cameras(
                         ax=ax, camera=camera, up=up, scene_radius=scene_radius
                     )
                 if draw_cameras_frustums:
-                    _draw_frustum(ax=ax, camera=camera, up=up, scene_radius=scene_radius)
+                    _draw_frustum(
+                        ax=ax, camera=camera, up=up, scene_radius=scene_radius
+                    )
                 if nr_rays_per_camera > 0:
                     _draw_camera_rays(
                         ax=ax,
@@ -755,7 +725,7 @@ def _draw_cameras(
                         up=up,
                         scene_radius=scene_radius,
                     )
-            
+
             else:
                 # skip camera
                 pass
@@ -770,10 +740,10 @@ def _draw_camera_trajectory(
 ):
     if cameras is None:
         return
-    
+
     if not isinstance(cameras, list):
         print_error("cameras must be a list of Cameras")
-    
+
     # collect cameras timestamps
     # all_timestamps = []
     all_centers = []
@@ -790,27 +760,27 @@ def _draw_camera_trajectory(
     #     all_indices.append(indices)
     #     all_cameras_idxs.append(camera_idx)
     sequence_lenght = len(cameras)
-        
+
     # # concatenate all timestamps, centers, indices
     # all_timestamps = np.stack(all_timestamps, axis=0)  # (N, 1)
     all_centers = np.stack(all_centers, axis=0)  # (N, 3)
-    
+
     # # sort all timestamps, return permutation
     # perm = np.argsort(all_timestamps.flatten())
     # all_centers = all_centers[perm]
-    
+
     if last_frame_idx is not None:
-        all_centers = all_centers[:(last_frame_idx+1)]
+        all_centers = all_centers[: (last_frame_idx + 1)]
 
     scale = get_scale(scene_radius)
-    
+
     # sample colors
     colors = plt.cm.jet(np.linspace(0, 1, sequence_lenght))[:, :3]
     for i in range(all_centers.shape[0] - 1):
         # center at timestamp i
         center_i = all_centers[i]  # (3,)
         # center at timestamp i+1
-        center_i1 = all_centers[i+1]  # (3,)
+        center_i1 = all_centers[i + 1]  # (3,)
         # get color
         color = colors[i]
         # alpha
@@ -823,7 +793,7 @@ def _draw_camera_trajectory(
                 [center_i[2], center_i1[2]],
                 color=color,
                 alpha=alpha,
-                linewidth=2.0 * scale
+                linewidth=2.0 * scale,
             )
         else:
             ax.plot3D(
@@ -832,7 +802,7 @@ def _draw_camera_trajectory(
                 [center_i[1], center_i1[1]],
                 color=color,
                 alpha=alpha,
-                linewidth=2.0 * scale
+                linewidth=2.0 * scale,
             )
 
 
@@ -985,7 +955,7 @@ def plot_camera_trajectory(
 
     if draw_rgb_frame:
         figsize = (2 * figsize[0], figsize[1])
-    
+
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(1, 2, 1, projection="3d")
@@ -1019,23 +989,23 @@ def plot_camera_trajectory(
     # use last frame if not set
     if last_frame_idx == -1:
         last_frame_idx = len(cameras) - 1
-    
+
     # draw cameras trajectory
     _draw_camera_trajectory(
         ax=ax,
         cameras=cameras,
         last_frame_idx=last_frame_idx,
         up=up,
-        scene_radius=scene_radius
+        scene_radius=scene_radius,
     )
-    
+
     # draw camera frames
     if draw_all_cameras_frames:
         # draw all camera frames
         cameras_ = cameras
     else:
         cameras_ = [cameras[last_frame_idx]]  # draw only last camera frame
-        
+
     _draw_cameras(
         ax=ax,
         cameras=cameras_,
@@ -1046,7 +1016,7 @@ def plot_camera_trajectory(
         draw_image_planes=draw_image_planes,
         draw_cameras_frustums=draw_cameras_frustums,
     )
-    
+
     # add subplot for rgb frame
     if draw_rgb_frame:
         ax_rgb = fig.add_subplot(1, 2, 2)
@@ -1058,7 +1028,7 @@ def plot_camera_trajectory(
         # transpose to (H, W, C)
         rgb = np.transpose(rgb, (1, 0, 2))
         ax_rgb.imshow(rgb)
-    
+
     if save_path is not None:
         plt.savefig(
             save_path,
@@ -1161,12 +1131,9 @@ def _draw_near_far_points(
     p_boundaries = np.concatenate(
         [p_near[:, np.newaxis, :], p_far[:, np.newaxis, :]], axis=1
     )
-    
+
     pc = PointCloud(
-        points_3d=p_boundaries.reshape(-1, 3),
-        size=200,
-        color="black",
-        marker="x"
+        points_3d=p_boundaries.reshape(-1, 3), size=200, color="black", marker="x"
     )
 
     for i in range(p_boundaries.shape[0]):
@@ -1286,7 +1253,7 @@ def plot_current_batch(
 def _draw_segmentations_on_2d_image(
     ax: plt.Axes,
     # segmentations: np.ndarray,
-): 
+):
     # TODO: implement
     pass
 
@@ -1297,26 +1264,26 @@ def _draw_camera_2d(
     frame_idx: int = 0,
 ):
     data = camera.get_data(frame_idx=frame_idx, verbose=True)  # torch.Tensor
-    
+
     rgb = None
     if camera.has_rgbs():
         rgb = data["rgbs"].cpu().numpy()
     else:
         # set to black
-        rgb = np.zeros((camera.width*camera.height, 3))
+        rgb = np.zeros((camera.width * camera.height, 3))
     # rgb is (H*W, 3)
-    
+
     semantic_mask = None
     if camera.has_semantic_masks():
         semantic_mask = data["semantic_masks"].squeeze().cpu().numpy()
         semantic_mask = davis_palette[semantic_mask]
     # semantic_mask is (H*W, 3) or None
-    
+
     mask = None
     if camera.has_masks():
         mask = data["masks"].cpu().numpy()
     # mask is (H*W, 1) or None
-    
+
     if semantic_mask is not None:
         # convert semantic mask to rgb and display overlayed
         rgb = rgb * 0.5 + semantic_mask * 0.5
@@ -1351,7 +1318,7 @@ def plot_camera_2d(
     out:
         None
     """
-    
+
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
@@ -1363,7 +1330,7 @@ def plot_camera_2d(
         camera=camera,
         frame_idx=frame_idx,
     )
-    
+
     if points_2d_screen is not None:
         # filter out points outside image range
         points_mask = get_mask_points_in_image_range(
@@ -1427,20 +1394,18 @@ def plot_camera_2d(
         )
         print_log(f"saved figure to {save_path}")
 
-    if show:        
+    if show:
         plt.show()
 
     plt.close()
 
 
 def plot_cameras_2d(
-    cameras: list[Camera],
-    title: str = None,
-    figsize: Tuple[int, int] = (15, 15)
+    cameras: list[Camera], title: str = None, figsize: Tuple[int, int] = (15, 15)
 ):
     camera_idx = 0
     frame_idx = 0
-    
+
     def draw():
         nonlocal camera_idx, frame_idx
         if title is not None:
@@ -1453,29 +1418,29 @@ def plot_cameras_2d(
             frame_idx=frame_idx,
         )
         plt.draw()
-    
+
     # use arrows to navigate through the video
     def on_camera_idx_change(event):
         nonlocal camera_idx
-        if event.key == 'right':
+        if event.key == "right":
             camera_idx = min(camera_idx + 1, len(cameras) - 1)
-        elif event.key == 'left':
+        elif event.key == "left":
             camera_idx = max(camera_idx - 1, 0)
         else:
             return
         print(f"camera_idx: {camera_idx}")
         draw()
-    
+
     # init figure
     fig = plt.figure(figsize=figsize)
     ax = fig.add_subplot(111)
     if title is not None:
         plt.title(title)
     draw()
-        
-    plt.connect('key_press_event', on_camera_idx_change)
+
+    plt.connect("key_press_event", on_camera_idx_change)
     plt.show()
-    
+
     # clear when window is closed
     plt.close()
 
@@ -1526,10 +1491,10 @@ def plot_rays_samples(
         elevation_deg=elevation_deg,
         azimuth_deg=azimuth_deg,
     )
-    
+
     if draw_origin:
         _draw_cartesian_axis(ax=ax, up=up, scene_radius=scene_radius)
-    
+
     # draw points
     _draw_point_clouds(
         ax=ax,

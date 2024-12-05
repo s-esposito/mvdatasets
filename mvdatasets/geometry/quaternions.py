@@ -10,16 +10,16 @@ def quats_to_rots(quats):
         lib = np
     else:
         raise TypeError("Input must be a torch.Tensor or np.ndarray")
-    
+
     # Extract components of the quaternion
     r = quats[..., 0]
     i = quats[..., 1]
     j = quats[..., 2]
     k = quats[..., 3]
-    
+
     # Compute scaling factor
     two_s = 2.0 / (quats * quats).sum(-1, keepdims=True)
-    
+
     # Compute rotation matrix components
     o = lib.stack(
         (
@@ -35,6 +35,10 @@ def quats_to_rots(quats):
         ),
         axis=-1 if lib is np else -1,
     )
-    
+
     # Reshape the output
-    return o.reshape(quats.shape[:-1] + (3, 3)) if lib is np else o.view(quats.shape[:-1] + (3, 3))
+    return (
+        o.reshape(quats.shape[:-1] + (3, 3))
+        if lib is np
+        else o.view(quats.shape[:-1] + (3, 3))
+    )

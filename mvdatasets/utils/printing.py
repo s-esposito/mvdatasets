@@ -28,7 +28,9 @@ def print_error(message, exc_type=None, exc_value=None, exc_traceback=None):
     if exc_type and exc_traceback:
         print("\n[bold blue]Stack Trace:[/bold blue]")
         # Format the traceback into a readable format
-        detailed_traceback = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        detailed_traceback = "".join(
+            traceback.format_exception(exc_type, exc_value, exc_traceback)
+        )
         print(f"[dim]{detailed_traceback}[/dim]")
     exit(1)
 

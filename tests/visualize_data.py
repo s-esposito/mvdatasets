@@ -22,7 +22,7 @@ def main(args: Args):
     pc_paths = test_preset["pc_paths"]
     config = test_preset["config"]
     splits = test_preset["splits"]
-    
+
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
@@ -33,11 +33,11 @@ def main(args: Args):
         config=config,
         verbose=True,
     )
-    
+
     # # random camera index
     # rand_idx = np.random.randint(0, len(mv_data.get_split("test")))
     # camera = deepcopy(mv_data.get_split("test")[rand_idx])
-    
+
     plot_cameras_2d(
         cameras=mv_data.get_split("test"),
     )

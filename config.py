@@ -193,7 +193,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         if scene_name == "stump":
             config["rotate_scene_x_axis_deg"] = -137
             config["translate_scene_z"] = 0.25
-            
+
     # test d-nerf
     elif dataset_name == "d-nerf":
         scene_name = "bouncingballs"
@@ -201,7 +201,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         pc_paths = []
         # dataset specific config
         config = {}
-        
+
     # test visor
     elif dataset_name == "visor":
         scene_name = "P01_01"
@@ -209,7 +209,15 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         pc_paths = []
         # dataset specific config
         config = {}
-        
+
+    # test panoptic-sports
+    elif dataset_name == "panoptic-sports":
+        scene_name = "basketball"
+        splits = ["train", "test"]
+        pc_paths = []
+        # dataset specific config
+        config = {}
+
     else:
         print_error(f"{dataset_name} does not have a test preset.")
 

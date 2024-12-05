@@ -2,9 +2,7 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 from typing import Union
-from mvdatasets.geometry.common import (
-    euclidean_to_homogeneous
-)
+from mvdatasets.geometry.common import euclidean_to_homogeneous
 
 
 def apply_rotation_3d(
@@ -55,7 +53,7 @@ def apply_rotation_3d(
         else:
             rotated_points = points_3d @ rot.T
         return rotated_points
-    
+
 
 def apply_transformation_3d(
     points_3d: Union[np.ndarray, torch.Tensor],

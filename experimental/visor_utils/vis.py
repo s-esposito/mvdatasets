@@ -112,8 +112,6 @@ def overlay_semantic_mask(im, ann, alpha=0.5, colors=None, contour_thickness=Non
             )
     return img
 
-
-
     # image_name = image_name.replace("jpg", "png")
     # if not np.all(img == 0):
     #     image_name = image_name.replace("jpg", "png")
@@ -130,26 +128,26 @@ def overlay_semantic_mask(im, ann, alpha=0.5, colors=None, contour_thickness=Non
     #     # else:
     #     out_image = image_data
 
-        # imwrite_indexed_2(os.path.join(output_directory, image_name), out_image)
+    # imwrite_indexed_2(os.path.join(output_directory, image_name), out_image)
 
-        # if is_overlay:
-        #     image1 = image_name.replace("png", "jpg")
-        #     video = "_".join(image_name.split("_")[:2])
-        #     image1_overlay = Image.open(
-        #         os.path.join(images_root_directory, video + "/" + image1)
-        #     )
+    # if is_overlay:
+    #     image1 = image_name.replace("png", "jpg")
+    #     video = "_".join(image_name.split("_")[:2])
+    #     image1_overlay = Image.open(
+    #         os.path.join(images_root_directory, video + "/" + image1)
+    #     )
 
-        #     if image1_overlay.size != output_resolution:
-        #         image1_overlay = image1_overlay.resize(output_resolution)
+    #     if image1_overlay.size != output_resolution:
+    #         image1_overlay = image1_overlay.resize(output_resolution)
 
-        #     a = overlay_semantic_mask(
-        #         image1_overlay,
-        #         out_image,
-        #         colors=davis_palette,
-        #         alpha=0.2,
-        #         contour_thickness=1,
-        #     )
-        #     img2 = Image.fromarray(a, "RGB")
-        #     img2.save(os.path.join(output_directory, image_name))
+    #     a = overlay_semantic_mask(
+    #         image1_overlay,
+    #         out_image,
+    #         colors=davis_palette,
+    #         alpha=0.2,
+    #         contour_thickness=1,
+    #     )
+    #     img2 = Image.fromarray(a, "RGB")
+    #     img2.save(os.path.join(output_directory, image_name))
 
     # imwrite_indexed(output_directory + image_name, img,non_empty_objects)

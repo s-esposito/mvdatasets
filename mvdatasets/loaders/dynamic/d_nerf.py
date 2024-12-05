@@ -16,7 +16,7 @@ from mvdatasets.geometry.common import (
     get_min_max_cameras_distances,
 )
 from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
-from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.utils.printing import print_error, print_warning, print_success
 
 
 def load(
@@ -24,7 +24,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "test"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """Dynamic Blender data format loader.
 
@@ -39,9 +39,9 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-        
+
     scene_path = dataset_path / scene_name
-    
+
     # Default configuration
     defaults = {
         "scene_type": "bounded",
@@ -55,25 +55,28 @@ def load(
         "init_sphere_radius_mult": 0.3,
         "pose_only": False,
     }
-    
+
     # Update config with defaults
     for key, default_value in defaults.items():
         if key not in config:
             config[key] = default_value
             if verbose:
                 print_warning(f"Setting '{key}' to default value: {default_value}")
-
+        else:
+            if verbose:
+                print_success(f"Using '{key}': {config[key]}")
+                
     # Debugging output
     if verbose:
         print("load_blender config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
-    
+
     # -------------------------------------------------------------------------
-    
+
     # read all poses
     poses_all = []
-    for split in splits:
+    for split in ["train", "test"]:
         # load current split transforms
         with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)
@@ -81,7 +84,7 @@ def load(
         for frame in metas["frames"]:
             camera_pose = frame["transform_matrix"]
             poses_all.append(camera_pose)
-            
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
 
@@ -94,7 +97,7 @@ def load(
 
     # scene radius
     scene_radius = new_max_camera_distance
-    
+
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
@@ -102,23 +105,23 @@ def load(
     global_transform[:3, :3] = scene_radius_mult * rot_x_3d(
         deg2rad(rotate_scene_x_axis_deg)
     )
-    
+
     # local transform
     local_transform = np.eye(4)
     local_transform[:3, :3] = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]])
-    
+
     # cameras objects
     height, width = None, None
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
-        
+
         # load current split transforms
         with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)
 
         camera_angle_x = metas["camera_angle_x"]
-        
+
         # load images to cpu as numpy arrays
         # (optional) load mask images to cpu as numpy arrays
         frames_list = []
@@ -138,7 +141,7 @@ def load(
         #     # skip every test_skip images
         #     test_skip = config["test_skip"]
         #     frames_list = frames_list[::test_skip]
-        
+
         # iterate over images and load them
         pbar = tqdm(frames_list, desc=split, ncols=100)
         for frame in pbar:
@@ -161,7 +164,7 @@ def load(
                 if height is None or width is None:
                     img_pil = Image.open(os.path.join(scene_path, f"{split}", im_name))
                     width, height = img_pil.size
-                
+
             else:
 
                 # load PIL image
@@ -170,8 +173,8 @@ def load(
 
                 # override H, W
                 if height is None or width is None:
-                    height, width = img_np.shape[:2]   
-                    
+                    height, width = img_np.shape[:2]
+
                 if config["load_mask"]:
                     # use alpha channel as mask
                     # (nb: this is only resonable for synthetic data)
@@ -181,7 +184,7 @@ def load(
                         mask_np = mask_np.astype(np.uint8) * 255
                 else:
                     mask_np = None
-            
+
                 # apply white background, else black
                 if config["white_bg"]:
                     if img_np.dtype == np.uint8:
@@ -198,7 +201,7 @@ def load(
                         )
                 else:
                     img_np = img_np[..., :3]
-                    
+
                 # get images
                 cam_imgs = img_np[None, ...]
                 # print(cam_imgs.shape)
@@ -209,7 +212,7 @@ def load(
                     # print(cam_masks.shape)
                 else:
                     cam_masks = None
-            
+
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
             focal_length = 0.5 * width / np.tan(0.5 * camera_angle_x)
@@ -233,9 +236,9 @@ def load(
                 subsample_factor=int(config["subsample_factor"]),
                 # verbose=verbose,
             )
-            
+
             cameras_splits[split].append(camera)
-        
+
     return {
         "scene_type": config["scene_type"],
         "init_sphere_radius_mult": config["init_sphere_radius_mult"],

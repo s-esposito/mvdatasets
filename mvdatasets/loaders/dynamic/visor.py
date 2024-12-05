@@ -8,7 +8,7 @@ from PIL import Image
 import cv2
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
-from mvdatasets.utils.printing import print_error, print_warning, print_log
+from mvdatasets.utils.printing import print_error, print_warning, print_log, print_success
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
 
@@ -54,27 +54,42 @@ def _generate_semantic_mask_from_polygons(
     return img
 
 
-def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, sparse_annotations_path, split):
-    
+def _extract_data(
+    scene_name,
+    annotations_path,
+    frame_mapping,
+    posed_images,
+    sparse_annotations_path,
+    split,
+):
+
     # split either "train" or "val"
     if split not in ["train", "val"]:
         print_error(f"Invalid split: {split}")
         
+    if split == "val":
+        # not implemented yet
+        print_error("Split 'val' not implemented/tested yet.")
+
     # read json file
     annotation_json_path = os.path.join(annotations_path, split, f"{scene_name}.json")
     if not os.path.exists(annotation_json_path):
-        print_warning(f"JSON file {annotation_json_path} for split {split} does not exist.")
-    
+        print_warning(
+            f"JSON file {annotation_json_path} for split {split} does not exist."
+        )
+
     f = open(annotation_json_path)
     # returns JSON object as a dictionary
     data = json.load(f)
     # close the file
     f.close()
     print_log(f"loaded {annotation_json_path}")
-    
+
     # order frames (first to last)
-    video_data = sorted(data["video_annotations"], key=lambda k: k["image"]["image_path"])
-    
+    video_data = sorted(
+        data["video_annotations"], key=lambda k: k["image"]["image_path"]
+    )
+
     # load VISOR data
     frames_idxs = []
     # images_names = []
@@ -84,20 +99,20 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
     images_segments_dict = {}  # indexed by mapped image names
     pbar = tqdm(video_data, desc="frames", ncols=100)
     for frame_data in pbar:
-        
+
         video_name = frame_data["image"]["video"]  # e.g.: P01_01
         video_name_prefix = video_name.split("_")[0]  # e.g.: P01
         image_name = frame_data["image"]["name"]  # e.g.: P01_01_frame_0000000140.jpg
         mapped_image_name = frame_mapping[image_name]  # e.g.: frame_0000000145.jpg
-        
+
         # check if mapped image name is in JSON_DATA
         if mapped_image_name not in posed_images:
             print_warning(f"{mapped_image_name} not found in JSON_DATA, skipped.")
             continue
-        
+
         # read camera pose
         pose_flat = posed_images[mapped_image_name]
-        
+
         # QW, QX, QY, QZ, TX, TY, TZ
         quat = np.array(pose_flat[:4])
         # print("quat", quat.shape)
@@ -109,23 +124,25 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
         w2c[:3, :3] = rot
         w2c[:3, 3] = trasl
         w2c_mats.append(w2c)
-        
+
         # get frame index
         # remove extension and get str format frame index and convert to int
         frame_idx = int(mapped_image_name.split(".")[0].split("_")[-1])
         frames_idxs.append(frame_idx)
-        
+
         # get rgb image
-        image_path = os.path.join(sparse_annotations_path, "rgb_frames", split, video_name_prefix, image_name)
+        image_path = os.path.join(
+            sparse_annotations_path, "rgb_frames", split, video_name_prefix, image_name
+        )
         images_paths.append(image_path)
-        
+
         # append image names
         # images_names.append(image_name)
         mapped_images_names.append(mapped_image_name)
-        
+
         # get annotations
         images_segments_dict[mapped_image_name] = frame_data["annotations"]
-            
+
     # Concatenate poses
     w2c_mats = np.stack(w2c_mats, axis=0)  # (N, 4, 4)
     c2w_mats = np.linalg.inv(w2c_mats)  # (N, 4, 4)
@@ -135,7 +152,7 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
     inds = np.argsort(frames_idxs)
     c2w_mats = c2w_mats[inds]
     frames_idxs = frames_idxs[inds]
-    
+
     # reorder images names and paths
     new_images_paths = []
     # new_images_names = []
@@ -147,8 +164,14 @@ def _extract_data(scene_name, annotations_path, frame_mapping, posed_images, spa
     images_paths = new_images_paths
     # images_names = new_images_names
     mapped_images_names = new_mapped_images_names
-    
-    return c2w_mats, frames_idxs, images_paths, mapped_images_names, images_segments_dict
+
+    return (
+        c2w_mats,
+        frames_idxs,
+        images_paths,
+        mapped_images_names,
+        images_segments_dict,
+    )
 
 
 def load(
@@ -156,7 +179,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "val"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """VISOR data format loader.
 
@@ -171,7 +194,7 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-    
+
     # Default configuration
     defaults = {
         "scene_type": "unbounded",
@@ -185,47 +208,52 @@ def load(
         "frame_rate": 59.94,
         "pose_only": False,
     }
-    
+
     # Update config with defaults
     for key, default_value in defaults.items():
         if key not in config:
             config[key] = default_value
             if verbose:
                 print_warning(f"Setting '{key}' to default value: {default_value}")
-    
+        else:
+            if verbose:
+                print_success(f"Using '{key}': {config[key]}")
+
     # Check for unimplemented features
     if config.get("pose_only"):
         if verbose:
             print_warning("pose_only is True, but this is not implemented yet")
-    
+
     # Debugging output
     if verbose:
         print("load_blender config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
-            
+
     # -------------------------------------------------------------------------
-    
+
     # load frame mapping
     # mapping of VISOR sparse frames to the originally released rgb_frames in EPIC-KITCHENS
     frame_mapping_path = dataset_path / "frame_mapping.json"
     with open(frame_mapping_path, "r") as fp:
         frame_mapping = json.load(fp)[scene_name]
     print_log(f"loaded frame mapping {frame_mapping_path}")
-    
+
     # read JSON_DATA cameras
     cameras_path = dataset_path / "JSON_DATA"
     assert cameras_path.exists(), f"cameras_path path does not exist: {cameras_path}"
-    
+
     cameras_json_path = cameras_path / f"{scene_name}.json"
-    assert cameras_json_path.exists(), f"cameras_json_path path does not exist: {cameras_json_path}"
-    
+    assert (
+        cameras_json_path.exists()
+    ), f"cameras_json_path path does not exist: {cameras_json_path}"
+
     with open(cameras_json_path, "r") as fp:
         sequence_data = json.load(fp)
-    
+
     # load epic-kitchen sequence images data
     posed_images = sequence_data["images"]
-    
+
     # load intrinsics
     camera = sequence_data["camera"]
     # camera_id = camera["id"]  # 1
@@ -248,7 +276,7 @@ def load(
     scale_y = target_height / camera_height
     K[0, :] *= scale_x
     K[1, :] *= scale_y
-    
+
     # load point cloud
     points = sequence_data["points"]
     points_3d = []
@@ -261,25 +289,36 @@ def load(
     points_3d = np.stack(points_3d, axis=0)
     points_rgb = np.stack(points_rgb, axis=0)
     point_cloud = PointCloud(points_3d, points_rgb=points_rgb)
-    
+
     # load VISOR annotations
     sparse_annotations_path = dataset_path / "GroundTruth-SparseAnnotations"
-    assert sparse_annotations_path.exists(), f"sparse_annotations_path path does not exist: {sparse_annotations_path}"
-    
+    assert (
+        sparse_annotations_path.exists()
+    ), f"sparse_annotations_path path does not exist: {sparse_annotations_path}"
+
     # annotations paths
     annotations_path = sparse_annotations_path / "annotations"
-    assert annotations_path.exists(), f"annotations_path path does not exist: {annotations_path}"
-    
+    assert (
+        annotations_path.exists()
+    ), f"annotations_path path does not exist: {annotations_path}"
+
     # get train split (will be then splitted in train / test)
     split = "train"
-    
-    res = _extract_data(scene_name, annotations_path, frame_mapping, posed_images, sparse_annotations_path, split)
+
+    res = _extract_data(
+        scene_name,
+        annotations_path,
+        frame_mapping,
+        posed_images,
+        sparse_annotations_path,
+        split,
+    )
     c2w_mats = res[0]
     frames_idxs = res[1]
     images_paths = res[2]
     mapped_images_names = res[3]
     images_segments_dict = res[4]
-    
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
 
@@ -294,11 +333,11 @@ def load(
     scene_radius = new_max_camera_distance
 
     scene_transform = np.eye(4)
-    
+
     # scene rotation
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    
+
     # translate
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [
@@ -306,16 +345,18 @@ def load(
         config["translate_scene_y"],
         config["translate_scene_z"],
     ]
-    
+
     # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
-    
+
     # Create scaling matrix
-    scaling_matrix = np.diag([scene_radius_mult, scene_radius_mult, scene_radius_mult, 1])
-    
+    scaling_matrix = np.diag(
+        [scene_radius_mult, scene_radius_mult, scene_radius_mult, 1]
+    )
+
     # Incorporate scaling into scene_transform
     scene_transform = scaling_matrix @ scene_transform
-    
+
     # global transform
     global_transform = np.eye(4)
 
@@ -325,10 +366,14 @@ def load(
     # apply global transform
     # point_cloud *= scene_radius_mult
     point_cloud.transform(scene_transform)
-    
+
     # build cameras
     cameras_all = []
-    pbar = tqdm(zip(c2w_mats, images_paths, frames_idxs, mapped_images_names), desc="images", ncols=100)
+    pbar = tqdm(
+        zip(c2w_mats, images_paths, frames_idxs, mapped_images_names),
+        desc="images",
+        ncols=100,
+    )
     for idx, camera_meta in enumerate(pbar):
 
         # unpack
@@ -347,24 +392,20 @@ def load(
         img_pil = Image.open(img_path)
         img_np = np.array(img_pil)[..., :3]
         cam_imgs = img_np[None, ...]  # (1, H, W, 3)
-        
+
         # get annotations
         mapped_image_name = camera_meta[3]
         annotations = images_segments_dict[mapped_image_name]
-        
+
         # get mask
         mask_np = _generate_mask_from_polygons(
-            annotations=annotations,
-            width=target_width,
-            height=target_height
-        ) # (H, W, 1)
+            annotations=annotations, width=target_width, height=target_height
+        )  # (H, W, 1)
         cam_masks = mask_np[None, ...]  # (1, H, W, 1)
-        
+
         semantic_mask_np = _generate_semantic_mask_from_polygons(
-            annotations=annotations,
-            width=target_width,
-            height=target_height
-        ) # (H, W, 1)
+            annotations=annotations, width=target_width, height=target_height
+        )  # (H, W, 1)
         cam_semantic_masks = semantic_mask_np[None, ...]  # (1, H, W, 1)
 
         # create camera
@@ -383,11 +424,11 @@ def load(
         )
 
         cameras_all.append(camera)
-        
+
     # split cameras into train and test
     train_test_overlap = config["train_test_overlap"]
     test_camera_freq = config["test_camera_freq"]
-    
+
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
@@ -405,7 +446,7 @@ def load(
             for i, camera in enumerate(cameras_all):
                 if i % test_camera_freq == 0:
                     cameras_splits[split].append(camera)
-    
+
     return {
         "scene_type": config["scene_type"],
         "cameras_splits": cameras_splits,

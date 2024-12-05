@@ -269,7 +269,7 @@ def get_data_per_pixels(
 
     # prepare output
     vals = {}
-    
+
     # # TODO: handle this in a better way
     # cast_modality = {
     #     "rgbs": True,

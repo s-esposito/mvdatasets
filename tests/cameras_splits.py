@@ -39,39 +39,43 @@ def main(args: Args):
     #     device=device,
     #     verbose=True,
     # )
-    
+
     # foreground bb
     bb = BoundingBox(
         pose=np.eye(4),
         local_scale=mv_data.get_foreground_radius() * 2,
         device=device,
     )
-    
+
     # scene type
     scene_type = config.get("scene_type", None)
     if scene_type == "bounded":
         draw_bounding_cube = True
         draw_contraction_spheres = False
-        
+
     if scene_type == "unbounded":
         draw_bounding_cube = False
         draw_contraction_spheres = True
-        
+
         if mv_data.get_scene_radius() > 1.0:
-            print_warning("scene radius is greater than 1.0, contraction spheres will not be displayed")
+            print_warning(
+                "scene radius is greater than 1.0, contraction spheres will not be displayed"
+            )
             bb = None
             draw_contraction_spheres = False
 
     # Visualize cameras
     for split in mv_data.get_splits():
-        
+
         nr_cameras = len(mv_data.get_split(split))
         if nr_cameras // 50 > 1:
             draw_every_n_cameras = nr_cameras // 50
-            print_warning(f"{split} has too many cameras; displaying one every {draw_every_n_cameras}")
+            print_warning(
+                f"{split} has too many cameras; displaying one every {draw_every_n_cameras}"
+            )
         else:
             draw_every_n_cameras = 1
-            
+
         plot_3d(
             cameras=mv_data.get_split(split),
             draw_every_n_cameras=draw_every_n_cameras,

@@ -27,16 +27,18 @@ def make_video_camera_trajectory(
     # check if save_path extension is mp4
     if save_path.suffix != ".mp4":
         print_error("save_path extension must be mp4")
-    
+
     # uniform sampling of sequence lenght
     sequence_len = len(cameras)
     if nr_frames == -1:
         nr_frames = sequence_len
     elif nr_frames > sequence_len or nr_frames <= 0:
-        print_error(f"nr_frames must be less than or equal to {sequence_len} and greater than 0")
+        print_error(
+            f"nr_frames must be less than or equal to {sequence_len} and greater than 0"
+        )
     step_size = sequence_len // nr_frames
     frames_idxs = np.arange(0, sequence_len, step_size)
-    
+
     # subsample point cloud (if available)
     if points_3d is not None:
         if max_nr_points is not None:
@@ -45,30 +47,30 @@ def make_video_camera_trajectory(
                 points_3d_ = points_3d[idx]
         else:
             points_3d_ = points_3d
-    
+
     # remove extension from save_path
     output_path = save_path.parent / save_path.stem
-    
+
     # create output folder (e.g. ./trajectory)
-    
+
     # if output_path exists, remove it
     if os.path.exists(output_path):
         print_log(f"overriding existing {output_path}")
-        os.system(f'rm -rf {output_path}')
+        os.system(f"rm -rf {output_path}")
     os.makedirs(output_path)
-    
+
     # Visualize cameras
     pbar = tqdm(enumerate(frames_idxs), desc="frames", ncols=100)
     for _, last_frame_idx in pbar:
-        
+
         # get camera
         camera = cameras[last_frame_idx]
-        
+
         # get timestamp
         ts = camera.get_timestamps()[0]
         # round to 3 decimal places
         ts = round(ts, 3)
-        
+
         # save plot as png in output_path
         plot_camera_trajectory(
             cameras=cameras,
@@ -91,12 +93,14 @@ def make_video_camera_trajectory(
             show=False,
             save_path=os.path.join(output_path, f"{format(last_frame_idx, '09d')}.png"),
         )
-        
+
     # make video from plots in output_path
-    os.system(f'ffmpeg -y -r {fps} -i {output_path}/%09d.png -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -vcodec libx264 -crf 25 -pix_fmt yuv420p {save_path}')
+    os.system(
+        f'ffmpeg -y -r {fps} -i {output_path}/%09d.png -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -vcodec libx264 -crf 25 -pix_fmt yuv420p {save_path}'
+    )
     print_log(f"video saved at {save_path}")
-    
+
     # remove tmp files
     if remove_tmp_files:
-        os.system(f'rm -rf {output_path}')
+        os.system(f"rm -rf {output_path}")
         print_log("removed temporary files")

@@ -19,7 +19,13 @@ from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uin
 from mvdatasets.utils.printing import print_error, print_warning
 
 
-def load_ingp(dataset_path: Path, scene_name: str, splits: list, config: dict = {}, verbose: bool = False):
+def load_ingp(
+    dataset_path: Path,
+    scene_name: str,
+    splits: list,
+    config: dict = {},
+    verbose: bool = False,
+):
     """INGP data format loader.
 
     Args:

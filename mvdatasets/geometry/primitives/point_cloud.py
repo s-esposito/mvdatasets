@@ -5,7 +5,7 @@ from mvdatasets.utils.printing import print_error
 
 
 class PointCloud:
-    
+
     def __init__(
         self,
         points_3d: np.ndarray,
@@ -17,7 +17,7 @@ class PointCloud:
     ):
         self.points_3d = points_3d
         self.points_rgb = points_rgb
-        
+
         if self.points_rgb is not None:
             # check if dimensions are correct
             if self.points_rgb.ndim == 2:
@@ -41,18 +41,18 @@ class PointCloud:
                 print_error(
                     f"Points RGB must have shape (N, 3) or (3,), got {self.points_rgb.shape}"
                 )
-            
+
         # plotting attributes
         self.color = None
         self.label = label
         self.size = size
         self.marker = marker
-    
+
     def shape(self):
         return self.points_3d.shape
-    
+
     def __str__(self) -> str:
         return f"PointCloud with {self.points_3d.shape[0]} points"
-        
+
     def transform(self, transformation: np.ndarray):
         self.points_3d = apply_transformation_3d(self.points_3d, transformation)

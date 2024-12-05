@@ -347,81 +347,84 @@ def homogeneous_to_euclidean(
     return vectors[..., :-1] / vectors[..., -1:]
 
 
-# def look_at(eye, center, up, forward_positive_z=False):
-#     """
-#     Compute camera pose from look-at vectors.
-
-#     Args:
-#         eye (np.ndarray): (3,) Camera position in world space.
-#         center (np.ndarray): (3,) Point to look at in world space.
-#         up (np.ndarray): (3,) Up vector.
-#         forward_positive_z (bool): If True, forward points to +Z. If False, forward points to -Z.
-
-#     Returns:
-#         np.ndarray: (4, 4) Camera pose matrix.
-#     """
-#     assert eye.shape == (3,)
-#     assert center.shape == (3,)
-#     assert up.shape == (3,)
-
-#     # Compute forward vector
-#     forward = center - eye if forward_positive_z else eye - center
-#     forward = forward / np.linalg.norm(forward)
-
-#     # Compute right and up vectors
-#     right = np.cross(up, forward)
-#     right = right / np.linalg.norm(right)
-#     new_up = np.cross(forward, right)
-#     new_up = new_up / np.linalg.norm(new_up)
-
-#     # Construct rotation matrix
-#     rotation = np.eye(4)
-#     rotation[:3, 0] = right
-#     rotation[:3, 1] = new_up
-#     rotation[:3, 2] = forward if forward_positive_z else -forward
-
-#     # Add translation
-#     rotation[:3, 3] = eye
-
-#     return rotation
-
-
-def look_at(
-    camera_origin: np.ndarray, target_point: np.ndarray, up: np.ndarray
-) -> np.ndarray:
-    """Compute camera pose from look at vectors
-    args:
-        camera_origin (np.ndarray) : (3,) camera position
-        target_point (np.ndarray) : (3,) point to look at
-        up (np.ndarray) : (3,) up vector
-    out:
-        pose (np.ndarray) : (4, 4) camera pose
+def look_at(eye, center, up):
     """
+    Compute camera pose from look-at vectors (OpenCV format).
 
-    assert camera_origin.shape == (3,)
-    assert target_point.shape == (3,)
+    Args:
+        eye (np.ndarray): (3,) Camera position in world space.
+        center (np.ndarray): (3,) Point to look at in world space.
+        up (np.ndarray): (3,) Up vector.
+
+    Returns:
+        np.ndarray: (4, 4) Camera pose matrix.
+    """
+    assert eye.shape == (3,)
+    assert center.shape == (3,)
     assert up.shape == (3,)
 
-    # get camera frame
-    z = camera_origin - target_point
-    z = z / np.linalg.norm(z)
-    x = np.cross(up, z)
-    x = x / np.linalg.norm(x)
-    y = np.cross(z, x)
-    y = y / np.linalg.norm(y)
+    # Compute forward vector
+    forward = center - eye  # vector from eye to center
+    forward = forward / np.linalg.norm(forward)
 
-    # get rotation matrix
-    rotation = np.eye(3)
-    rotation[:, 0] = x
-    rotation[:, 1] = y
-    rotation[:, 2] = z
+    # Compute right and up vectors
+    right = np.cross(up, forward)
+    right = right / np.linalg.norm(right)
+    new_up = np.cross(forward, right)
+    new_up = new_up / np.linalg.norm(new_up)
 
-    # add translation
-    pose = np.eye(4)
-    pose[:3, :3] = rotation
-    pose[:3, 3] = camera_origin
+    # Construct rotation matrix
+    rotation = np.eye(4)
+    rotation[:3, 0] = -right
+    rotation[:3, 1] = -new_up
+    rotation[:3, 2] = forward
 
-    return pose
+    # Add translation
+    rotation[:3, 3] = eye
+
+    return rotation
+
+
+# def look_at(
+#     camera_origin: np.ndarray, target_point: np.ndarray, up: np.ndarray
+# ) -> np.ndarray:
+#     """Compute camera pose from look at vectors
+#     args:
+#         camera_origin (np.ndarray) : (3,) camera position
+#         target_point (np.ndarray) : (3,) point to look at
+#         up (np.ndarray) : (3,) up vector in world space
+#     out:
+#         pose (np.ndarray) : (4, 4) camera pose
+#     """
+
+#     assert camera_origin.shape == (3,)
+#     assert target_point.shape == (3,)
+#     assert up.shape == (3,)
+
+#     # get camera frame
+#     z = camera_origin - target_point
+#     z = z / np.linalg.norm(z)
+#     x = np.cross(up, z)
+#     if np.linalg.norm(x) == 0:
+#         raise ValueError("up vector is parallel to camera direction")
+#     x = x / np.linalg.norm(x)
+#     y = np.cross(z, x)
+#     if np.linalg.norm(y) == 0:
+#         raise ValueError("up vector is parallel to camera direction")
+#     y = y / np.linalg.norm(y)
+
+#     # get rotation matrix
+#     rotation = np.eye(3)
+#     rotation[:, 0] = x
+#     rotation[:, 1] = y
+#     rotation[:, 2] = z
+
+#     # add translation
+#     pose = np.eye(4)
+#     pose[:3, :3] = rotation
+#     pose[:3, 3] = camera_origin
+
+#     return pose
 
 
 def get_mask_points_in_image_range(

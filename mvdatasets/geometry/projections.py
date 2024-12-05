@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from typing import Union
 from mvdatasets.geometry.common import (
     euclidean_to_homogeneous,
-    homogeneous_to_euclidean
+    homogeneous_to_euclidean,
 )
 from mvdatasets.geometry.rigid import apply_transformation_3d
 
@@ -130,14 +130,18 @@ def global_perspective_projection(
         ValueError: If inputs have incorrect types or shapes.
     """
     if isinstance(points_3d_world, torch.Tensor):
-        intrinsics = torch.tensor(
-            intrinsics, dtype=torch.float32, device=points_3d_world.device
-        )
-        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d_world.device)
+        if not isinstance(intrinsics, torch.Tensor):
+            intrinsics = torch.tensor(
+                intrinsics, dtype=torch.float32, device=points_3d_world.device
+            )
+        if not isinstance(c2w, torch.Tensor):
+            c2w = torch.tensor(c2w, dtype=torch.float32, device=points_3d_world.device)
         w2c = torch.inverse(c2w)  # World-to-camera transformation
     elif isinstance(points_3d_world, np.ndarray):
-        intrinsics = np.asarray(intrinsics, dtype=np.float32)
-        c2w = np.asarray(c2w, dtype=np.float32)
+        if not isinstance(intrinsics, np.ndarray):
+            intrinsics = np.asarray(intrinsics, dtype=np.float32)
+        if not isinstance(c2w, np.ndarray):
+            c2w = np.asarray(c2w, dtype=np.float32)
         w2c = np.linalg.inv(c2w)
     else:
         raise ValueError(
@@ -146,10 +150,10 @@ def global_perspective_projection(
 
     # Transform 3D points from world space to camera space
     points_3d_camera = apply_transformation_3d(points_3d_world, w2c)
-    
+
     # Get points in front of the camera (z > 0)
     in_front_of_camera_mask = points_3d_camera[..., 2] > 0
-    
+
     # Project 3D camera space points to 2D screen space
     points_2d_screen = local_perspective_projection(intrinsics, points_3d_camera)
 

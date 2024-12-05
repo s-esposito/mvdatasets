@@ -7,7 +7,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "test"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     scene_path = dataset_path / scene_name
     pass

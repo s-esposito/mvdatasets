@@ -1,12 +1,12 @@
 import numpy as np
 import torch
 import cv2 as cv
-from typing import Union, Tuple
+from typing import Union, Tuple, Literal
 
 from mvdatasets.geometry.rigid import apply_transformation_3d
 from mvdatasets.geometry.projections import (
     global_inv_perspective_projection,
-    global_perspective_projection
+    global_perspective_projection,
 )
 from mvdatasets.geometry.common import (
     opengl_projection_matrix_from_intrinsics,
@@ -50,6 +50,7 @@ class Camera:
         far: float = 10000.0,
         temporal_dim: int = 1,
         subsample_factor: int = 1,
+        # camera_type: Literal["opencv", "opengl"] = "opencv",  # One between "opencv" or "opengl"
         verbose: bool = False,
     ):
         """
@@ -76,6 +77,9 @@ class Camera:
         Raises:
             ValueError: If both images and width/height are missing.
         """
+
+        # # Validate camera type
+        # assert camera_type in ["opencv", "opengl"], "Invalid camera type."
 
         # Validate input dimensions
         assert intrinsics.shape == (3, 3), "`intrinsics` must be a 3x3 matrix."
@@ -121,8 +125,14 @@ class Camera:
         self._validate_data()
 
         # transforms
-        self.global_transform = global_transform.astype(np.float32) if global_transform is not None else None
-        self.local_transform = local_transform.astype(np.float32) if local_transform is not None else None
+        self.global_transform = (
+            global_transform.astype(np.float32)
+            if global_transform is not None
+            else None
+        )
+        self.local_transform = (
+            local_transform.astype(np.float32) if local_transform is not None else None
+        )
 
         # Subsample data if needed
         if subsample_factor > 1:
@@ -178,7 +188,7 @@ class Camera:
     def get_camera_idx(self) -> int:
         """return camera index"""
         return self.camera_idx
-    
+
     def get_width(self) -> int:
         """return camera image width"""
         return self.width
@@ -186,7 +196,7 @@ class Camera:
     def get_height(self) -> int:
         """return camera image height"""
         return self.height
-    
+
     def get_timestamps(self) -> np.ndarray:
         """return camera timestamps"""
         return self.timestamps
@@ -195,7 +205,7 @@ class Camera:
         """set camera intrinsics"""
         self.intrinsics = intrinsics.astype(np.float32)
         self.intrinsics_inv = np.linalg.inv(intrinsics)
-    
+
     def get_intrinsics(self) -> np.ndarray:
         """return camera intrinsics"""
         return self.intrinsics
@@ -209,7 +219,7 @@ class Camera:
         # Get camera data
         intrinsics = self.get_intrinsics()  # (3x3)
         c2w = self.get_pose()  # (4x4)
-        
+
         # Compute world-to-camera transformation
         w2c = np.linalg.inv(c2w)
 
@@ -489,13 +499,13 @@ class Camera:
         frames_idx = torch.full(
             (points_2d_screen.shape[0],), frame_idx, dtype=torch.int32, device=device
         )
-        
+
         # get all data keys if not provided
         if keys is None:
             # get all data keys
             keys = self.data.keys()
 
-        selected_data_dict = {} 
+        selected_data_dict = {}
         for key in keys:
             if key not in self.data.keys() or self.data[key] is None:
                 print_warning(f"data {key} not found for camera {self.camera_idx}")
@@ -560,9 +570,7 @@ class Camera:
 
         # Delegate to the helper function
         points_2d_screen, in_front_of_camera_mask = global_perspective_projection(
-            intrinsics=intrinsics,
-            c2w=c2w,
-            points_3d_world=points_3d
+            intrinsics=intrinsics, c2w=c2w, points_3d_world=points_3d
         )
 
         if filter_points:

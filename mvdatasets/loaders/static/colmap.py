@@ -12,7 +12,7 @@ from copy import deepcopy
 from mvdatasets import Camera
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
-from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.utils.printing import print_error, print_warning, print_success
 
 
 def load(
@@ -20,7 +20,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "test"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """LLFF data format loader.
 
@@ -35,9 +35,9 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-        
+
     scene_path = dataset_path / scene_name
-    
+
     # Default configuration
     defaults = {
         "scene_type": "bounded",
@@ -59,6 +59,9 @@ def load(
             config[key] = default_value
             if verbose:
                 print_warning(f"{key} not in config, setting to {default_value}")
+        else:
+            if verbose:
+                print_success(f"Using '{key}': {config[key]}")
 
     # Valid values for specific keys
     valid_values = {
@@ -267,11 +270,11 @@ def load(
         scene_radius = 1.0
 
     scene_transform = np.eye(4)
-    
+
     # scene rotation
     rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
     scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-    
+
     # scene translation
     translation_matrix = np.eye(4)
     translation_matrix[:3, 3] = [
@@ -279,16 +282,18 @@ def load(
         config["translate_scene_y"],
         config["translate_scene_z"],
     ]
-    
+
     # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
-    
+
     # Create scaling matrix
-    scaling_matrix = np.diag([scene_radius_mult, scene_radius_mult, scene_radius_mult, 1])
+    scaling_matrix = np.diag(
+        [scene_radius_mult, scene_radius_mult, scene_radius_mult, 1]
+    )
 
     # Incorporate scaling into scene_transform
     scene_transform = scaling_matrix @ scene_transform
-    
+
     # global transform
     global_transform = np.eye(4)
 

@@ -80,12 +80,12 @@ def main(args: Args):
             jitter_pixels=True,
             nr_rays_per_pixel=1,
         )
-    
+
         if profiler is not None:
             profiler.end("get_next_rays_batch")
 
         if not benchmark:
-            
+
             # unpack batch
             batch_cameras_idx = batch["cameras_idx"]
             batch_rays_o = batch["rays_o"]
@@ -93,21 +93,34 @@ def main(args: Args):
             batch_vals = batch["vals"]
             batch_frames_idx = batch["frames_idx"]
             batch_timestamps = batch["timestamps"]
-            
+
             # print data shapes
-            print(
-                "batch_cameras_idx", batch_cameras_idx.shape, batch_cameras_idx.dtype
-            )
+            print("batch_cameras_idx", batch_cameras_idx.shape, batch_cameras_idx.dtype)
             print("batch_frames_idx", batch_frames_idx.shape, batch_frames_idx.dtype)
-            print("batch_rays_o", batch_rays_o.shape, batch_rays_o.device, batch_rays_o.dtype)
-            print("batch_rays_d", batch_rays_d.shape, batch_rays_d.device, batch_rays_d.dtype)
-            print("batch_timestamps", batch_timestamps.shape, batch_timestamps.device, batch_timestamps.dtype)
+            print(
+                "batch_rays_o",
+                batch_rays_o.shape,
+                batch_rays_o.device,
+                batch_rays_o.dtype,
+            )
+            print(
+                "batch_rays_d",
+                batch_rays_d.shape,
+                batch_rays_d.device,
+                batch_rays_d.dtype,
+            )
+            print(
+                "batch_timestamps",
+                batch_timestamps.shape,
+                batch_timestamps.device,
+                batch_timestamps.dtype,
+            )
             for k, v in batch_vals.items():
                 if v is not None:
                     print(f"{k}", v.shape, v.device, v.dtype)
-            
+
             # print("timestamps", batch_timestamps)
-            
+
             # get gt values
             gt_rgb = batch_vals["rgbs"]
             if "masks" in batch_vals:

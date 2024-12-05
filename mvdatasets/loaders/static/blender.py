@@ -16,7 +16,7 @@ from mvdatasets.geometry.common import (
     get_min_max_cameras_distances,
 )
 from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
-from mvdatasets.utils.printing import print_error, print_warning
+from mvdatasets.utils.printing import print_error, print_warning, print_success
 from dataclasses import dataclass, asdict
 
 
@@ -54,7 +54,7 @@ def load(
     scene_name: str,
     splits: list[str] = ["train", "test"],
     config: dict = {},
-    verbose: bool = False
+    verbose: bool = False,
 ):
     """Blender data format loader.
 
@@ -69,9 +69,9 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-    
+
     scene_path = dataset_path / scene_name
-    
+
     # Default configuration
     defaults = asdict(Config())  # Convert Config to dictionary
 
@@ -81,7 +81,10 @@ def load(
             config[key] = default_value
             if verbose:
                 print_warning(f"Setting '{key}' to default value: {default_value}")
-
+        else:
+            if verbose:
+                print_success(f"Using '{key}': {config[key]}")
+                
     # Debugging output
     if verbose:
         print("load_blender config:")
@@ -92,7 +95,7 @@ def load(
 
     # read all poses
     poses_all = []
-    for split in splits:
+    for split in ["train", "test"]:
         # load current split transforms
         with open(os.path.join(scene_path, f"transforms_{split}.json"), "r") as fp:
             metas = json.load(fp)

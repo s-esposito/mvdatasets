@@ -1,6 +1,6 @@
 from rich import print
 import os
-from typing import List
+from typing import List, Dict, Any
 import numpy as np
 from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
@@ -90,7 +90,7 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.d_nerf import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
-            
+
         elif self.dataset_name == "visor":
             from mvdatasets.loaders.dynamic.visor import load
 
@@ -116,8 +116,13 @@ class MVDataset:
         else:
             print_error(f"dataset {self.dataset_name} is not supported")
 
+        if res is None:
+            print_error("dataset loader returned None, it should return a dictionary")
+
         # cameras
         cameras_splits = res["cameras_splits"]
+        if cameras_splits is None or len(cameras_splits.keys()) == 0:
+            print_error("no cameras found")  # this should never happen
 
         # config
         self.scene_type = res["scene_type"]
@@ -130,7 +135,7 @@ class MVDataset:
 
         self.scene_radius = res["scene_radius"]
         print("scene_radius:", self.scene_radius)
-        
+
         if "foreground_radius_mult" not in res:
             print_warning("foreground_radius_mult not found, setting to 0.5")
             self.foreground_radius_mult = 0.5
@@ -146,8 +151,10 @@ class MVDataset:
             self.init_sphere_radius_mult = 0.1
         else:
             self.init_sphere_radius_mult = res["init_sphere_radius_mult"]
-        
-        self.init_sphere_radius = self.min_camera_distance * self.init_sphere_radius_mult
+
+        self.init_sphere_radius = (
+            self.min_camera_distance * self.init_sphere_radius_mult
+        )
         print("init_sphere_radius:", self.init_sphere_radius)
 
         if self.init_sphere_radius > self.foreground_radius:
@@ -159,13 +166,13 @@ class MVDataset:
         else:
             self.nr_per_camera_frames = 1
         print("nr_per_camera_frames:", self.nr_per_camera_frames)
-            
+
         if "nr_sequence_frames" in res:
             self.nr_sequence_frames = res["nr_sequence_frames"]
         else:
             self.nr_sequence_frames = 1
         print("nr_sequence_frames:", self.nr_sequence_frames)
-            
+
         # optional
         if "point_clouds" in res:
             self.point_clouds = res["point_clouds"]
@@ -214,11 +221,11 @@ class MVDataset:
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
         return self.data[split]
-    
+
     def get_splits(self) -> List[str]:
         """Returns the list of splits"""
         return list(self.data.keys())
-    
+
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
 
@@ -239,11 +246,11 @@ class MVDataset:
     def get_nr_per_camera_frames(self) -> int:
         """Returns the sequence length of the dataset"""
         return self.nr_per_camera_frames
-    
+
     def get_nr_sequence_frames(self) -> int:
         """Returns the sequence length of the dataset"""
         return self.nr_sequence_frames
-    
+
     def get_width(self, split: str = "train", camera_id: int = 0) -> int:
         """Returns the width of a camera
 
