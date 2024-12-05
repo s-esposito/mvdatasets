@@ -244,6 +244,10 @@ class Camera:
     def get_data_dict(self) -> dict:
         """return all camera data"""
         return self.data
+    
+    def get_available_data(self) -> list:
+        """return all available data keys that are not None"""
+        return [key for key, val in self.data.items() if val is not None]
 
     def has_rgbs(self) -> bool:
         """check if rgbs exists"""

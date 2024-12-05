@@ -216,7 +216,7 @@ class MVDataset:
 
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""
-        if split not in self.data:
+        if split not in self.get_splits():
             print_error(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
@@ -225,6 +225,11 @@ class MVDataset:
     def get_splits(self) -> List[str]:
         """Returns the list of splits"""
         return list(self.data.keys())
+    
+    def get_split_modalities(self, split: str) -> List[str]:
+        """Returns the list of modalities for a split"""
+        cameras = self.get_split(split)
+        return cameras[0].get_available_data()
 
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius

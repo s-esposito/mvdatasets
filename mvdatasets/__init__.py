@@ -9,6 +9,8 @@ from mvdatasets.utils.printing import (
 from mvdatasets.camera import Camera
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel
+from mvdatasets.utils.profiler import Profiler
+from mvdatasets.datasplit import DataSplit
 
 # Set the custom exception handler
 import sys
