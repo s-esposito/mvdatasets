@@ -26,7 +26,6 @@ def main(args: Args):
     test_preset = get_dataset_test_preset(dataset_name)
     scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
-    config = test_preset["config"]
     splits = test_preset["splits"]
 
     # dataset loading
@@ -36,7 +35,6 @@ def main(args: Args):
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=splits,
-        config=config,
         pose_only=False,
         verbose=True,
     )
@@ -50,20 +48,20 @@ def main(args: Args):
     batch_size = 16  # nr full frames per batch
 
     # index frames -------------------------------------------------------------
-    
+
     run_index_frames = True
-    
+
     if run_index_frames:
-    
+
         # profiler = Profiler(verbose=False)
-        
+
         # initialize data loader
         data_split = DataSplit(
             cameras=mv_data.get_split("train"),
             modalities=mv_data.get_split_modalities("train"),
-            index_pixels=False
+            index_pixels=False,
         )
-        
+
         #
         data_loader = torch.utils.data.DataLoader(
             data_split,
@@ -74,53 +72,43 @@ def main(args: Args):
             pin_memory=pin_memory,
         )
         print(f"batch_size: {batch_size}")
-        
+
         # test loop
 
         # Loop over epochs
+        step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs")
         for epoch_nr in epochs_pbar:
-            # Get iterator over data
-            dataiter = iter(data_loader)
-            # Loop over batches
-            iter_pbar = tqdm(range(len(dataiter)), desc="iter")
-            for iter_nr in iter_pbar:
-                
-                try:
-                    
-                    # profiler.start("fetch_batch")
-                    
-                    # Fetch the next batch
-                    batch = next(dataiter)
-                    # Move batch to device
-                    batch = {k: v.to(device) for k, v in batch.items()}
-                    # Print batch shape
-                    for k, v in batch.items():
-                        print(f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}")
-                        
-                    # profiler.end("fetch_batch")
-                    
-                except StopIteration:
-                    # Handle iterator exhaustion (shouldn't occur unless manually breaking loop)
-                    break
-        
+            # Iterate over batches
+            iter_pbar = tqdm(data_loader, desc="iter")
+            for iter_nr, batch in enumerate(iter_pbar):
+                # Move batch to device
+                batch = {k: v.to(device) for k, v in batch.items()}
+                # Print batch shape
+                for k, v in batch.items():
+                    print(
+                        f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
+                    )
+                # Increment step
+                step += 1
+
         # profiler.print_avg_times()
-            
+
     # index pixels (too slow) -------------------------------------------------
 
     run_index_pixels = False
-    
+
     if run_index_pixels:
-    
+
         profiler = Profiler(verbose=False)
-        
+
         # initialize data loader
         data_split = DataSplit(
             cameras=mv_data.get_split("train"),
             modalities=mv_data.get_split_modalities("train"),
-            index_pixels=True
+            index_pixels=True,
         )
-        
+
         #
         real_batch_size = batch_size * data_split.width * data_split.height
         data_loader = torch.utils.data.DataLoader(
@@ -132,9 +120,9 @@ def main(args: Args):
             pin_memory=pin_memory,
         )
         print(f"real_batch_size: {real_batch_size}")
-        
+
         # test loop
-        
+
         # Loop over epochs
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs")
         for epoch_nr in epochs_pbar:
@@ -143,11 +131,11 @@ def main(args: Args):
             # Loop over batches
             iter_pbar = tqdm(range(len(dataiter)), desc="iter")
             for iter_nr in iter_pbar:
-                
+
                 try:
-                    
+
                     profiler.start("fetch_batch")
-                    
+
                     # Fetch the next batch
                     batch = next(dataiter)
                     # Move batch to device
@@ -155,15 +143,15 @@ def main(args: Args):
                     # # Print batch shape
                     # for k, v in batch.items():
                     #     print(f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}")
-                        
+
                     profiler.end("fetch_batch")
-                        
+
                 except StopIteration:
                     # Handle iterator exhaustion (shouldn't occur unless manually breaking loop)
                     break
-                
+
         profiler.print_avg_times()
-    
+
 
 if __name__ == "__main__":
     args = tyro.cli(Args)

@@ -60,7 +60,6 @@ def main(args: Args):
     test_preset = get_dataset_test_preset(dataset_name)
     scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
-    config = test_preset["config"]
     splits = test_preset["splits"]
 
     # dataset loading
@@ -70,7 +69,6 @@ def main(args: Args):
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=splits,
-        config=config,
         verbose=True,
     )
 

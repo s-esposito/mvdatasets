@@ -224,7 +224,8 @@ def global_inv_perspective_projection(
 
     # Normalize the direction vectors
     if isinstance(points_3d_world, torch.Tensor):
-        rays_d = F.normalize(points_3d_world, dim=-1)
+        # rays_d = F.normalize(points_3d_world, dim=-1)
+        rays_d = points_3d_world / torch.norm(points_3d_world, dim=-1, keepdim=True)
     else:
         rays_d = points_3d_world / np.linalg.norm(
             points_3d_world, axis=-1, keepdims=True

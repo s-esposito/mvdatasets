@@ -21,7 +21,6 @@ def main(args: Args):
     test_preset = get_dataset_test_preset(dataset_name)
     scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
-    config = test_preset["config"]
     splits = test_preset["splits"]
 
     # dataset loading
@@ -31,7 +30,6 @@ def main(args: Args):
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=splits,
-        config=config,
         verbose=True,
     )
 
@@ -39,7 +37,7 @@ def main(args: Args):
     bb = None
     bs = None
 
-    scene_type = config.get("scene_type", None)
+    scene_type = mv_data.get_scene_type()
     if scene_type == "bounded":
         draw_bounding_cube = True
         draw_contraction_spheres = False
@@ -53,7 +51,9 @@ def main(args: Args):
         draw_bounding_cube = False
         draw_contraction_spheres = True
         if mv_data.get_scene_radius() > 1.0:
-            print_warning("scene radius is greater than 1.0, contraction spheres will not be displayed")
+            print_warning(
+                "scene radius is greater than 1.0, contraction spheres will not be displayed"
+            )
             draw_contraction_spheres = False
 
     else:
@@ -69,7 +69,7 @@ def main(args: Args):
     # Visualize cameras
     plot_3d(
         cameras=[camera],
-        points_3d=mv_data.point_clouds
+        points_3d=mv_data.point_clouds,
         # bounding_boxes=[bb] if bb is not None else None,
         nr_rays=256,
         azimuth_deg=20,
@@ -103,7 +103,9 @@ def main(args: Args):
         )
         is_hit, t_near, t_far, p_near, p_far = bs.intersect(rays_o, rays_d)
         if mv_data.get_scene_radius() > 1.0:
-            print_warning("scene radius is greater than 1.0, bounding box is not defined")
+            print_warning(
+                "scene radius is greater than 1.0, bounding box is not defined"
+            )
             exit(0)
     else:
         print_error("scene_type not supported")

@@ -244,7 +244,7 @@ class Camera:
     def get_data_dict(self) -> dict:
         """return all camera data"""
         return self.data
-    
+
     def get_available_data(self) -> list:
         """return all available data keys that are not None"""
         return [key for key, val in self.data.items() if val is not None]
@@ -375,6 +375,15 @@ class Camera:
         pose = self.get_pose()
         rotation = pose[:3, :3]
         return rotation
+
+    def get_rotation_as_euler(self) -> np.ndarray:
+        """returns camera rotation in world space as euler angles
+        Returns:
+            np.ndarray: (3,) camera rotation
+        """
+        rotation = self.get_rotation()
+        euler = cv.Rodrigues(rotation)[0].ravel()
+        return euler
 
     def get_center(self) -> np.ndarray:
         """returns camera center in world space

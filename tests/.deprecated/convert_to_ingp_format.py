@@ -55,7 +55,6 @@ if __name__ == "__main__":
         args.datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
-        config=config,
         verbose=True,
     )
 

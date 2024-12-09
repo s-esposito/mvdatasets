@@ -14,9 +14,11 @@ def convert_6d_to_rotation_matrix(cont_6d: torch.Tensor) -> torch.Tensor:
     y1 = cont_6d[..., 3:6]
 
     # Normalize the first component to create the x-axis of the rotation
-    x = F.normalize(x1, dim=-1)
+    x = x1 / torch.norm(x1, dim=-1, keepdim=True)
+    # x = F.normalize(x1, dim=-1)
     # Orthogonalize y1 to x to ensure orthogonality and normalize it
-    y = F.normalize(y1 - (y1 * x).sum(dim=-1, keepdim=True) * x, dim=-1)
+    y1 = y1 - (y1 * x).sum(dim=-1, keepdim=True) * x
+    y = y1 / torch.norm(y1, dim=-1, keepdim=True)
     # Compute the cross product to get the z-axis
     z = torch.linalg.cross(x, y, dim=-1)
 

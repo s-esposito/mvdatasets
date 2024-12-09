@@ -24,17 +24,14 @@ def load(
     # Default configuration
     defaults = {
         "scene_type": "bounded",
-        "load_mask": True,
-        # "use_binary_mask": True,
+        "load_masks": True,
         "rotate_scene_x_axis_deg": -90.0,
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
         "foreground_radius_mult": 1.0,
-        # "init_sphere_radius_mult": 0.3,
+        "frame_rate": 30.0,
         "pose_only": False,
     }
-    
-    print(config)
 
     # Update config with defaults
     for key, default_value in defaults.items():
@@ -145,8 +142,7 @@ def load(
         )
     )
 
-    fps = 30.0
-    cam_timestamps = np.arange(temporal_dim) / fps
+    cam_timestamps = np.arange(temporal_dim) / config["frame_rate"]
 
     cameras_splits = {}
     for split in splits:
@@ -171,7 +167,7 @@ def load(
                     cam_imgs.append(img_np)
                 cam_imgs = np.stack(cam_imgs, axis=0)
 
-                if config["load_mask"]:
+                if config["load_masks"]:
 
                     # get all masks in camera_id folder
                     cam_path = scene_path / "seg" / str(camera_id)

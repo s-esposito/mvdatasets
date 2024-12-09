@@ -34,9 +34,9 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 <td>
 
 **Dynamic:**
-- [ ] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
+- [x] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
 - [x] [D-NeRF](https://www.albertpumarola.com/research/D-NeRF/index.html): semi-monocular, bounded
-- [ ] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
+- [x] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
 - [ ] [iPhone](#): monocular, unbounded
 - [ ] [DynamicScenes](#): monocular, unbounded
 - [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded

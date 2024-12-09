@@ -69,7 +69,7 @@ def load(
     # Default configuration
     defaults = {
         "scene_type": "unbounded",
-        "load_mask": True,
+        "load_masks": True,
         "test_camera_freq": 8,
         "train_test_overlap": False,
         "rotate_scene_x_axis_deg": 205,
@@ -89,7 +89,7 @@ def load(
         else:
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
-                
+
     # Check for unimplemented features
     if config.get("pose_only"):
         if verbose:
@@ -115,7 +115,7 @@ def load(
 
     # (optional) load mask images to cpu as numpy arrays
     masks = []
-    if config["load_mask"]:
+    if config["load_masks"]:
         masks_list = sorted(glob(os.path.join(scene_path, "mask/*.png")))
         pbar = tqdm(masks_list, desc="masks", ncols=100)
         for im_name in pbar:
@@ -182,7 +182,7 @@ def load(
         cam_imgs = imgs[idx][None, ...]
 
         # get mask (optional)
-        if config["load_mask"] and len(masks) > idx:
+        if config["load_masks"] and len(masks) > idx:
             cam_masks = masks[idx][None, ...]
         else:
             cam_masks = None

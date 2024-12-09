@@ -15,7 +15,7 @@ def get_pixels(height: int, width: int, device: str = "cpu") -> torch.Tensor:
     pixels_x, pixels_y = torch.meshgrid(
         torch.arange(width, device=device),
         torch.arange(height, device=device),
-        indexing="ij"
+        indexing="ij",
     )
     pixels = torch.stack([pixels_x, pixels_y], dim=-1).type(torch.uint32)
 

@@ -39,7 +39,6 @@ def main(args: Args):
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=["train", "test"],
-        config=config,
         verbose=True,
     )
 

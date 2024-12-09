@@ -6,6 +6,7 @@ from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
+from mvdatasets.loaders.configs import get_scene_preset
 
 
 class MVDataset:
@@ -27,6 +28,14 @@ class MVDataset:
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
+
+        # load dataset and scene default config
+        default_config = get_scene_preset(dataset_name, scene_name)
+
+        # override default config with user config
+        for key, value in config.items():
+            default_config[key] = value
+        config = default_config
 
         # default config
         config["pose_only"] = pose_only
@@ -77,9 +86,14 @@ class MVDataset:
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
+        # load generic colmap reconstruction
         # load llff
         # load mipnerf360
-        elif self.dataset_name == "llff" or self.dataset_name == "mipnerf360":
+        elif (
+            self.dataset_name == "colmap"
+            or self.dataset_name == "llff"
+            or self.dataset_name == "mipnerf360"
+        ):
             from mvdatasets.loaders.static.colmap import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
@@ -225,7 +239,7 @@ class MVDataset:
     def get_splits(self) -> List[str]:
         """Returns the list of splits"""
         return list(self.data.keys())
-    
+
     def get_split_modalities(self, split: str) -> List[str]:
         """Returns the list of modalities for a split"""
         cameras = self.get_split(split)
@@ -233,6 +247,9 @@ class MVDataset:
 
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
+
+    def get_scene_type(self) -> str:
+        return self.scene_type
 
     def get_scene_radius(self) -> float:
         return self.scene_radius

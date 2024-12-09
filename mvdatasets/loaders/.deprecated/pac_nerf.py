@@ -40,7 +40,7 @@ from mvdatasets.utils.images import numpy_to_image, image_to_numpy
 #     return points
 
 
-def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
+def load_pac_nerf(data_path, n_cameras=1, load_masks=False):
     """
     Load pac_nerf data.
     """
@@ -93,7 +93,7 @@ def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
     # nb: not working great, image differences are noisy
     # should use the same approach as in the original code
     masks_all = np.zeros((n_cameras, n_frames, height, width, 1))
-    if load_mask:
+    if load_masks:
         # use background image to construct per frame masks
         for cam_id in range(n_cameras):
             for frame_id in range(n_frames):
@@ -104,7 +104,7 @@ def load_pac_nerf(data_path, n_cameras=1, load_mask=False):
                 ).astype(np.float32)
 
     cameras = []
-    if load_mask:
+    if load_masks:
         idx = 0
         for intrinsics, pose, imgs, masks in zip(
             intrinsics_all, poses_all, imgs_all, masks_all

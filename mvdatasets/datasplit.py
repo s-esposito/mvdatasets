@@ -37,7 +37,7 @@ class DataSplit:
         timestamps_all = []
 
         for camera in cameras:
-            
+
             # get camera data
             for key, val in camera.data.items():
                 # populate data dict
@@ -48,7 +48,7 @@ class DataSplit:
                         data[key].append(val)
                     else:
                         print_error(f"camera {camera.camera_idx} has no {key} data")
-            
+
             intrinsics_all.append(camera.get_intrinsics())
             intrinsics_inv_all.append(camera.get_intrinsics_inv())
             c2w_all.append(camera.get_pose())
@@ -101,17 +101,23 @@ class DataSplit:
             # get camera id by dividing by the temporal dimension
             cam_idx = idx // self.temporal_dim
             frame_idx = idx % self.temporal_dim
-        
+
         data = {
             "cameras_idxs": torch.tensor(cam_idx, dtype=torch.uint32),  # (1,)
             "frames_idxs": torch.tensor(frame_idx, dtype=torch.uint32),  # (1,)
-            "intrinsics": torch.from_numpy(self.intrinsics_all[cam_idx]).float(),  # (3, 3)
-            "intrinsics_inv": torch.from_numpy(self.intrinsics_inv_all[cam_idx]).float(),  # (3, 3)
+            "intrinsics": torch.from_numpy(
+                self.intrinsics_all[cam_idx]
+            ).float(),  # (3, 3)
+            "intrinsics_inv": torch.from_numpy(
+                self.intrinsics_inv_all[cam_idx]
+            ).float(),  # (3, 3)
             "c2w": torch.from_numpy(self.c2w_all[cam_idx]).float(),  # (4, 4)
             "w2c": torch.from_numpy(self.w2c_all[cam_idx]).float(),  # (4, 4)
-            "timestamps": torch.tensor(self.timestamps_all[cam_idx, frame_idx]).float()  # (1,)
+            "timestamps": torch.tensor(
+                self.timestamps_all[cam_idx, frame_idx]
+            ).float(),  # (1,)
         }
-        
+
         if self.index_pixels:
             i = pixel_idx % self.width  # x coordinate (width)
             j = pixel_idx // self.width  # y coordinate (height)
@@ -123,12 +129,14 @@ class DataSplit:
             for k, v in self.data.items():
                 # keep dtype consistent with the one in Camera.data
                 data[k] = torch.from_numpy(v[cam_idx, frame_idx])  # (H, W, C)
-            data["pixels"] = get_pixels(width=self.width, height=self.height)  # (H, W, 2)
+            data["pixels"] = get_pixels(
+                width=self.width, height=self.height
+            )  # (H, W, 2)
         return data
 
     def __str__(self) -> str:
         return f"DataSplit with {len(self)} indexable items, totalling {bytes_to_gb(self.get_memory_footprint())} GB."
-    
+
     def get_memory_footprint(self) -> int:
         # returns the memory footprint of the split in bytes
         memory_footprint = 0

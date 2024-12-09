@@ -22,7 +22,6 @@ def main(args: Args):
     test_preset = get_dataset_test_preset(dataset_name)
     scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
-    config = test_preset["config"]
     splits = test_preset["splits"]
 
     # dataset loading
@@ -32,14 +31,13 @@ def main(args: Args):
         datasets_path,
         point_clouds_paths=pc_paths,
         splits=splits,
-        config=config,
         verbose=True,
     )
 
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
     camera = mv_data.get_split("test")[rand_idx]
-    
+
     # random frame index
     frame_idx = torch.randint(0, camera.temporal_dim, (1,)).item()
 

@@ -8,7 +8,12 @@ from PIL import Image
 import cv2
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
-from mvdatasets.utils.printing import print_error, print_warning, print_log, print_success
+from mvdatasets.utils.printing import (
+    print_error,
+    print_warning,
+    print_log,
+    print_success,
+)
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
 
@@ -66,7 +71,7 @@ def _extract_data(
     # split either "train" or "val"
     if split not in ["train", "val"]:
         print_error(f"Invalid split: {split}")
-        
+
     if split == "val":
         # not implemented yet
         print_error("Split 'val' not implemented/tested yet.")
@@ -198,13 +203,17 @@ def load(
     # Default configuration
     defaults = {
         "scene_type": "unbounded",
+        "load_masks": True,
+        "load_semantic_masks": True,
         "translate_scene_x": 0.0,
-        "translate_scene_y": -2.0,
-        "translate_scene_z": 2.0,
-        "rotate_scene_x_axis_deg": 90.0,
+        "translate_scene_y": 0.0,
+        "translate_scene_z": 0.0,
+        "rotate_scene_x_axis_deg": 180.0,
         "test_camera_freq": 50,
         "train_test_overlap": False,
         "subsample_factor": 1,
+        "target_max_camera_distance": 1.0,
+        "foreground_radius_mult": 1.0,
         "frame_rate": 59.94,
         "pose_only": False,
     }
@@ -226,7 +235,7 @@ def load(
 
     # Debugging output
     if verbose:
-        print("load_blender config:")
+        print("load_visor config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -323,7 +332,7 @@ def load(
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
 
     # scene scale such that furthest away camera is at target distance
-    scene_radius_mult = 1.0
+    scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
 
     # new scene scale
     new_min_camera_distance = min_camera_distance * scene_radius_mult
@@ -398,15 +407,22 @@ def load(
         annotations = images_segments_dict[mapped_image_name]
 
         # get mask
-        mask_np = _generate_mask_from_polygons(
-            annotations=annotations, width=target_width, height=target_height
-        )  # (H, W, 1)
-        cam_masks = mask_np[None, ...]  # (1, H, W, 1)
+        if config["load_masks"]:
+            mask_np = _generate_mask_from_polygons(
+                annotations=annotations, width=target_width, height=target_height
+            )  # (H, W, 1)
+            cam_masks = mask_np[None, ...]  # (1, H, W, 1)
+        else:
+            cam_masks = None
 
-        semantic_mask_np = _generate_semantic_mask_from_polygons(
-            annotations=annotations, width=target_width, height=target_height
-        )  # (H, W, 1)
-        cam_semantic_masks = semantic_mask_np[None, ...]  # (1, H, W, 1)
+        # get semantic mask
+        if config["load_semantic_masks"]:
+            semantic_mask_np = _generate_semantic_mask_from_polygons(
+                annotations=annotations, width=target_width, height=target_height
+            )  # (H, W, 1)
+            cam_semantic_masks = semantic_mask_np[None, ...]  # (1, H, W, 1)
+        else:
+            cam_semantic_masks = None
 
         # create camera
         camera = Camera(
@@ -455,6 +471,7 @@ def load(
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
         "scene_radius": scene_radius,
+        "foreground_radius_mult": config["foreground_radius_mult"],
         "nr_per_camera_frames": 1,
         "nr_sequence_frames": len(cameras_splits["train"]),
     }

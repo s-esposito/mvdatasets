@@ -45,7 +45,7 @@ def load(
     # Default configuration
     defaults = {
         "scene_type": "bounded",
-        "load_mask": True,
+        "load_masks": True,
         "use_binary_mask": True,
         "white_bg": True,
         "rotate_scene_x_axis_deg": 0.0,
@@ -65,7 +65,7 @@ def load(
         else:
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
-                
+
     # Debugging output
     if verbose:
         print("load_blender config:")
@@ -175,7 +175,7 @@ def load(
                 if height is None or width is None:
                     height, width = img_np.shape[:2]
 
-                if config["load_mask"]:
+                if config["load_masks"]:
                     # use alpha channel as mask
                     # (nb: this is only resonable for synthetic data)
                     mask_np = img_np[..., -1, None]
@@ -207,7 +207,7 @@ def load(
                 # print(cam_imgs.shape)
 
                 # get mask (optional)
-                if config["load_mask"]:
+                if config["load_masks"]:
                     cam_masks = mask_np[None, ...]
                     # print(cam_masks.shape)
                 else:
