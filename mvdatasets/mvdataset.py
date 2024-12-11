@@ -120,15 +120,16 @@ class MVDataset:
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "iphone":
-            from mvdatasets.loaders.dynamic.iphone import load
+        # elif self.dataset_name == "iphone":
+        #     from mvdatasets.loaders.dynamic.iphone import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
-
-        # UNPACK -------------------------------------------------------------
+        #     res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         else:
+            
             print_error(f"dataset {self.dataset_name} is not supported")
+        
+        # UNPACK -------------------------------------------------------------
 
         if res is None:
             print_error("dataset loader returned None, it should return a dictionary")
@@ -273,61 +274,61 @@ class MVDataset:
         """Returns the sequence length of the dataset"""
         return self.nr_sequence_frames
 
-    def get_width(self, split: str = "train", camera_id: int = 0) -> int:
+    def get_width(self, split: str = "train", camera_idx: int = 0) -> int:
         """Returns the width of a camera
 
         Args:
             split (str, optional): Defaults to "train".
-            camera_id (int, optional): Defaults to 0.
+            camera_idx (int, optional): Defaults to 0.
 
         Returns:
             int: width
         """
         if split in self.data:
-            if camera_id >= 0 and camera_id < len(self.data[split]):
-                return self.data[split][camera_id].width
+            if camera_idx >= 0 and camera_idx < len(self.data[split]):
+                return self.data[split][camera_idx].width
             else:
                 print_error(
-                    f"camera index {camera_id} out of range [0, {len(self.data[split])})"
+                    f"camera index {camera_idx} out of range [0, {len(self.data[split])})"
                 )
         else:
             print_error(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
 
-    def get_height(self, split: str = "train", camera_id: int = 0) -> int:
+    def get_height(self, split: str = "train", camera_idx: int = 0) -> int:
         """Returns the height of a camera
 
         Args:
             split (str, optional): Defaults to "train".
-            camera_id (int, optional): Defaults to 0.
+            camera_idx (int, optional): Defaults to 0.
 
         Returns:
             int: height
         """
         if split in self.data:
-            if camera_id >= 0 and camera_id < len(self.data[split]):
-                return self.data[split][camera_id].height
+            if camera_idx >= 0 and camera_idx < len(self.data[split]):
+                return self.data[split][camera_idx].height
             else:
                 print_error(
-                    f"camera index {camera_id} out of range [0, {len(self.data[split])})"
+                    f"camera index {camera_idx} out of range [0, {len(self.data[split])})"
                 )
         else:
             print_error(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
 
-    def get_resolution(self, split="train", camera_id=0) -> tuple:
+    def get_resolution(self, split="train", camera_idx=0) -> tuple:
         """Returns the resolution (width, height) of a camera
 
         Args:
             split (str, optional): Defaults to "train".
-            camera_id (int, optional): Defaults to 0.
+            camera_idx (int, optional): Defaults to 0.
 
         Returns:
             (int, int): width, height
         """
-        return (self.get_width(split, camera_id), self.get_height(split, camera_id))
+        return (self.get_width(split, camera_idx), self.get_height(split, camera_idx))
 
     def __getitem__(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""

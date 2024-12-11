@@ -71,8 +71,7 @@ def load(
     unimplemented_features = {
         "load_depth": "load_depth is not implemented yet",
         "load_semantics": "load_semantics is not implemented yet",
-        "load_semantic_instance": "load_semantic_instance is not implemented yet",
-        "pose_only": "pose_only is not implemented yet",
+        "load_semantic_instance": "load_semantic_instance is not implemented yet"
     }
     for key, message in unimplemented_features.items():
         if config.get(key):
@@ -150,33 +149,40 @@ def load(
             test_skip = config["test_skip"]
             frames_list = frames_list[::test_skip]
 
+        # read H, W
+        if height is None or width is None:
+            frame = frames_list[0]
+            im_name = frame[0]
+            # load PIL image
+            img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
+            img_np = image_to_numpy(img_pil, use_uint8=True)
+            height, width = img_np.shape[:2]
+        
         # iterate over images and load them
         pbar = tqdm(frames_list, desc=split, ncols=100)
         for frame in pbar:
             # get image name
             im_name = frame[0]
             # camera_pose = frame[1]
-            # load PIL image
-            img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
-            img_np = image_to_numpy(img_pil, use_uint8=True)
-
-            # remove alpha (it is always 1)
-            img_np = img_np[:, :, :3]
+            
+            if config["pose_only"]:
+                cam_imgs = None
+            else:
+                # load PIL image
+                img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
+                img_np = image_to_numpy(img_pil, use_uint8=True)
+                # remove alpha (it is always 1)
+                img_np = img_np[:, :, :3]
+                # get images
+                cam_imgs = img_np[None, ...]
+                # depth_imgs = depth_np[None, ...]
 
             # im_name = im_name.replace('r', 'd')
             # depth_pil = Image.open(os.path.join(scene_path, f"{split}", "depth", im_name))
             # depth_np = image_to_numpy(depth_pil)[..., None]
 
-            # override H, W
-            if height is None or width is None:
-                height, width = img_np.shape[:2]
-
             # get frame idx and pose
             idx = int(frame[0].split(".")[0].split("_")[-1])
-
-            # get images
-            cam_imgs = img_np[None, ...]
-            # depth_imgs = depth_np[None, ...]
 
             pose = np.array(frame[1], dtype=np.float32)
             intrinsics = np.eye(3, dtype=np.float32)
@@ -195,6 +201,8 @@ def load(
                 # depths=depth_imgs,
                 masks=None,  # dataset has no masks
                 camera_idx=idx,
+                width=width,
+                height=height,
                 subsample_factor=int(config["subsample_factor"]),
                 # verbose=verbose,
             )

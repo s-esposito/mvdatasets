@@ -82,11 +82,6 @@ def load(
     elif config["scene_type"] == "forward-facing":
         print_error("forward-facing scene type not implemented yet")
 
-    # Check for unimplemented features
-    if config.get("pose_only"):
-        if verbose:
-            print_warning("pose_only is True, but this is not implemented yet")
-
     # Debugging output
     if verbose:
         print("load_colmap config:")
@@ -304,6 +299,11 @@ def load(
     # point_cloud *= scene_radius_mult
     point_cloud.transform(scene_transform)
 
+    # need to load 1 image to get the size
+    img_path = os.path.join(images_path, imgs_names[0])
+    img_pil = Image.open(img_path)
+    actual_width, actual_height = img_pil.size
+    
     # build cameras
     cameras_all = []
     pbar = tqdm(zip(c2w_mats, camera_ids, imgs_names), desc="images", ncols=100)
@@ -315,12 +315,17 @@ def load(
         # get camera metadata
         params = params_dict[camera_id]
         colmap_width, colmap_height = imsize_dict[camera_id]
+        
         # load img
-        img_path = os.path.join(images_path, img_name)
-        img_pil = Image.open(img_path)
-        img_np = np.array(img_pil)[..., :3]
-        actual_height, actual_width = img_np.shape[:2]
-        cam_imgs = img_np[None, ...]  # (1, H, W, 3)
+        if not config["pose_only"]:
+            img_path = os.path.join(images_path, img_name)
+            img_pil = Image.open(img_path)
+            img_np = np.array(img_pil)[..., :3]
+            # actual_height, actual_width = img_np.shape[:2]
+            cam_imgs = img_np[None, ...]  # (1, H, W, 3)
+        else:
+            cam_imgs = None
+
         # check image scaling
         s_height = actual_height / colmap_height
         s_width = actual_width / colmap_width
@@ -345,6 +350,8 @@ def load(
             local_transform=local_transform,
             rgbs=cam_imgs,
             camera_idx=idx,
+            width=actual_width,
+            height=actual_height,
             subsample_factor=1,  # int(config["subsample_factor"]),
             # verbose=verbose,
         )

@@ -7,6 +7,23 @@ from typing import List, Union, Tuple
 from mvdatasets.utils.printing import print_error
 from dataclasses import dataclass
 
+# Set the custom exception handler
+import sys
+
+
+def custom_exception_handler(exc_type, exc_value, exc_traceback):
+    """
+    Custom exception handler to print detailed information for uncaught exceptions.
+    """
+    if issubclass(exc_type, KeyboardInterrupt):
+        # Allow program to exit quietly on Ctrl+C
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    # Format the exception message
+    message = f"{exc_type.__name__}: {exc_value}"
+    # Pass detailed exception info to the print_error function
+    print_error(message, exc_type, exc_value, exc_traceback)
 
 @dataclass
 class Args:
@@ -35,6 +52,8 @@ class Args:
             print_error(f"Dataset path {self.datasets_path} does not exist.")
         # set seeds
         self._set_seeds()
+        # set the custom exception handler globally
+        sys.excepthook = custom_exception_handler
 
 
 def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], dict]:

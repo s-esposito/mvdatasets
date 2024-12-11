@@ -228,11 +228,6 @@ def load(
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
 
-    # Check for unimplemented features
-    if config.get("pose_only"):
-        if verbose:
-            print_warning("pose_only is True, but this is not implemented yet")
-
     # Debugging output
     if verbose:
         print("load_visor config:")
@@ -398,16 +393,19 @@ def load(
         cam_timestamp = np.array([time])
 
         # load img
-        img_pil = Image.open(img_path)
-        img_np = np.array(img_pil)[..., :3]
-        cam_imgs = img_np[None, ...]  # (1, H, W, 3)
+        if config["pose_only"]:
+            cam_imgs = None
+        else:
+            img_pil = Image.open(img_path)
+            img_np = np.array(img_pil)[..., :3]
+            cam_imgs = img_np[None, ...]  # (1, H, W, 3)
 
         # get annotations
         mapped_image_name = camera_meta[3]
         annotations = images_segments_dict[mapped_image_name]
 
         # get mask
-        if config["load_masks"]:
+        if not config["pose_only"] and config["load_masks"]:
             mask_np = _generate_mask_from_polygons(
                 annotations=annotations, width=target_width, height=target_height
             )  # (H, W, 1)
@@ -416,7 +414,7 @@ def load(
             cam_masks = None
 
         # get semantic mask
-        if config["load_semantic_masks"]:
+        if not config["pose_only"] and config["load_semantic_masks"]:
             semantic_mask_np = _generate_semantic_mask_from_polygons(
                 annotations=annotations, width=target_width, height=target_height
             )  # (H, W, 1)
@@ -435,6 +433,8 @@ def load(
             semantic_masks=cam_semantic_masks,
             timestamps=cam_timestamp,
             camera_idx=frame_idx,
+            height=target_height,
+            width=target_width,
             subsample_factor=int(config["subsample_factor"]),
             # verbose=verbose,
         )

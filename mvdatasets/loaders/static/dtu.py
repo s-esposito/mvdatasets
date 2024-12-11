@@ -90,11 +90,6 @@ def load(
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
 
-    # Check for unimplemented features
-    if config.get("pose_only"):
-        if verbose:
-            print_warning("pose_only is True, but this is not implemented yet")
-
     # Debugging output
     if verbose:
         print("load_dtu config:")
@@ -105,25 +100,28 @@ def load(
 
     # load images to cpu as numpy arrays
     imgs = []
-    images_list = sorted(glob(os.path.join(scene_path, "image/*.png")))
-    pbar = tqdm(images_list, desc="images", ncols=100)
-    for im_name in pbar:
-        # load PIL image
-        img_pil = Image.open(im_name)
-        img_np = image_to_numpy(img_pil, use_uint8=True)
-        imgs.append(img_np)
-
-    # (optional) load mask images to cpu as numpy arrays
     masks = []
-    if config["load_masks"]:
-        masks_list = sorted(glob(os.path.join(scene_path, "mask/*.png")))
-        pbar = tqdm(masks_list, desc="masks", ncols=100)
+    
+    if not config["pose_only"]:
+        
+        images_list = sorted(glob(os.path.join(scene_path, "image/*.png")))
+        pbar = tqdm(images_list, desc="images", ncols=100)
         for im_name in pbar:
             # load PIL image
-            mask_pil = Image.open(im_name)
-            mask_np = image_to_numpy(mask_pil, use_uint8=True)
-            mask_np = mask_np[:, :, 0, None]
-            masks.append(mask_np)
+            img_pil = Image.open(im_name)
+            img_np = image_to_numpy(img_pil, use_uint8=True)
+            imgs.append(img_np)
+
+        # (optional) load mask images to cpu as numpy arrays
+        if config["load_masks"]:
+            masks_list = sorted(glob(os.path.join(scene_path, "mask/*.png")))
+            pbar = tqdm(masks_list, desc="masks", ncols=100)
+            for im_name in pbar:
+                # load PIL image
+                mask_pil = Image.open(im_name)
+                mask_np = image_to_numpy(mask_pil, use_uint8=True)
+                mask_np = mask_np[:, :, 0, None]
+                masks.append(mask_np)
 
     # load camera params
     camera_dict = np.load(os.path.join(scene_path, "cameras_sphere.npz"))
@@ -179,10 +177,13 @@ def load(
         intrinsics, pose = params
 
         # get images
-        cam_imgs = imgs[idx][None, ...]
+        if len(imgs) > idx:
+            cam_imgs = imgs[idx][None, ...]
+        else:
+            cam_imgs = None
 
         # get mask (optional)
-        if config["load_masks"] and len(masks) > idx:
+        if len(masks) > idx:
             cam_masks = masks[idx][None, ...]
         else:
             cam_masks = None
