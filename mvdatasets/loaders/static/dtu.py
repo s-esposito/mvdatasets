@@ -195,7 +195,7 @@ def load(
             local_transform=local_transform,
             rgbs=cam_imgs,
             masks=cam_masks,
-            camera_idx=idx,
+            camera_label=str(idx),
             subsample_factor=int(config["subsample_factor"]),
             # verbose=verbose,
         )

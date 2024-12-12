@@ -138,7 +138,7 @@ def load_ingp(
             local_transform=local_transform,
             rgbs=img_np[None, ...],
             masks=None,
-            camera_idx=idx,
+            camera_label=str(idx),
             subsample_factor=int(config["subsample_factor"]),
         )
 

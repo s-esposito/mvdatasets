@@ -200,7 +200,7 @@ def load(
                 rgbs=cam_imgs,
                 # depths=depth_imgs,
                 masks=None,  # dataset has no masks
-                camera_idx=idx,
+                camera_label=str(idx),
                 width=width,
                 height=height,
                 subsample_factor=int(config["subsample_factor"]),

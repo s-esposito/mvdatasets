@@ -43,7 +43,7 @@ class PointCloud:
                 )
 
         # plotting attributes
-        self.color = None
+        self.color = color
         self.label = label
         self.size = size
         self.marker = marker

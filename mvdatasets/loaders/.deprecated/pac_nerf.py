@@ -115,7 +115,7 @@ def load_pac_nerf(data_path, n_cameras=1, load_masks=False):
                     masks=masks,
                     intrinsics=intrinsics,
                     pose=pose,
-                    camera_idx=idx,
+                    camera_label=str(idx),
                 )
             )
             idx += 1
@@ -127,7 +127,7 @@ def load_pac_nerf(data_path, n_cameras=1, load_masks=False):
                     imgs,
                     intrinsics=intrinsics,
                     pose=pose,
-                    camera_idx=idx,
+                    camera_label=str(idx),
                 )
             )
         idx += 1

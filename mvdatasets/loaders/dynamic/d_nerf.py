@@ -230,7 +230,7 @@ def load(
                 rgbs=cam_imgs,
                 masks=cam_masks,
                 timestamps=cam_timestamp,
-                camera_idx=idx,
+                camera_label=str(idx),
                 width=width,
                 height=height,
                 subsample_factor=int(config["subsample_factor"]),

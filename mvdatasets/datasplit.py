@@ -47,7 +47,7 @@ class DataSplit:
                     if val is not None:
                         data[key].append(val)
                     else:
-                        print_error(f"camera {camera.camera_idx} has no {key} data")
+                        print_error(f"camera {camera.camera_label} has no {key} data")
 
             intrinsics_all.append(camera.get_intrinsics())
             intrinsics_inv_all.append(camera.get_intrinsics_inv())
@@ -82,13 +82,15 @@ class DataSplit:
             idx (int): sample index
 
         Returns:
-            intrinsics (torch.Tensor): (3, 3)
-            intrinsics_inv (torch.Tensor): (3, 3)
-            c2w (torch.Tensor): (4, 4)
-            w2c (torch.Tensor): (4, 4)
-            timestamps (torch.Tensor): (1,)
-            pixels (torch.Tensor): (H, W, 2) or (2,) [0, W-1], [0, H-1]
-            rgbs (torch.Tensor): (H, W, C) or (C,)
+            cameras_idxs (torch.Tensor, long): (1,)
+            frames_idxs (torch.Tensor, long): (1,)
+            intrinsics (torch.Tensor, float32): (3, 3)
+            intrinsics_inv (torch.Tensor, float32): (3, 3)
+            c2w (torch.Tensor, float32): (4, 4)
+            w2c (torch.Tensor, float32): (4, 4)
+            timestamps (torch.Tensor, float32): (1,)
+            pixels (torch.Tensor, long): (H, W, 2) or (2,) [0, W-1], [0, H-1]
+            rgbs (torch.Tensor, uint8): (H, W, C) or (C,)
             ...
         """
         if self.index_pixels:
@@ -103,8 +105,8 @@ class DataSplit:
             frame_idx = idx % self.temporal_dim
 
         data = {
-            "cameras_idxs": torch.tensor(cam_idx, dtype=torch.uint32),  # (1,)
-            "frames_idxs": torch.tensor(frame_idx, dtype=torch.uint32),  # (1,)
+            "cameras_idxs": torch.tensor(cam_idx, dtype=torch.long),  # (1,)
+            "frames_idxs": torch.tensor(frame_idx, dtype=torch.long),  # (1,)
             "intrinsics": torch.from_numpy(
                 self.intrinsics_all[cam_idx]
             ).float(),  # (3, 3)
@@ -124,7 +126,7 @@ class DataSplit:
             for k, v in self.data.items():
                 # keep dtype consistent with the one in Camera.data
                 data[k] = torch.from_numpy(v[cam_idx, frame_idx, j, i])  # (C,)
-            data["pixels"] = torch.tensor([i, j], dtype=torch.uint32)  # (2,)
+            data["pixels"] = torch.tensor([i, j], dtype=torch.long)  # (2,)
         else:
             for k, v in self.data.items():
                 # keep dtype consistent with the one in Camera.data
@@ -132,6 +134,8 @@ class DataSplit:
             data["pixels"] = get_pixels(
                 width=self.width, height=self.height
             )  # (H, W, 2)
+            # convert pixels to long
+            data["pixels"] = data["pixels"].long()
         return data
 
     def __str__(self) -> str:

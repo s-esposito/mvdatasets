@@ -215,7 +215,7 @@ def _draw_point_cloud(
 
     if alpha is None:
         alpha = 0.5
-
+    
     # draw points
     if up == "z":
         ax.scatter(
@@ -581,7 +581,7 @@ def _draw_frustum(
 def _draw_camera_frame(
     ax: plt.Axes,
     pose: np.ndarray,
-    idx: int = 0,
+    label: str = "c",
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
@@ -635,18 +635,13 @@ def _draw_camera_frame(
         pos[0],  # x
         pos[1] if up == "z" else pos[2],  # y
         pos[2] if up == "z" else pos[1],  # z
-        str(idx),
+        label,
     )
 
 
 def _draw_point_clouds(
     ax: plt.Axes,
     point_clouds: list[PointCloud] = None,
-    # points_3d: list[np.ndarray] = None,
-    # points_3d_colors: list[np.ndarray] = None,
-    # points_3d_labels: list[str] = None,
-    # points_3d_sizes: list[float] = None,
-    # points_3d_markers: list[str] = None,
     max_nr_points: int = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
@@ -705,9 +700,9 @@ def _draw_cameras(
             if i % draw_every_n_cameras == 0:
 
                 pose = camera.get_pose()
-                camera_idx = camera.camera_idx
+                camera_label = camera.camera_label
                 _draw_camera_frame(
-                    ax=ax, pose=pose, idx=camera_idx, up=up, scene_radius=scene_radius
+                    ax=ax, pose=pose, label=camera_label, up=up, scene_radius=scene_radius
                 )
                 if draw_image_planes:
                     _draw_image_plane(
@@ -745,20 +740,12 @@ def _draw_camera_trajectory(
         print_error("cameras must be a list of Cameras")
 
     # collect cameras timestamps
-    # all_timestamps = []
     all_centers = []
-    # all_indices = []
-    # all_cameras_idxs = []
     for i, camera in enumerate(cameras):
         timestamps = camera.get_timestamps()  # (N,)
         center = camera.get_center()  # (3,)
         center = center.repeat(timestamps.shape[0])  # (N, 3)
         all_centers.append(center)
-    #     camera_idx = camera.get_camera_idx()  # int
-    #     indices = np.ones_like(timestamps) * i
-    #     all_timestamps.append(timestamps)
-    #     all_indices.append(indices)
-    #     all_cameras_idxs.append(camera_idx)
     sequence_lenght = len(cameras)
 
     # # concatenate all timestamps, centers, indices
@@ -1210,9 +1197,9 @@ def plot_current_batch(
     for idx in unique_cameras_idx:
         camera = cameras[idx]
         pose = camera.get_pose()
-        camera_idx = camera.camera_idx
+        camera_label = camera.camera_label
         _draw_camera_frame(
-            ax=ax, pose=pose, idx=camera_idx, up=up, scene_radius=scene_radius
+            ax=ax, pose=pose, label=camera_label, up=up, scene_radius=scene_radius
         )
         if draw_image_planes:
             _draw_image_plane(ax=ax, camera=camera, up=up, scene_radius=scene_radius)

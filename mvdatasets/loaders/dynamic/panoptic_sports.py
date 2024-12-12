@@ -205,7 +205,7 @@ def load(
                 rgbs=cam_imgs,
                 masks=cam_masks,
                 timestamps=cam_timestamps,
-                camera_idx=camera_id,
+                camera_label=camera_id,
                 width=width,
                 height=height,
                 subsample_factor=int(config["subsample_factor"]),

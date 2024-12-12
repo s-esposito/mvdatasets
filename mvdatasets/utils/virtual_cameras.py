@@ -52,7 +52,7 @@ def sample_cameras_on_hemisphere(
             width=width,
             height=height,
             # local_transform=local_transform,
-            camera_idx=i,
+            camera_label=i,
         )
         cameras.append(camera)
 

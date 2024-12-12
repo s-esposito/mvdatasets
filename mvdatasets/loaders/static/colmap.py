@@ -349,7 +349,7 @@ def load(
             global_transform=global_transform,
             local_transform=local_transform,
             rgbs=cam_imgs,
-            camera_idx=idx,
+            camera_label=str(idx),
             width=actual_width,
             height=actual_height,
             subsample_factor=1,  # int(config["subsample_factor"]),

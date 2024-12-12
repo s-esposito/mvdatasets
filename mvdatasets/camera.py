@@ -43,7 +43,7 @@ class Camera:
         global_transform: np.ndarray = None,
         local_transform: np.ndarray = None,
         timestamps: np.ndarray = np.array([0.0]),
-        camera_idx: int = 0,
+        camera_label: str = "0",
         width: int = None,
         height: int = None,
         near: float = 0.1,
@@ -69,7 +69,7 @@ class Camera:
             timestamps (np.ndarray, float32): (T,) Per-frame timestamp. Default value is [0.0].
             global_transform (np.ndarray, optional, float32): Global transformation matrix.
             local_transform (np.ndarray, optional, float32): Local transformation matrix.
-            camera_idx (int, optional): Camera index. Defaults to 0.
+            camera_label (str, optional): Camera index. Defaults to "0".
             width (int, optional): Image width, required if no images are provided.
             height (int, optional): Image height, required if no images are provided.
             subsample_factor (int, optional): Subsampling factor for images. Defaults to 1.
@@ -84,10 +84,16 @@ class Camera:
         # Validate input dimensions
         assert intrinsics.shape == (3, 3), "`intrinsics` must be a 3x3 matrix."
         assert pose.shape == (4, 4), "`pose` must be a 4x4 matrix."
+        # pose and intrinsics
         self.set_intrinsics(intrinsics)
         self.pose = pose.astype(np.float32)
-        self.camera_idx = camera_idx
+        # camera label
+        if not isinstance(camera_label, str):
+            camera_label = str(camera_label)
+        self.camera_label = camera_label
+        # timestamps
         self.timestamps = timestamps.astype(np.float32)
+        # near far planes
         self.near = near
         self.far = far
 
@@ -185,9 +191,9 @@ class Camera:
         """return camera image resolution (width, height)"""
         return self.width, self.height
 
-    def get_camera_idx(self) -> int:
+    def get_camera_label(self) -> int:
         """return camera index"""
-        return self.camera_idx
+        return self.camera_label
 
     def get_width(self) -> int:
         """return camera image width"""
@@ -521,7 +527,7 @@ class Camera:
         selected_data_dict = {}
         for key in keys:
             if key not in self.data.keys() or self.data[key] is None:
-                print_warning(f"data {key} not found for camera {self.camera_idx}")
+                print_warning(f"data {key} not found for camera {self.camera_label}")
             else:
                 selected_data_dict[key] = self.data[key]
 
@@ -698,7 +704,7 @@ class Camera:
 
     def __str__(self) -> str:
         """print camera information"""
-        string = f"camera_idx: {self.camera_idx}\n"
+        string = f"camera_label: {self.camera_label}\n"
         string += f"intrinsics ({self.intrinsics.dtype}):\n"
         string += str(self.intrinsics) + "\n"
         string += f"pose ({self.pose.dtype}):\n"

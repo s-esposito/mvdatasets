@@ -64,7 +64,7 @@ if __name__ == "__main__":
     for split in splits:
         save_path = os.path.join(args.datasets_path, dataset_name, scene_name, split)
         for camera in mv_data.get_split(split):
-            # print(camera.camera_idx)
+            # print(camera.camera_label)
             imgs = render_o3d_scene(camera, o3d_scene)
             geom_ids = imgs["geom_ids"]
             depth = imgs["depth"]
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             plt.colorbar()
             plt.show()
             break
-            # save_nr = format(camera.camera_idx, "04d")
+            # save_nr = format(camera.camera_label, "04d")
             # os.makedirs(os.path.join(save_path, "depth"), exist_ok=True)
             # os.makedirs(os.path.join(save_path, "instance_mask"), exist_ok=True)
             # np.save(os.path.join(save_path, "depth", f"d_{save_nr}"), depth)

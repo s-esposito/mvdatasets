@@ -127,99 +127,104 @@ class MVDataset:
 
         else:
             
-            print_error(f"dataset {self.dataset_name} is not supported")
+            print_warning(f"dataset {self.dataset_name} is not supported")
+            res = None
         
         # UNPACK -------------------------------------------------------------
 
-        if res is None:
-            print_error("dataset loader returned None, it should return a dictionary")
+        if res is not None:
+        
+            # cameras
+            cameras_splits = res["cameras_splits"]
+            if cameras_splits is None or len(cameras_splits.keys()) == 0:
+                print_error("no cameras found")  # this should never happen
 
-        # cameras
-        cameras_splits = res["cameras_splits"]
-        if cameras_splits is None or len(cameras_splits.keys()) == 0:
-            print_error("no cameras found")  # this should never happen
+            # config
+            self.scene_type = res["scene_type"]
+            self.global_transform = res["global_transform"]
 
-        # config
-        self.scene_type = res["scene_type"]
-        self.global_transform = res["global_transform"]
+            self.min_camera_distance = res["min_camera_distance"]
+            self.max_camera_distance = res["max_camera_distance"]
+            print("min_camera_distance:", self.min_camera_distance)
+            print("max_camera_distance:", self.max_camera_distance)
 
-        self.min_camera_distance = res["min_camera_distance"]
-        self.max_camera_distance = res["max_camera_distance"]
-        print("min_camera_distance:", self.min_camera_distance)
-        print("max_camera_distance:", self.max_camera_distance)
+            self.scene_radius = res["scene_radius"]
+            print("scene_radius:", self.scene_radius)
 
-        self.scene_radius = res["scene_radius"]
-        print("scene_radius:", self.scene_radius)
+            if "foreground_radius_mult" not in res:
+                print_warning("foreground_radius_mult not found, setting to 0.5")
+                self.foreground_radius_mult = 0.5
+            else:
+                self.foreground_radius_mult = res["foreground_radius_mult"]
 
-        if "foreground_radius_mult" not in res:
-            print_warning("foreground_radius_mult not found, setting to 0.5")
-            self.foreground_radius_mult = 0.5
+            self.foreground_radius = self.scene_radius * self.foreground_radius_mult
+            print("foreground_radius:", self.foreground_radius)
+
+            # SDF sphere init radius
+            if "init_sphere_radius_mult" not in res:
+                print_warning("init_sphere_radius_mult not found, setting to 0.1")
+                self.init_sphere_radius_mult = 0.1
+            else:
+                self.init_sphere_radius_mult = res["init_sphere_radius_mult"]
+
+            self.init_sphere_radius = (
+                self.min_camera_distance * self.init_sphere_radius_mult
+            )
+            print("init_sphere_radius:", self.init_sphere_radius)
+
+            if self.init_sphere_radius > self.foreground_radius:
+                print_error("init_sphere_radius > scene_radius, this can't be true")
+
+            # dynamic scenes
+            if "nr_per_camera_frames" in res:
+                self.nr_per_camera_frames = res["nr_per_camera_frames"]
+            else:
+                self.nr_per_camera_frames = 1
+            print("nr_per_camera_frames:", self.nr_per_camera_frames)
+
+            if "nr_sequence_frames" in res:
+                self.nr_sequence_frames = res["nr_sequence_frames"]
+            else:
+                self.nr_sequence_frames = 1
+            print("nr_sequence_frames:", self.nr_sequence_frames)
+
+            # optional
+            if "point_clouds" in res:
+                self.point_clouds = res["point_clouds"]
+            else:
+                self.point_clouds = []
+            print("loaded scene has", len(self.point_clouds), "point clouds")
+
+            # ---------------------------------------------------------------------
+
+            # (optional) load point clouds
+            if len(self.point_clouds) == 0:
+                # need to load point clouds
+                if len(point_clouds_paths) > 0:
+                    # load point clouds
+                    self.point_clouds = load_point_clouds(
+                        point_clouds_paths, verbose=verbose
+                    )
+                    if verbose:
+                        print(f"loaded {len(self.point_clouds)} point clouds")
+            else:
+                if len(point_clouds_paths) > 0:
+                    print_warning("point_clouds_paths will be ignored")
+
+            for point_cloud in self.point_clouds:
+                # apply global transform
+                point_cloud.transform(self.global_transform)
+
+            # split data into train and test (or keep the all set)
+            self.data = cameras_splits
+            
         else:
-            self.foreground_radius_mult = res["foreground_radius_mult"]
-
-        self.foreground_radius = self.scene_radius * self.foreground_radius_mult
-        print("foreground_radius:", self.foreground_radius)
-
-        # SDF sphere init radius
-        if "init_sphere_radius_mult" not in res:
-            print_warning("init_sphere_radius_mult not found, setting to 0.1")
-            self.init_sphere_radius_mult = 0.1
-        else:
-            self.init_sphere_radius_mult = res["init_sphere_radius_mult"]
-
-        self.init_sphere_radius = (
-            self.min_camera_distance * self.init_sphere_radius_mult
-        )
-        print("init_sphere_radius:", self.init_sphere_radius)
-
-        if self.init_sphere_radius > self.foreground_radius:
-            print_error("init_sphere_radius > scene_radius, this can't be true")
-
-        # dynamic scenes
-        if "nr_per_camera_frames" in res:
-            self.nr_per_camera_frames = res["nr_per_camera_frames"]
-        else:
-            self.nr_per_camera_frames = 1
-        print("nr_per_camera_frames:", self.nr_per_camera_frames)
-
-        if "nr_sequence_frames" in res:
-            self.nr_sequence_frames = res["nr_sequence_frames"]
-        else:
-            self.nr_sequence_frames = 1
-        print("nr_sequence_frames:", self.nr_sequence_frames)
-
-        # optional
-        if "point_clouds" in res:
-            self.point_clouds = res["point_clouds"]
-        else:
-            self.point_clouds = []
-        print("loaded scene has", len(self.point_clouds), "point clouds")
-
-        # ---------------------------------------------------------------------
-
-        # (optional) load point clouds
-        if len(self.point_clouds) == 0:
-            # need to load point clouds
-            if len(point_clouds_paths) > 0:
-                # load point clouds
-                self.point_clouds = load_point_clouds(
-                    point_clouds_paths, verbose=verbose
-                )
-                if verbose:
-                    print(f"loaded {len(self.point_clouds)} point clouds")
-        else:
-            if len(point_clouds_paths) > 0:
-                print_warning("point_clouds_paths will be ignored")
-
-        for point_cloud in self.point_clouds:
-            # apply global transform
-            point_cloud.transform(self.global_transform)
-
-        # split data into train and test (or keep the all set)
-        self.data = cameras_splits
-
+            # res is None
+            self.data = {}
+            # TODO: better handling all other attributes when dataset is not supported
+        
         # printing
-        for split in splits:
+        for split in self.data.keys():
             print_fn = print_info
             if len(self.data[split]) == 0:
                 print_fn = print_error

@@ -61,7 +61,7 @@ class TensorReel:
                     if val is not None:
                         data[key].append(torch.from_numpy(val))
                     else:
-                        print_error(f"camera {camera.camera_idx} has no {key} data")
+                        print_error(f"camera {camera.camera_label} has no {key} data")
 
             # camera matrices
             c2w_all.append(torch.from_numpy(camera.get_pose()).float())

@@ -4,25 +4,28 @@ import torch.nn.functional as F
 from typing import Union
 
 
-def convert_6d_to_rotation_matrix(cont_6d: torch.Tensor) -> torch.Tensor:
+def convert_6d_to_rotation_matrix(d6: torch.Tensor) -> torch.Tensor:
     """
-    :param 6d vector (*, 6)
-    :returns matrix (*, 3, 3)
+    Converts 6D rotation representation by Zhou et al. [1] to rotation matrix
+    using Gram--Schmidt orthogonalization per Section B of [1]. Adapted from pytorch3d.
+    Args:
+        d6: 6D rotation representation, of size (*, 6)
+
+    Returns:
+        batch of rotation matrices of size (*, 3, 3)
+
+    [1] Zhou, Y., Barnes, C., Lu, J., Yang, J., & Li, H.
+    On the Continuity of Rotation Representations in Neural Networks.
+    IEEE Conference on Computer Vision and Pattern Recognition, 2019.
+    Retrieved from http://arxiv.org/abs/1812.07035
     """
-    # Extract the two 3D components from the 6D input
-    x1 = cont_6d[..., 0:3]
-    y1 = cont_6d[..., 3:6]
 
-    # Normalize the first component to create the x-axis of the rotation
-    x = x1 / torch.norm(x1, dim=-1, keepdim=True)
-    # x = F.normalize(x1, dim=-1)
-    # Orthogonalize y1 to x to ensure orthogonality and normalize it
-    y1 = y1 - (y1 * x).sum(dim=-1, keepdim=True) * x
-    y = y1 / torch.norm(y1, dim=-1, keepdim=True)
-    # Compute the cross product to get the z-axis
-    z = torch.linalg.cross(x, y, dim=-1)
-
-    return torch.stack([x, y, z], dim=-1)
+    a1, a2 = d6[..., :3], d6[..., 3:]
+    b1 = F.normalize(a1, dim=-1)
+    b2 = a2 - (b1 * a2).sum(-1, keepdim=True) * b1
+    b2 = F.normalize(b2, dim=-1)
+    b3 = torch.cross(b1, b2, dim=-1)
+    return torch.stack((b1, b2, b3), dim=-2)
 
 
 def get_min_max_cameras_distances(poses: list) -> tuple:

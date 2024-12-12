@@ -432,7 +432,7 @@ def load(
             masks=cam_masks,
             semantic_masks=cam_semantic_masks,
             timestamps=cam_timestamp,
-            camera_idx=frame_idx,
+            camera_label=frame_idx,
             height=target_height,
             width=target_width,
             subsample_factor=int(config["subsample_factor"]),
