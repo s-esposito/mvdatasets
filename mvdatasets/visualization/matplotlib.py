@@ -215,7 +215,7 @@ def _draw_point_cloud(
 
     if alpha is None:
         alpha = 0.5
-    
+
     # draw points
     if up == "z":
         ax.scatter(
@@ -702,7 +702,11 @@ def _draw_cameras(
                 pose = camera.get_pose()
                 camera_label = camera.camera_label
                 _draw_camera_frame(
-                    ax=ax, pose=pose, label=camera_label, up=up, scene_radius=scene_radius
+                    ax=ax,
+                    pose=pose,
+                    label=camera_label,
+                    up=up,
+                    scene_radius=scene_radius,
                 )
                 if draw_image_planes:
                     _draw_image_plane(
@@ -1318,7 +1322,7 @@ def plot_camera_2d(
         frame_idx=frame_idx,
     )
 
-    if points_2d_screen is not None:
+    if points_2d_screen is not None and points_2d_screen.shape[0] > 0:
         # filter out points outside image range
         points_mask = get_mask_points_in_image_range(
             points_2d_screen, camera.width, camera.height

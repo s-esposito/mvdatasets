@@ -113,6 +113,11 @@ def get_scene_preset(dataset_name: str, scene_name: str) -> dict:
         # dataset specific config
         config = {}
 
+    # test iphone
+    elif dataset_name == "iphone":
+        # dataset specific config
+        config = {}
+
     else:
         # undefined empty config
         config = {}

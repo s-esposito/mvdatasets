@@ -66,7 +66,7 @@ class Camera:
             depths (np.ndarray, optional): (T, H, W, 1) Depth maps, uint8.
             instance_masks (np.ndarray, optional): (T, H, W, 1) Instance segmentation masks, uint8.
             semantic_masks (np.ndarray, optional): (T, H, W, 1) Semantic segmentation masks, uint8.
-            timestamps (np.ndarray, float32): (T,) Per-frame timestamp. Default value is [0.0].
+            timestamps (np.ndarray, float32 or float): (T,) Per-frame timestamp. Default value is [0.0].
             global_transform (np.ndarray, optional, float32): Global transformation matrix.
             local_transform (np.ndarray, optional, float32): Local transformation matrix.
             camera_label (str, optional): Camera index. Defaults to "0".
@@ -92,6 +92,9 @@ class Camera:
             camera_label = str(camera_label)
         self.camera_label = camera_label
         # timestamps
+        # check if timestamp is np.ndarray
+        if not isinstance(timestamps, np.ndarray):
+            timestamps = np.array([timestamps], dtype=np.float32)
         self.timestamps = timestamps.astype(np.float32)
         # near far planes
         self.near = near

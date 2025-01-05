@@ -6,24 +6,51 @@ import random
 from typing import List, Union, Tuple
 from mvdatasets.utils.printing import print_error
 from dataclasses import dataclass
-
-# Set the custom exception handler
 import sys
+import traceback
+from rich import print
+
+
+# def custom_exception_handler(exc_type, exc_value, exc_traceback):
+#     """
+#     Custom exception handler to print detailed information for uncaught exceptions.
+#     """
+#     if issubclass(exc_type, KeyboardInterrupt):
+#         # Allow program to exit quietly on Ctrl+C
+#         sys.__excepthook__(exc_type, exc_value, exc_traceback)
+#         return
+
+#     # Format the exception message
+#     message = f"{exc_type.__name__}: {exc_value}"
+#     # Pass detailed exception info to the print_error function
+#     print_error(message, exc_type, exc_value, exc_traceback)
 
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
     """
     Custom exception handler to print detailed information for uncaught exceptions.
     """
-    if issubclass(exc_type, KeyboardInterrupt):
-        # Allow program to exit quietly on Ctrl+C
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
+    # if issubclass(exc_type, KeyboardInterrupt):
+    #     # Allow program to exit quietly on Ctrl+C
+    #     sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    #     return
+
+    # destroy_context()  # Clean up Dear PyGui
 
     # Format the exception message
-    message = f"{exc_type.__name__}: {exc_value}"
+    # message = f"{exc_type.__name__}: {exc_value}"
     # Pass detailed exception info to the print_error function
-    print_error(message, exc_type, exc_value, exc_traceback)
+    # print_error(message, exc_type, exc_value, exc_traceback)
+
+    # print(f"[bold red]ERROR:[/bold red] {message}")
+    if exc_type and exc_traceback:
+        print("\n[bold blue]Stack Trace:[/bold blue]")
+        # Format the traceback into a readable format
+        detailed_traceback = "".join(
+            traceback.format_exception(exc_type, exc_value, exc_traceback)
+        )
+        print(f"[dim]{detailed_traceback}[/dim]")
+
 
 @dataclass
 class Args:
@@ -127,13 +154,19 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test visor
     elif dataset_name == "visor":
         scene_name = "P01_01"
-        splits = ["train", "test"]  # ["train", "val"]
+        splits = ["train", "val"]
         pc_paths = []
 
     # test panoptic-sports
     elif dataset_name == "panoptic-sports":
         scene_name = "basketball"
         splits = ["train", "test"]
+        pc_paths = []
+
+    # test iphone
+    elif dataset_name == "iphone":
+        scene_name = "paper-windmill"
+        splits = ["train", "val"]
         pc_paths = []
 
     else:

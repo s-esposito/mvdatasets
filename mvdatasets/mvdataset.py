@@ -52,6 +52,15 @@ class MVDataset:
         print(f"loading {splits} splits")
 
         self.cameras_on_hemisphere = False
+        self.foreground_radius = 0.0
+        self.init_sphere_radius = 0.0
+        self.scene_radius = 0.0
+        self.scene_type = ""
+        self.global_transform = np.eye(4)
+        self.nr_per_camera_frames = 0
+        self.nr_sequence_frames = 0
+        self.point_clouds = []
+        self.data = {}
 
         # STATIC SCENE DATASETS -----------------------------------------------
 
@@ -120,20 +129,20 @@ class MVDataset:
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        # elif self.dataset_name == "iphone":
-        #     from mvdatasets.loaders.dynamic.iphone import load
+        elif self.dataset_name == "iphone":
+            from mvdatasets.loaders.dynamic.iphone import load
 
-        #     res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         else:
-            
+
             print_warning(f"dataset {self.dataset_name} is not supported")
             res = None
-        
+
         # UNPACK -------------------------------------------------------------
 
         if res is not None:
-        
+
             # cameras
             cameras_splits = res["cameras_splits"]
             if cameras_splits is None or len(cameras_splits.keys()) == 0:
@@ -217,12 +226,12 @@ class MVDataset:
 
             # split data into train and test (or keep the all set)
             self.data = cameras_splits
-            
+
         else:
             # res is None
             self.data = {}
             # TODO: better handling all other attributes when dataset is not supported
-        
+
         # printing
         for split in self.data.keys():
             print_fn = print_info

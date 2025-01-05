@@ -71,7 +71,7 @@ def load(
     unimplemented_features = {
         "load_depth": "load_depth is not implemented yet",
         "load_semantics": "load_semantics is not implemented yet",
-        "load_semantic_instance": "load_semantic_instance is not implemented yet"
+        "load_semantic_instance": "load_semantic_instance is not implemented yet",
     }
     for key, message in unimplemented_features.items():
         if config.get(key):
@@ -157,19 +157,21 @@ def load(
             img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
             img_np = image_to_numpy(img_pil, use_uint8=True)
             height, width = img_np.shape[:2]
-        
+
         # iterate over images and load them
         pbar = tqdm(frames_list, desc=split, ncols=100)
         for frame in pbar:
             # get image name
             im_name = frame[0]
             # camera_pose = frame[1]
-            
+
             if config["pose_only"]:
                 cam_imgs = None
             else:
                 # load PIL image
-                img_pil = Image.open(os.path.join(scene_path, f"{split}", "rgbs", im_name))
+                img_pil = Image.open(
+                    os.path.join(scene_path, f"{split}", "rgbs", im_name)
+                )
                 img_np = image_to_numpy(img_pil, use_uint8=True)
                 # remove alpha (it is always 1)
                 img_np = img_np[:, :, :3]

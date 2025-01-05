@@ -303,7 +303,7 @@ def load(
     img_path = os.path.join(images_path, imgs_names[0])
     img_pil = Image.open(img_path)
     actual_width, actual_height = img_pil.size
-    
+
     # build cameras
     cameras_all = []
     pbar = tqdm(zip(c2w_mats, camera_ids, imgs_names), desc="images", ncols=100)
@@ -315,7 +315,7 @@ def load(
         # get camera metadata
         params = params_dict[camera_id]
         colmap_width, colmap_height = imsize_dict[camera_id]
-        
+
         # load img
         if not config["pose_only"]:
             img_path = os.path.join(images_path, img_name)

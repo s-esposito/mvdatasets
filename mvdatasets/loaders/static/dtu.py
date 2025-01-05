@@ -101,9 +101,9 @@ def load(
     # load images to cpu as numpy arrays
     imgs = []
     masks = []
-    
+
     if not config["pose_only"]:
-        
+
         images_list = sorted(glob(os.path.join(scene_path, "image/*.png")))
         pbar = tqdm(images_list, desc="images", ncols=100)
         for im_name in pbar:

@@ -38,8 +38,10 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 - [x] [D-NeRF](https://www.albertpumarola.com/research/D-NeRF/index.html): semi-monocular, bounded
 - [x] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
 - [ ] [iPhone](#): monocular, unbounded
-- [ ] [DynamicScenes](#): monocular, unbounded
+- [ ] [DAVIS 2017](https://davischallenge.org/davis2017/code.html): monocular, unbounded
+- [ ] [DynamicScenes aka. NVIDIA]([#](https://gorokee.github.io/jsyoon/dynamic_synth/)): monocular, unbounded
 - [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded
+- [ ] [watch-it-move](https://github.com/NVlabs/watch-it-move): multi-view, bounded
 - [ ] ...
 
 </td>

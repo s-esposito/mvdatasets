@@ -191,7 +191,7 @@ def load(
     Args:
         dataset_path (Path): Path to the dataset folder.
         scene_name (str): Name of the scene / sequence to load.
-        splits (list): Splits to load (e.g., ["train", "test", "val"]).
+        splits (list): Splits to load (e.g., ["train", "val"]).
         config (dict): Dictionary of configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
 
@@ -209,8 +209,8 @@ def load(
         "translate_scene_y": 0.0,
         "translate_scene_z": 0.0,
         "rotate_scene_x_axis_deg": 180.0,
-        "test_camera_freq": 50,
-        "train_test_overlap": False,
+        # "test_camera_freq": 50,
+        # "train_test_overlap": False,
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
         "foreground_radius_mult": 1.0,
@@ -308,6 +308,8 @@ def load(
 
     # get train split (will be then splitted in train / test)
     split = "train"
+    
+    # TODO: load validation split
 
     res = _extract_data(
         scene_name,
@@ -442,26 +444,26 @@ def load(
         cameras_all.append(camera)
 
     # split cameras into train and test
-    train_test_overlap = config["train_test_overlap"]
-    test_camera_freq = config["test_camera_freq"]
+    # train_test_overlap = config["train_test_overlap"]
+    # test_camera_freq = config["test_camera_freq"]
 
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
-        if split == "train":
-            if train_test_overlap:
+        # if split == "train":
+        #     if train_test_overlap:
                 # if train_test_overlap, use all cameras for training
-                cameras_splits[split] = cameras_all
-            # else use only a subset of cameras
-            else:
-                for i, camera in enumerate(cameras_all):
-                    if i % test_camera_freq != 0:
-                        cameras_splits[split].append(camera)
-        if split == "test":
-            # select a test camera every test_camera_freq cameras
-            for i, camera in enumerate(cameras_all):
-                if i % test_camera_freq == 0:
-                    cameras_splits[split].append(camera)
+        cameras_splits[split] = cameras_all
+        #     # else use only a subset of cameras
+        #     else:
+        #         for i, camera in enumerate(cameras_all):
+        #             if i % test_camera_freq != 0:
+        #                 cameras_splits[split].append(camera)
+        # if split == "test":
+        #     # select a test camera every test_camera_freq cameras
+        #     for i, camera in enumerate(cameras_all):
+        #         if i % test_camera_freq == 0:
+        #             cameras_splits[split].append(camera)
 
     return {
         "scene_type": config["scene_type"],

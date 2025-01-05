@@ -35,8 +35,8 @@ def main(args: Args):
     )
 
     # random camera index
-    rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
-    camera = mv_data.get_split("test")[rand_idx]
+    rand_idx = 0  # torch.randint(0, len(mv_data.get_split("train")), (1,)).item()
+    camera = mv_data.get_split("train")[rand_idx]
 
     # random frame index
     frame_idx = torch.randint(0, camera.temporal_dim, (1,)).item()
@@ -77,9 +77,10 @@ def main(args: Args):
 
     # filter out random number of points
     num_points = 100
-    idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
-    points_3d = points_3d[idx]
-    points_3d_r = points_3d_r[idx]
+    if len(points_3d) > num_points:
+        idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
+        points_3d = points_3d[idx]
+        points_3d_r = points_3d_r[idx]
 
     # create new point clouds for visualization
     pcs = []

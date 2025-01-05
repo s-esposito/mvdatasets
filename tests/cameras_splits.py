@@ -65,6 +65,8 @@ def main(args: Args):
     # Visualize cameras
     for split in mv_data.get_splits():
 
+        print("visualizing cameras for split: ", split)
+
         nr_cameras = len(mv_data.get_split(split))
         if nr_cameras // 50 > 1:
             draw_every_n_cameras = nr_cameras // 50

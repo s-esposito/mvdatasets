@@ -1,4 +1,5 @@
 from rich import print
+import logging
 import sys
 from rich.progress import (
     BarColumn,
@@ -14,6 +15,8 @@ from rich.progress import (
 from rich.text import Text
 import traceback
 
+logging.basicConfig(level=logging.INFO)
+
 
 # def print_error(message, exc_type=None, exc_value=None, exc_traceback=None):
 #     """
@@ -24,11 +27,11 @@ import traceback
 #     :param exc_value: The value of the exception (optional).
 #     :param exc_traceback: The traceback object (optional).
 #     """
-    
+
 #     if exc_type is None:
 #         # If no exception type is provided, assume a generic error
 #         raise Exception(message)
-    
+
 #     print(f"[bold red]ERROR:[/bold red] {message}")
 #     if exc_type and exc_traceback:
 #         print("\n[bold blue]Stack Trace:[/bold blue]")
@@ -39,7 +42,9 @@ import traceback
 #         print(f"[dim]{detailed_traceback}[/dim]")
 
 
-def print_error(message, exc_type=None, exc_value=None, exc_traceback=None, terminate=True):
+def print_error(
+    message, exc_type=None, exc_value=None, exc_traceback=None, terminate=True
+):
     """
     Print a detailed error message with a stack trace.
 
@@ -76,6 +81,8 @@ def print_info(message):
 
 
 def print_log(message):
+    # logger = logging.getLogger(__name__)
+    # logger.info(message)
     print(f"[bold purple]LOG[/bold purple] {message}")
 
 

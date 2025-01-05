@@ -17,7 +17,7 @@ def get_pixels(height: int, width: int, device: str = "cpu") -> torch.Tensor:
         torch.arange(height, device=device),
         indexing="ij",
     )
-    pixels = torch.stack([pixels_x, pixels_y], dim=-1).type(torch.uint32)
+    pixels = torch.stack([pixels_x, pixels_y], dim=-1).type(torch.int32)
 
     return pixels
 
@@ -34,7 +34,7 @@ def get_random_pixels(
     pixels = torch.rand(nr_pixels, 2, device=device)
     pixels[:, 0] *= width
     pixels[:, 1] *= height
-    pixels = pixels.type(torch.uint32)
+    pixels = pixels.type(torch.int32)
     return pixels
 
 
