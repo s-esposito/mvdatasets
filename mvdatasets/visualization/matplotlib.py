@@ -14,7 +14,7 @@ from mvdatasets.visualization.colormaps import davis_palette
 TRANSPARENT = False
 BBOX_INCHES = "tight"  # "tight" or "auto"
 PAD_INCHES = 0.1
-DPI = 300
+DPI = 100
 COLORBAR_FRACTION = 0.04625
 LARGE_SCALE_MULTIPLIER = 0.05
 SCALE_MULTIPLIER = 0.05
@@ -650,7 +650,7 @@ def _draw_point_clouds(
         return
 
     if not isinstance(point_clouds, list):
-        print_error("point_clouds must be a list of numpy arrays")
+        print_error("point_clouds must be a list of PointClouds")
 
     # if pc are given
     if len(point_clouds) > 0:
@@ -914,11 +914,6 @@ def plot_3d(
 def plot_camera_trajectory(
     cameras: list[Camera] = None,
     point_clouds: list[PointCloud] = None,
-    # points_3d: list[np.ndarray] = None,
-    # points_3d_colors: list[np.ndarray] = None,
-    # points_3d_labels: list[str] = None,
-    # points_3d_markers: list[str] = None,
-    # points_3d_sizes: list[float] = None,
     max_nr_points: int = 1000,
     draw_every_n_cameras: int = 1,
     last_frame_idx: int = -1,
@@ -967,11 +962,6 @@ def plot_camera_trajectory(
     _draw_point_clouds(
         ax=ax,
         point_clouds=point_clouds,
-        # points_3d=points_3d,
-        # points_3d_colors=points_3d_colors,
-        # points_3d_labels=points_3d_labels,
-        # points_3d_sizes=points_3d_sizes,
-        # points_3d_markers=points_3d_markers,
         max_nr_points=max_nr_points,
         up=up,
         scene_radius=scene_radius,
@@ -1010,15 +1000,49 @@ def plot_camera_trajectory(
 
     # add subplot for rgb frame
     if draw_rgb_frame:
+        
+        camera = cameras[last_frame_idx]
+        
         ax_rgb = fig.add_subplot(1, 2, 2)
         ax_rgb.axis("off")
-        data = cameras[last_frame_idx].get_data(keys=["rgbs"])
-        camera_width = cameras[last_frame_idx].width
-        camera_height = cameras[last_frame_idx].height
-        rgb = data["rgbs"].reshape(camera_width, camera_height, 3)
-        # transpose to (H, W, C)
-        rgb = np.transpose(rgb, (1, 0, 2))
-        ax_rgb.imshow(rgb)
+        
+        # draw rgb frame
+        _draw_camera_2d(
+            ax=ax_rgb,
+            camera=camera,
+            frame_idx=0,
+        )
+        
+        # concateneate points_3d from all point clouds
+        points_3d = []
+        for pc in point_clouds:
+            points_3d.append(pc.points_3d)
+        points_3d = np.concatenate(points_3d, axis=0)
+        
+        # project 3d points to 2d
+        points_2d_screen, points_mask = camera.project_points_3d_world_to_2d_screen(
+            points_3d=points_3d, filter_points=True
+        )
+        points_3d = points_3d[points_mask]
+
+        # 3d points distance from camera center
+        camera_points_dists = camera.distance_to_points_3d_world(points_3d)
+        
+        # draw projected points
+        
+        _draw_camera_points_2d(
+            ax=ax_rgb,
+            camera=cameras[last_frame_idx],
+            points_2d_screen=points_2d_screen,
+            points_norms=camera_points_dists,
+        )
+        # data = cameras[last_frame_idx].get_data(keys=["rgbs"])
+        # camera_width = cameras[last_frame_idx].width
+        # camera_height = cameras[last_frame_idx].height
+        # rgb = data["rgbs"].reshape(camera_width, camera_height, 3)
+        # # transpose to (H, W, C)
+        # rgb = np.transpose(rgb, (1, 0, 2))
+        # ax_rgb.imshow(rgb)
 
     if save_path is not None:
         plt.savefig(
@@ -1290,38 +1314,12 @@ def _draw_camera_2d(
     ax.imshow(rgb / 255.0)
 
 
-def plot_camera_2d(
+def _draw_camera_points_2d(
+    ax: plt.Axes,
     camera: Camera,
-    points_2d_screen: np.ndarray = None,
+    points_2d_screen: np.ndarray,
     points_norms: np.ndarray = None,
-    frame_idx: int = 0,
-    show_ticks: bool = False,
-    figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
-    show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
-) -> None:
-    """
-    args:
-        camera (Camera): camera object
-        points_2d_screen (np.ndarray, float, optional): (N, 2), (H, W)
-        frame_idx (int, optional): Defaults to 0.
-    out:
-        None
-    """
-
-    # init figure
-    fig = plt.figure(figsize=figsize)
-    ax = fig.add_subplot(111)
-    if title is not None:
-        plt.title(title)
-
-    _draw_camera_2d(
-        ax=ax,
-        camera=camera,
-        frame_idx=frame_idx,
-    )
-
+):
     if points_2d_screen is not None and points_2d_screen.shape[0] > 0:
         # filter out points outside image range
         points_mask = get_mask_points_in_image_range(
@@ -1357,6 +1355,46 @@ def plot_camera_2d(
         ax.scatter(
             points_2d_screen[:, 0], points_2d_screen[:, 1], s=5, c=color, marker="."
         )
+
+
+def plot_camera_2d(
+    camera: Camera,
+    points_2d_screen: np.ndarray = None,
+    points_norms: np.ndarray = None,
+    frame_idx: int = 0,
+    show_ticks: bool = False,
+    figsize: Tuple[int, int] = (15, 15),
+    title: str = None,
+    show: bool = True,
+    save_path: Path = None,  # if set, saves the figure to the given path
+) -> None:
+    """
+    args:
+        camera (Camera): camera object
+        points_2d_screen (np.ndarray, float, optional): (N, 2), (H, W)
+        frame_idx (int, optional): Defaults to 0.
+    out:
+        None
+    """
+
+    # init figure
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    if title is not None:
+        plt.title(title)
+
+    _draw_camera_2d(
+        ax=ax,
+        camera=camera,
+        frame_idx=frame_idx,
+    )
+
+    _draw_camera_points_2d(
+        ax=ax,
+        camera=camera,
+        points_2d_screen=points_2d_screen,
+        points_norms=points_norms,
+    )
 
     if show_ticks:
         ax.set_xticks(np.arange(-0.5, camera.width, 1), minor=True)

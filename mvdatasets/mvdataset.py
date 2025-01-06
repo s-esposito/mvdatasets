@@ -60,6 +60,7 @@ class MVDataset:
         self.nr_per_camera_frames = 0
         self.nr_sequence_frames = 0
         self.point_clouds = []
+        self.fps = 0.0
         self.data = {}
 
         # STATIC SCENE DATASETS -----------------------------------------------
@@ -185,23 +186,17 @@ class MVDataset:
                 print_error("init_sphere_radius > scene_radius, this can't be true")
 
             # dynamic scenes
-            if "nr_per_camera_frames" in res:
-                self.nr_per_camera_frames = res["nr_per_camera_frames"]
-            else:
-                self.nr_per_camera_frames = 1
+            self.nr_per_camera_frames = res.get("nr_per_camera_frames", 1)
             print("nr_per_camera_frames:", self.nr_per_camera_frames)
 
-            if "nr_sequence_frames" in res:
-                self.nr_sequence_frames = res["nr_sequence_frames"]
-            else:
-                self.nr_sequence_frames = 1
+            self.nr_sequence_frames = res.get("nr_sequence_frames", 1)
             print("nr_sequence_frames:", self.nr_sequence_frames)
 
+            self.fps = res.get("fps", 0.0)
+            print("fps:", self.fps)
+            
             # optional
-            if "point_clouds" in res:
-                self.point_clouds = res["point_clouds"]
-            else:
-                self.point_clouds = []
+            self.point_clouds = res.get("point_clouds", [])
             print("loaded scene has", len(self.point_clouds), "point clouds")
 
             # ---------------------------------------------------------------------
@@ -260,6 +255,9 @@ class MVDataset:
         cameras = self.get_split(split)
         return cameras[0].get_available_data()
 
+    def get_frame_rate(self) -> float:
+        return self.fps
+    
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
 

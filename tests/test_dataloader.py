@@ -39,13 +39,24 @@ def main(args: Args):
         verbose=True,
     )
 
-    nr_epochs = 1
+    nr_epochs = 10
     num_workers = os.cpu_count() // 2
     print(f"num_workers: {num_workers}")
     shuffle = True
     persistent_workers = True  # Reduce worker initialization overhead
     pin_memory = True  # For faster transfer to GPU
-    batch_size = 16  # nr full frames per batch
+    batch_size = 4  # nr full frames per batch
+    print(f"batch_size: {batch_size}")
+    
+    # -------------------------------------------------------------------------
+    
+    nr_sequence_frames = 0
+    cameras_temporal_dim = mv_data.get_split("train")[0].get_temporal_dim()
+    if cameras_temporal_dim > 1:
+        use_incremental_sequence_lenght = True
+    else:
+        use_incremental_sequence_lenght = False
+    increase_nr_sequence_frames_each = 1
 
     # index frames -------------------------------------------------------------
 
@@ -55,40 +66,51 @@ def main(args: Args):
 
         # profiler = Profiler(verbose=False)
 
-        # initialize data loader
-        data_split = DataSplit(
-            cameras=mv_data.get_split("train"),
-            modalities=mv_data.get_split_modalities("train"),
-            index_pixels=False,
-        )
-
-        #
-        data_loader = torch.utils.data.DataLoader(
-            data_split,
-            batch_size=batch_size,
-            num_workers=num_workers,
-            shuffle=shuffle,
-            persistent_workers=persistent_workers,
-            pin_memory=pin_memory,
-        )
-        print(f"batch_size: {batch_size}")
-
         # test loop
 
         # Loop over epochs
         step = 0
-        epochs_pbar = tqdm(range(nr_epochs), desc="epochs")
+        epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
+            
+            # if first iteration or need to update time dimension of data split
+            if (
+                    epoch_nr == 0  # first iteration
+                    # need to update time dimension of data split
+                    or (nr_sequence_frames < cameras_temporal_dim and epoch_nr % increase_nr_sequence_frames_each == 0)
+            ):
+                
+                nr_sequence_frames += 1
+                
+                # initialize data loader
+                data_split = DataSplit(
+                    cameras=mv_data.get_split("train"),
+                    nr_sequence_frames=nr_sequence_frames,
+                    modalities=mv_data.get_split_modalities("train"),
+                    index_pixels=False,
+                )
+
+                #
+                data_loader = torch.utils.data.DataLoader(
+                    data_split,
+                    batch_size=batch_size,
+                    num_workers=num_workers,
+                    shuffle=shuffle,
+                    persistent_workers=persistent_workers,
+                    pin_memory=pin_memory,
+                )
+            
             # Iterate over batches
-            iter_pbar = tqdm(data_loader, desc="iter")
+            iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
             for iter_nr, batch in enumerate(iter_pbar):
                 # Move batch to device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                # Print batch shape
-                for k, v in batch.items():
-                    print(
-                        f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
-                    )
+                # print(batch["timestamps"])
+                # # Print batch shape
+                # for k, v in batch.items():
+                #     print(
+                #         f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
+                #     )
                 # Increment step
                 step += 1
 
@@ -124,12 +146,12 @@ def main(args: Args):
         # test loop
 
         # Loop over epochs
-        epochs_pbar = tqdm(range(nr_epochs), desc="epochs")
+        epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
             # Get iterator over data
             dataiter = iter(data_loader)
             # Loop over batches
-            iter_pbar = tqdm(range(len(dataiter)), desc="iter")
+            iter_pbar = tqdm(range(len(dataiter)), desc="iter", ncols=100, disable=False)
             for iter_nr in iter_pbar:
 
                 try:

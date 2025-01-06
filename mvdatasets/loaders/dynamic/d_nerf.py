@@ -54,6 +54,7 @@ def load(
         "foreground_radius_mult": 0.5,
         "init_sphere_radius_mult": 0.3,
         "pose_only": False,
+        "frame_rate": 30.0,
     }
 
     # Update config with defaults
@@ -249,5 +250,6 @@ def load(
         "max_camera_distance": new_max_camera_distance,
         "scene_radius": scene_radius,
         "nr_per_camera_frames": 1,
+        "fps": config["frame_rate"],
         "nr_sequence_frames": len(cameras_splits["train"]),
     }

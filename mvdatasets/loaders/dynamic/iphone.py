@@ -47,7 +47,7 @@ def load(
         # "load_masks": True,
         # "use_binary_mask": True,
         # "white_bg": True,
-        "rotate_scene_x_axis_deg": 0.0,
+        "rotate_scene_x_axis_deg": 90.0,
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
         # "foreground_radius_mult": 0.5,
@@ -253,7 +253,6 @@ def load(
                 cam_imgs = rgbs_dict[split][i][None, ...]  # (1, H, W, 3)
             else:
                 cam_imgs = None
-            print("cam_imgs", cam_imgs.shape)
                 
             if masks_dict is not None:
                 cam_masks = masks_dict[split][i]
@@ -296,6 +295,7 @@ def load(
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
         "scene_radius": scene_radius,
+        "fps": fps,
         "nr_per_camera_frames": 1,
         "nr_sequence_frames": len(cameras_splits["train"]),
     }

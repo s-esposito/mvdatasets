@@ -47,13 +47,13 @@ def main(args: Args):
     # make video
     make_video_camera_trajectory(
         cameras=mv_data.get_split("train"),
-        points_3d=mv_data.point_clouds,
+        point_clouds=mv_data.point_clouds,
         dataset_name=dataset_name,
         nr_frames=-1,  # -1 means all frames
         remove_tmp_files=True,
         scene_radius=mv_data.get_scene_radius(),
         save_path=Path(os.path.join("plots", f"{dataset_name}_trajectory.mp4")),
-        fps=10,
+        fps=mv_data.get_frame_rate(),
     )
 
     # # create output folder

@@ -475,5 +475,6 @@ def load(
         "scene_radius": scene_radius,
         "foreground_radius_mult": config["foreground_radius_mult"],
         "nr_per_camera_frames": 1,
+        "fps": config["frame_rate"],
         "nr_sequence_frames": len(cameras_splits["train"]),
     }

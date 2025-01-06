@@ -37,7 +37,7 @@ def main(args: Args):
     # camera = deepcopy(mv_data.get_split("test")[rand_idx])
 
     plot_cameras_2d(
-        cameras=mv_data.get_split("test"),
+        cameras=mv_data.get_split("train"),
     )
 
 

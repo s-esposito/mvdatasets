@@ -12,6 +12,7 @@ class DataSplit:
     def __init__(
         self,
         cameras: List[Camera],
+        nr_sequence_frames: int = -1,
         modalities: list[str] = ["rgbs", "masks"],
         index_pixels: bool = False,
     ):
@@ -19,12 +20,23 @@ class DataSplit:
 
         Args:
             cameras (List[Camera]): list of Camera objects.
+            nr_sequence_frames (int, optional): Defaults to -1, means all temporal frames are used.
             modalities (list[str], optional): Defaults to ["rgbs", "masks"].
             index_pixels (bool, optional): If True, indexes images pixels directly. If False, indexes whole images. Defaults to False.
         """
         self.nr_cameras = len(cameras)
-        # assumption: all cameras have the same dimensions
-        self.temporal_dim = cameras[0].get_temporal_dim()
+        # assumption: all cameras have the same dimensions (T)
+        temporal_dim = cameras[0].get_temporal_dim()
+        
+        if nr_sequence_frames == -1:
+            self.temporal_dim = temporal_dim
+        else:
+            # assert temporal_dim >= nr_sequence_frames
+            if nr_sequence_frames > temporal_dim:
+                print_warning(f"nr_sequence_frames: {nr_sequence_frames} > temporal_dim: {temporal_dim}, capping to {temporal_dim}")
+                nr_sequence_frames = temporal_dim
+            self.temporal_dim = nr_sequence_frames
+        
         self.width = cameras[0].get_width()
         self.height = cameras[0].get_height()
         self.index_pixels = index_pixels
@@ -45,7 +57,11 @@ class DataSplit:
                     if key not in data:
                         data[key] = []
                     if val is not None:
-                        data[key].append(val)
+                        # val is (T, H, W, C)
+                        # keep only the first temporal_dim frames
+                        val_ = val[:self.temporal_dim]
+                        # val_ is (T_s, H, W, C)
+                        data[key].append(val_)
                     else:
                         print_error(f"camera {camera.camera_label} has no {key} data")
 
@@ -53,7 +69,10 @@ class DataSplit:
             intrinsics_inv_all.append(camera.get_intrinsics_inv())
             c2w_all.append(camera.get_pose())
             w2c_all.append(camera.get_pose_inv())
-            timestamps_all.append(camera.get_timestamps())
+            # get timestamps (up to temporal_dim)
+            timestamps = camera.get_timestamps()  # (T,)
+            timestamps = timestamps[:self.temporal_dim]  # (T_s,)
+            timestamps_all.append(timestamps)
 
         self.intrinsics_all = np.stack(intrinsics_all)  # (N, 3, 3)
         self.intrinsics_inv_all = np.stack(intrinsics_inv_all)  # (N, 3, 3)
@@ -139,7 +158,7 @@ class DataSplit:
         return data
 
     def __str__(self) -> str:
-        return f"DataSplit with {len(self)} indexable items, totalling {bytes_to_gb(self.get_memory_footprint())} GB."
+        return f"DataSplit with {len(self)} indexable items (nr_cameras: {self.nr_cameras}, temporal_dim: {self.temporal_dim}, width: {self.width}, height: {self.height}), totalling {bytes_to_gb(self.get_memory_footprint())} GB."
 
     def get_memory_footprint(self) -> int:
         # returns the memory footprint of the split in bytes

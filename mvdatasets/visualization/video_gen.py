@@ -1,20 +1,22 @@
 import os
 import numpy as np
 from tqdm import tqdm
+from copy import deepcopy
 from typing import Union, Literal
 from pathlib import Path
 from mvdatasets.camera import Camera
 from mvdatasets.visualization.matplotlib import plot_camera_trajectory
 from mvdatasets.utils.printing import print_warning, print_log, print_error
+from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere, PointCloud
 
 
 def make_video_camera_trajectory(
     cameras: list[Camera],
     save_path: Path,  # e.g. Path("./trajectory.mp4"),
     dataset_name: str = None,
-    points_3d: np.ndarray = None,
+    point_clouds: list[PointCloud] = None,
     nr_frames: int = -1,  # -1 means all frames
-    max_nr_points: int = 1000,
+    max_nr_points: int = 10000,
     fps: int = 10,
     remove_tmp_files: bool = True,
     azimuth_deg: float = 60.0,
@@ -39,15 +41,6 @@ def make_video_camera_trajectory(
     step_size = sequence_len // nr_frames
     frames_idxs = np.arange(0, sequence_len, step_size)
 
-    # subsample point cloud (if available)
-    if points_3d is not None:
-        if max_nr_points is not None:
-            if max_nr_points < points_3d.shape[0]:
-                idx = np.random.permutation(points_3d.shape[0])[:max_nr_points]
-                points_3d_ = points_3d[idx]
-        else:
-            points_3d_ = points_3d
-
     # remove extension from save_path
     output_path = save_path.parent / save_path.stem
 
@@ -58,6 +51,14 @@ def make_video_camera_trajectory(
         print_log(f"overriding existing {output_path}")
         os.system(f"rm -rf {output_path}")
     os.makedirs(output_path)
+    
+    # downsample point cloud
+    new_point_clouds = []
+    for point_cloud in point_clouds:
+        new_point_cloud = deepcopy(point_cloud)
+        new_point_cloud.downsample(max_nr_points)
+        new_point_clouds.append(new_point_cloud)
+    point_clouds = new_point_clouds
 
     # Visualize cameras
     pbar = tqdm(enumerate(frames_idxs), desc="frames", ncols=100)
@@ -76,8 +77,7 @@ def make_video_camera_trajectory(
             cameras=cameras,
             last_frame_idx=last_frame_idx,
             draw_every_n_cameras=1,
-            points_3d=[points_3d_],
-            points_3d_colors=["black"],
+            point_clouds=point_clouds,
             azimuth_deg=azimuth_deg,
             elevation_deg=elevation_deg,
             max_nr_points=None,

@@ -148,7 +148,7 @@ def load(
     for split in splits:
 
         cameras_splits[split] = []
-        pbar = tqdm(cam_ids_split[split], desc=f"{split} cameras")
+        pbar = tqdm(cam_ids_split[split], desc=f"{split} cameras", ncols=100)
         for i, camera_id in enumerate(pbar):
 
             if not config["pose_only"]:
@@ -224,5 +224,6 @@ def load(
         "foreground_radius_mult": config["foreground_radius_mult"],
         "scene_radius": scene_radius,
         "nr_per_camera_frames": temporal_dim,
+        "fps": config["frame_rate"],
         "nr_sequence_frames": temporal_dim,
     }
