@@ -308,7 +308,7 @@ def load(
 
     # get train split (will be then splitted in train / test)
     split = "train"
-    
+
     # TODO: load validation split
 
     res = _extract_data(
@@ -452,7 +452,7 @@ def load(
         cameras_splits[split] = []
         # if split == "train":
         #     if train_test_overlap:
-                # if train_test_overlap, use all cameras for training
+        # if train_test_overlap, use all cameras for training
         cameras_splits[split] = cameras_all
         #     # else use only a subset of cameras
         #     else:

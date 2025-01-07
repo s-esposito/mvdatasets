@@ -27,16 +27,18 @@ class DataSplit:
         self.nr_cameras = len(cameras)
         # assumption: all cameras have the same dimensions (T)
         temporal_dim = cameras[0].get_temporal_dim()
-        
+
         if nr_sequence_frames == -1:
             self.temporal_dim = temporal_dim
         else:
             # assert temporal_dim >= nr_sequence_frames
             if nr_sequence_frames > temporal_dim:
-                print_warning(f"nr_sequence_frames: {nr_sequence_frames} > temporal_dim: {temporal_dim}, capping to {temporal_dim}")
+                print_warning(
+                    f"nr_sequence_frames: {nr_sequence_frames} > temporal_dim: {temporal_dim}, capping to {temporal_dim}"
+                )
                 nr_sequence_frames = temporal_dim
             self.temporal_dim = nr_sequence_frames
-        
+
         self.width = cameras[0].get_width()
         self.height = cameras[0].get_height()
         self.index_pixels = index_pixels
@@ -59,7 +61,7 @@ class DataSplit:
                     if val is not None:
                         # val is (T, H, W, C)
                         # keep only the first temporal_dim frames
-                        val_ = val[:self.temporal_dim]
+                        val_ = val[: self.temporal_dim]
                         # val_ is (T_s, H, W, C)
                         data[key].append(val_)
                     else:
@@ -71,7 +73,7 @@ class DataSplit:
             w2c_all.append(camera.get_pose_inv())
             # get timestamps (up to temporal_dim)
             timestamps = camera.get_timestamps()  # (T,)
-            timestamps = timestamps[:self.temporal_dim]  # (T_s,)
+            timestamps = timestamps[: self.temporal_dim]  # (T_s,)
             timestamps_all.append(timestamps)
 
         self.intrinsics_all = np.stack(intrinsics_all)  # (N, 3, 3)

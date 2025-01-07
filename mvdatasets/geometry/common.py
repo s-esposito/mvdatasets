@@ -41,7 +41,7 @@ def get_min_max_cameras_distances(poses: list) -> tuple:
     """
     if len(poses) == 0:
         raise ValueError("poses list empty")
-    
+
     # get all camera centers
     camera_centers = np.stack(poses, 0)[:, :3, 3]
     camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)

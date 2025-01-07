@@ -763,7 +763,11 @@ def _draw_camera_trajectory(
     if last_frame_idx is not None:
         all_centers = all_centers[: (last_frame_idx + 1)]
 
+    print(f"all_centers.shape: {all_centers.shape}")
+
     scale = get_scale(scene_radius)
+    linewidth = 40.0 * scale
+    print(f"linewidth: {linewidth}")
 
     # sample colors
     colors = plt.cm.jet(np.linspace(0, 1, sequence_lenght))[:, :3]
@@ -775,7 +779,7 @@ def _draw_camera_trajectory(
         # get color
         color = colors[i]
         # alpha
-        alpha = 0.5
+        alpha = 1.0
         # plot line segment
         if up == "z":
             ax.plot3D(
@@ -784,7 +788,7 @@ def _draw_camera_trajectory(
                 [center_i[2], center_i1[2]],
                 color=color,
                 alpha=alpha,
-                linewidth=2.0 * scale,
+                linewidth=linewidth,
             )
         else:
             ax.plot3D(
@@ -793,7 +797,7 @@ def _draw_camera_trajectory(
                 [center_i[1], center_i1[1]],
                 color=color,
                 alpha=alpha,
-                linewidth=2.0 * scale,
+                linewidth=linewidth,
             )
 
 
@@ -926,6 +930,7 @@ def plot_camera_trajectory(
     draw_image_planes: bool = True,
     draw_cameras_frustums: bool = False,
     draw_rgb_frame: bool = True,
+    draw_camera_path: bool = True,
     figsize: Tuple[int, int] = (15, 15),
     title: str = None,
     show: bool = True,
@@ -972,13 +977,14 @@ def plot_camera_trajectory(
         last_frame_idx = len(cameras) - 1
 
     # draw cameras trajectory
-    _draw_camera_trajectory(
-        ax=ax,
-        cameras=cameras,
-        last_frame_idx=last_frame_idx,
-        up=up,
-        scene_radius=scene_radius,
-    )
+    if draw_camera_path:
+        _draw_camera_trajectory(
+            ax=ax,
+            cameras=cameras,
+            last_frame_idx=last_frame_idx,
+            up=up,
+            scene_radius=scene_radius,
+        )
 
     # draw camera frames
     if draw_all_cameras_frames:
@@ -1000,25 +1006,25 @@ def plot_camera_trajectory(
 
     # add subplot for rgb frame
     if draw_rgb_frame:
-        
+
         camera = cameras[last_frame_idx]
-        
+
         ax_rgb = fig.add_subplot(1, 2, 2)
         ax_rgb.axis("off")
-        
+
         # draw rgb frame
         _draw_camera_2d(
             ax=ax_rgb,
             camera=camera,
             frame_idx=0,
         )
-        
+
         # concateneate points_3d from all point clouds
         points_3d = []
         for pc in point_clouds:
             points_3d.append(pc.points_3d)
         points_3d = np.concatenate(points_3d, axis=0)
-        
+
         # project 3d points to 2d
         points_2d_screen, points_mask = camera.project_points_3d_world_to_2d_screen(
             points_3d=points_3d, filter_points=True
@@ -1027,9 +1033,9 @@ def plot_camera_trajectory(
 
         # 3d points distance from camera center
         camera_points_dists = camera.distance_to_points_3d_world(points_3d)
-        
+
         # draw projected points
-        
+
         _draw_camera_points_2d(
             ax=ax_rgb,
             camera=cameras[last_frame_idx],
@@ -1298,6 +1304,11 @@ def _draw_camera_2d(
     if camera.has_masks():
         mask = data["masks"].cpu().numpy()
     # mask is (H*W, 1) or None
+    
+    depth = None
+    if camera.has_depths():
+        depth = data["depths"].cpu().numpy()
+    # depths is (H*W, 1) or None
 
     if semantic_mask is not None:
         # convert semantic mask to rgb and display overlayed
@@ -1310,8 +1321,27 @@ def _draw_camera_2d(
     rgb = rgb.reshape(camera.width, camera.height, -1)
     # transpose to (H, W, -1)
     rgb = np.transpose(rgb, (1, 0, 2))
+    # 
+    rgb = rgb / 255.0
+    
+    # rgb and depth side by side
+    if depth is not None:
+        # TODO: improve depth map visualization
+        # apply colormap to depth
+        depth = plt.cm.jet(depth, )  # (H*W, 3)
+        # reshape to (W, H, 3)
+        depth = depth.reshape(camera.width, camera.height, -1)  # (W, H, 3)
+        # # replicate depth to 3 channels
+        # depth = np.repeat(depth, 3, axis=2)  # (W, H, 3)
+        # transpose to (H, W, 3)
+        depth = np.transpose(depth, (1, 0, 2))
+        depth = depth[..., :3]
+        # concatenate rgb and depth
+        # print(rgb.shape, depth.shape)
+        rgb = np.concatenate([rgb, depth], axis=1)
+    
     # display image
-    ax.imshow(rgb / 255.0)
+    ax.imshow(rgb)
 
 
 def _draw_camera_points_2d(

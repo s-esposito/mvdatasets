@@ -16,8 +16,10 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
+    scene_name = args.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
-    scene_name = test_preset["scene_name"]
+    if scene_name is None:
+        scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
@@ -55,7 +57,7 @@ def main(args: Args):
         title="screen space sampling (jittered)",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_screen_space_sampling_jittered.png"
+            "plots", f"{dataset_name}_{scene_name}_screen_space_sampling_jittered.png"
         ),
     )
 
@@ -68,7 +70,9 @@ def main(args: Args):
         figsize=(15, 15),
         title="screen space sampling",
         show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_screen_space_sampling.png"),
+        save_path=os.path.join(
+            "plots", f"{dataset_name}_{scene_name}_screen_space_sampling.png"
+        ),
     )
 
 

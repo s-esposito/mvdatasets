@@ -23,8 +23,10 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
+    scene_name = args.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
-    scene_name = test_preset["scene_name"]
+    if scene_name is None:
+        scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
@@ -47,9 +49,9 @@ def main(args: Args):
     pin_memory = True  # For faster transfer to GPU
     batch_size = 4  # nr full frames per batch
     print(f"batch_size: {batch_size}")
-    
+
     # -------------------------------------------------------------------------
-    
+
     nr_sequence_frames = 0
     cameras_temporal_dim = mv_data.get_split("train")[0].get_temporal_dim()
     if cameras_temporal_dim > 1:
@@ -72,16 +74,19 @@ def main(args: Args):
         step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
-            
+
             # if first iteration or need to update time dimension of data split
             if (
-                    epoch_nr == 0  # first iteration
-                    # need to update time dimension of data split
-                    or (nr_sequence_frames < cameras_temporal_dim and epoch_nr % increase_nr_sequence_frames_each == 0)
+                epoch_nr == 0  # first iteration
+                # need to update time dimension of data split
+                or (
+                    nr_sequence_frames < cameras_temporal_dim
+                    and epoch_nr % increase_nr_sequence_frames_each == 0
+                )
             ):
-                
+
                 nr_sequence_frames += 1
-                
+
                 # initialize data loader
                 data_split = DataSplit(
                     cameras=mv_data.get_split("train"),
@@ -99,7 +104,7 @@ def main(args: Args):
                     persistent_workers=persistent_workers,
                     pin_memory=pin_memory,
                 )
-            
+
             # Iterate over batches
             iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
             for iter_nr, batch in enumerate(iter_pbar):
@@ -151,7 +156,9 @@ def main(args: Args):
             # Get iterator over data
             dataiter = iter(data_loader)
             # Loop over batches
-            iter_pbar = tqdm(range(len(dataiter)), desc="iter", ncols=100, disable=False)
+            iter_pbar = tqdm(
+                range(len(dataiter)), desc="iter", ncols=100, disable=False
+            )
             for iter_nr in iter_pbar:
 
                 try:

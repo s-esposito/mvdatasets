@@ -44,6 +44,7 @@ def load(
     # Default configuration
     defaults = {
         "scene_type": "unbounded",
+        "load_depths": True,
         # "load_masks": True,
         # "use_binary_mask": True,
         # "white_bg": True,
@@ -72,11 +73,11 @@ def load(
             print(f"\t{k}: {v}")
 
     # -------------------------------------------------------------------------
-    
+
     # load points.npy
     points_3d = np.load(os.path.join(scene_path, "points.npy"))
     point_cloud = PointCloud(points_3d, points_rgb=None)
-    
+
     # load scene.json
     with open(os.path.join(scene_path, "scene.json"), "r") as fp:
         scene_meta = json.load(fp)
@@ -89,7 +90,7 @@ def load(
     print("far", far)
     print("scale", scale)
     print("center", center)
-    
+
     # load extra.json
     with open(os.path.join(scene_path, "extra.json"), "r") as fp:
         extra_meta = json.load(fp)
@@ -107,38 +108,43 @@ def load(
     # print("bbox", bbox)
     print("factor", factor)
     print("fps", fps)
-    
+
     # read splits data
     data = {}
     for split in splits:
-        
-        # 
+
+        #
         data[split] = {}
-        
-        # if split file not present, warning and skip 
+
+        # if split file not present, warning and skip
         if not os.path.exists(os.path.join(scene_path, "splits", f"{split}.json")):
-            print_warning(f"Split file not found: {os.path.join(scene_path, 'splits', f'{split}.json')}")
+            print_warning(
+                f"Split file not found: {os.path.join(scene_path, 'splits', f'{split}.json')}"
+            )
             continue
-        
+
         # load current split data
         with open(os.path.join(scene_path, "splits", f"{split}.json"), "r") as fp:
             metas = json.load(fp)
             data[split]["camera_ids"] = np.array(metas["camera_ids"])
             data[split]["frame_names"] = metas["frame_names"]
-            data[split]["timestamps"] = np.array(metas["time_ids"], dtype=np.float32) / fps
+            data[split]["timestamps"] = (
+                np.array(metas["time_ids"], dtype=np.float32) / fps
+            )
 
     poses_dict = {}
     intrinsics_dict = {}
-    
     for split_name, split_data in data.items():
-        
+
         poses_dict[split_name] = []
         intrinsics_dict[split_name] = []
-        
+
         for frame_name in split_data["frame_names"]:
-        
+
             # load current split transforms
-            with open(os.path.join(scene_path, "camera", f"{frame_name}.json"), "r") as fp:
+            with open(
+                os.path.join(scene_path, "camera", f"{frame_name}.json"), "r"
+            ) as fp:
                 frame_meta = json.load(fp)
                 focal_length = frame_meta["focal_length"]
                 image_size = frame_meta["image_size"]  # (W, H)
@@ -146,14 +152,14 @@ def load(
                 pixel_aspect_ratio = frame_meta["pixel_aspect_ratio"]
                 position = np.array(frame_meta["position"])
                 ## shift to scene center
-                #position -= center
+                # position -= center
                 ## unscale
-                #position *= 1 / scale
+                # position *= 1 / scale
                 principal_point = np.array(frame_meta["principal_point"])
                 radial_distortion = np.array(frame_meta["radial_distortion"])
                 skew = frame_meta["skew"]
                 tangential_distortion = np.array(frame_meta["tangential_distortion"])
-                
+
                 # assert all radial distortion values are extremely close to 0
                 assert np.allclose(radial_distortion, 0.0, atol=1e-6)
                 # assert tangential distortion values are extremely close to 0
@@ -169,21 +175,23 @@ def load(
                 pose[:3, 3] = position
                 poses_dict[split_name].append(pose)
                 # camera intrinsic matrix
-                K = np.array([
-                    [focal_length, skew, principal_point[0]],
-                    [0, focal_length / pixel_aspect_ratio, principal_point[1]],
-                    [0, 0, 1],
-                ])
+                K = np.array(
+                    [
+                        [focal_length, skew, principal_point[0]],
+                        [0, focal_length / pixel_aspect_ratio, principal_point[1]],
+                        [0, 0, 1],
+                    ]
+                )
                 intrinsics_dict[split_name].append(K)
 
     width, height = image_size
-    
-    # 
+
+    #
     poses_all = []
     for split_name, split_poses in poses_dict.items():
         for pose in split_poses:
             poses_all.append(pose)
-    
+
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
 
@@ -207,17 +215,17 @@ def load(
 
     # local transform
     local_transform = np.eye(4)
-    
+
     # load images if needed
-    rgbs_dict = None
-    masks_dict = None
+    rgbs_dict = {}
+    masks_dict = {}
+    depths_dict = {}
     if not config["pose_only"]:
-        
-        rgbs_dict = {}
+
         pbar = tqdm(data.items(), desc="loading images", ncols=100)
         for split_name, split_data in pbar:
             rgbs_dict[split_name] = []
-            
+
             frames_pbar = tqdm(split_data["frame_names"], desc=split_name, ncols=100)
             for frame_name in frames_pbar:
                 rgb_path = os.path.join(scene_path, "rgb", "1x", f"{frame_name}.png")
@@ -234,31 +242,56 @@ def load(
                 # exit(0)
                 rgb_np = img_np[..., :3]
                 rgbs_dict[split_name].append(rgb_np)
-                
+
         # if config["load_masks"]:
-        #     masks_dict = {}
         #     for split_name, split_data in data.items():
         #         masks_dict[split_name] = []
-    
+
+        if config["load_depths"]:
+            for split_name, split_data in data.items():
+                depths_dict[split_name] = []
+
+                frames_pbar = tqdm(
+                    split_data["frame_names"], desc=split_name, ncols=100
+                )
+                for frame_name in frames_pbar:
+                    depth_path = os.path.join(
+                        scene_path, "depth", "1x", f"{frame_name}.npy"
+                    )
+                    # check if file exists
+                    if not os.path.exists(depth_path):
+                        print_warning(f"Depth file not found: {depth_path}")
+                        continue
+                    # load npy
+                    depth_np = np.load(depth_path)
+                    depths_dict[split_name].append(depth_np)
+
     # cameras objects
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
-        
+
         for i, frame_name in enumerate(data[split]["frame_names"]):
-            
+
             # print(i, frame_name)
-            
-            if rgbs_dict is not None:
-                cam_imgs = rgbs_dict[split][i][None, ...]  # (1, H, W, 3)
+            rgbs_split = rgbs_dict.get(split)
+            if rgbs_split is not None and len(rgbs_split) > 0:
+                cam_imgs = rgbs_split[i][None, ...]  # (1, H, W, 3)
             else:
                 cam_imgs = None
-                
-            if masks_dict is not None:
-                cam_masks = masks_dict[split][i]
+
+            masks_split = masks_dict.get(split)
+            if masks_split is not None and len(masks_split) > 0:
+                cam_masks = masks_split[i][None, ...]  # (1, H, W, 1)
             else:
                 cam_masks = None
-            
+
+            depths_split = depths_dict.get(split)
+            if depths_split is not None and len(depths_split) > 0:
+                cam_depths = depths_split[i][None, ...]  # (1, H, W, 1)
+            else:
+                cam_depths = None
+
             # get camera id (int)
             idx = data[split]["camera_ids"][i]
             # get frame id (int)
@@ -267,7 +300,7 @@ def load(
             pose = poses_dict[split][i]
             # get camera intrinsics
             intrinsics = intrinsics_dict[split][i]
-                
+
             camera = Camera(
                 intrinsics=intrinsics,
                 pose=pose,
@@ -275,6 +308,7 @@ def load(
                 local_transform=local_transform,
                 rgbs=cam_imgs,
                 masks=cam_masks,
+                depths=cam_depths,
                 timestamps=timestamp,
                 camera_label=str(idx),
                 width=width,
@@ -282,9 +316,9 @@ def load(
                 subsample_factor=int(config["subsample_factor"]),
                 # verbose=verbose,
             )
-            
+
             cameras_splits[split].append(camera)
-    
+
     return {
         "scene_type": config["scene_type"],
         # "init_sphere_radius_mult": config["init_sphere_radius_mult"],

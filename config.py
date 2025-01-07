@@ -56,6 +56,7 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
 class Args:
     datasets_path: Path = Path("/home/stefano/Data")
     dataset_name: str = "dtu"
+    scene_name: str = None
     seed: int = 42
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 

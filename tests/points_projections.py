@@ -19,8 +19,10 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
+    scene_name = args.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
-    scene_name = test_preset["scene_name"]
+    if scene_name is None:
+        scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
@@ -67,7 +69,9 @@ def main(args: Args):
         title="point cloud projection",
         points_norms=camera_points_dists,
         show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_point_cloud_projection.png"),
+        save_path=os.path.join(
+            "plots", f"{dataset_name}_{scene_name}_point_cloud_projection.png"
+        ),
     )
 
     # reproject to 3D
@@ -116,7 +120,9 @@ def main(args: Args):
         figsize=(15, 15),
         title="point cloud unprojection",
         show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_point_cloud_unprojection.png"),
+        save_path=os.path.join(
+            "plots", f"{dataset_name}_{scene_name}_point_cloud_unprojection.png"
+        ),
     )
 
     error = np.mean(np.abs(points_3d_r - points_3d))

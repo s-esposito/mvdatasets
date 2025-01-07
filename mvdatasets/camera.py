@@ -443,13 +443,16 @@ class Camera:
             new_frames.append(new_frame)
         self.data[modality_name] = np.stack(new_frames)
 
+    def get_pixels(self, device: str = "cpu") -> torch.Tensor:
+        return get_pixels(self.height, self.width, device=device)
+
     def get_rays(
         self,
         points_2d_screen: torch.Tensor = None,
         nr_rays_per_pixel: int = 1,
         jitter_pixels: bool = False,
         device: str = "cpu",
-    ):
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """returns image rays origins and directions
         for 2d points on the image plane.
         If points are not provided, they are sampled
@@ -504,7 +507,7 @@ class Camera:
         keys: list = None,
         device: str = "cpu",
         verbose: bool = False,
-    ):
+    ) -> dict:
         """return data values for points_2d_screen
         out:
             vals (dict):

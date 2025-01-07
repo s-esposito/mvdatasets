@@ -194,7 +194,7 @@ class MVDataset:
 
             self.fps = res.get("fps", 0.0)
             print("fps:", self.fps)
-            
+
             # optional
             self.point_clouds = res.get("point_clouds", [])
             print("loaded scene has", len(self.point_clouds), "point clouds")
@@ -257,7 +257,7 @@ class MVDataset:
 
     def get_frame_rate(self) -> float:
         return self.fps
-    
+
     def get_sphere_init_radius(self) -> float:
         return self.init_sphere_radius
 

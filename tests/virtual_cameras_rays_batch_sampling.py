@@ -20,11 +20,12 @@ def main(args: Args):
     device = args.device
     datasets_path = args.datasets_path
     dataset_name = args.dataset_name
+    scene_name = args.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
-    scene_name = test_preset["scene_name"]
+    if scene_name is None:
+        scene_name = test_preset["scene_name"]
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
-
     # Set profiler
     profiler = Profiler()  # nb: might slow down the code
 
@@ -100,7 +101,9 @@ def main(args: Args):
         figsize=(15, 15),
         title="sampled cameras",
         show=True,
-        save_path=os.path.join("plots", f"{dataset_name}_sampled_cameras.png"),
+        save_path=os.path.join(
+            "plots", f"{dataset_name}_{scene_name}_sampled_cameras.png"
+        ),
     )
 
     exit(0)
@@ -192,7 +195,8 @@ def main(args: Args):
                 title=f"rays batch sampling {i}",
                 show=False,
                 save_path=os.path.join(
-                    "plots", f"{dataset_name}_sampled_cameras_batch_{i}.png"
+                    "plots",
+                    f"{dataset_name}_{scene_name}_sampled_cameras_batch_{i}.png",
                 ),
             )
 
