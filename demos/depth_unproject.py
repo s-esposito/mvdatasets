@@ -115,7 +115,7 @@ def main(args: Args):
         remove_tmp_files=True,
         scene_radius=mv_data.get_scene_radius(),
         azimuth_deg=280.0,
-        elevation_deg=30.0,
+        elevation_deg=5.0,
         save_path=Path(
             os.path.join("plots", f"{dataset_name}_{scene_name}_depth_unproject.mp4")
         ),

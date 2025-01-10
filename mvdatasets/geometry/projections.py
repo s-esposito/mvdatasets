@@ -218,21 +218,24 @@ def global_inv_perspective_projection(
         intrinsics_inv,
         points_2d_screen,
     )
+    
+    # multiply by depth
+    points_3d_camera *= depth[..., None]
 
     # Transform points from camera space to world space
     points_3d_world = (c2w[:3, :3] @ points_3d_camera.T).T
 
-    # Normalize the direction vectors
-    if isinstance(points_3d_world, torch.Tensor):
-        # rays_d = F.normalize(points_3d_world, dim=-1)
-        rays_d = points_3d_world / torch.norm(points_3d_world, dim=-1, keepdim=True)
-    else:
-        rays_d = points_3d_world / np.linalg.norm(
-            points_3d_world, axis=-1, keepdims=True
-        )
+    # # Normalize the direction vectors
+    # if isinstance(points_3d_world, torch.Tensor):
+    #     # rays_d = F.normalize(points_3d_world, dim=-1)
+    #     rays_d = points_3d_world / torch.norm(points_3d_world, dim=-1, keepdim=True)
+    # else:
+    #     rays_d = points_3d_world / np.linalg.norm(
+    #         points_3d_world, axis=-1, keepdims=True
+    #     )
 
-    # Scale direction vectors by depth
-    points_3d_world = rays_d * depth[..., None]
+    # # Scale direction vectors by depth
+    # points_3d_world = rays_d * depth[..., None]
 
     # Add ray origin to scale and translate points
     points_3d_world += rays_o
