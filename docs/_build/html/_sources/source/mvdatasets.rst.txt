@@ -1,0 +1,13 @@
+mvdatasets package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   mvdatasets.geometry
+   mvdatasets.loaders
+   mvdatasets.utils
+   mvdatasets.visualization

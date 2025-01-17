@@ -1,0 +1,736 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mvdatasets.utils &mdash; MVDatasets 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=e0aabe19" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            MVDatasets
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MVDatasets</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">mvdatasets.utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/mvdatasets.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mvdatasets-utils">
+<h1>mvdatasets.utils<a class="headerlink" href="#mvdatasets-utils" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mvdatasets.utils.camera_utils">
+<span id="mvdatasets-utils-camera-utils-module"></span><h2>mvdatasets.utils.camera_utils module<a class="headerlink" href="#module-mvdatasets.utils.camera_utils" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mvdatasets.utils.images">
+<span id="mvdatasets-utils-images-module"></span><h2>mvdatasets.utils.images module<a class="headerlink" href="#module-mvdatasets.utils.images" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.bilinear_downscale">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">bilinear_downscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.bilinear_downscale" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.bilinear_upscale">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">bilinear_upscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.bilinear_upscale" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.flip_image_horizontally">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">flip_image_horizontally</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.flip_image_horizontally" title="Link to this definition"></a></dt>
+<dd><p>Flip a PIL Image horizontally.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.flip_image_vertically">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">flip_image_vertically</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.flip_image_vertically" title="Link to this definition"></a></dt>
+<dd><p>Flip a PIL Image vertically.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.get_pixel_corners">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">get_pixel_corners</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_pix_nn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.get_pixel_corners" title="Link to this definition"></a></dt>
+<dd><p>returns pix corners in non-normalised uv space</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.image_float32_to_uint8">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">image_float32_to_uint8</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.image_float32_to_uint8" title="Link to this definition"></a></dt>
+<dd><p>converts float32 tensor to uint8</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.image_to_numpy">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">image_to_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pil_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_lower_left_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_uint8</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.image_to_numpy" title="Link to this definition"></a></dt>
+<dd><p>Convert a PIL Image to a numpy array.
+If use_uint8 is False, the values are in [0, 1] and the dtype is float32.
+If use_uint8 is True, the values are in [0, 255] and the dtype is uint8.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.image_to_tensor">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">image_to_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pil_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.image_to_tensor" title="Link to this definition"></a></dt>
+<dd><p>Convert a PIL Image to a torch tensor with values in 0 and 1.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.image_uint8_to_float32">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">image_uint8_to_float32</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.image_uint8_to_float32" title="Link to this definition"></a></dt>
+<dd><p>converts uint8 tensor to float32</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.load_image_as_numpy">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">load_image_as_numpy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RGB'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.load_image_as_numpy" title="Link to this definition"></a></dt>
+<dd><p>Load an image from a file path and convert it to a numpy array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.load_image_as_tensor">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">load_image_as_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'RGB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.load_image_as_tensor" title="Link to this definition"></a></dt>
+<dd><p>Load an image from a file path and convert it to a torch tensor.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.non_normalize_uv_coord">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">non_normalize_uv_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.non_normalize_uv_coord" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.non_normalized_uv_coords_to_interp_corners">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">non_normalized_uv_coords_to_interp_corners</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords_nn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.non_normalized_uv_coords_to_interp_corners" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.non_normalized_uv_coords_to_lerp_weights">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">non_normalized_uv_coords_to_lerp_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords_nn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uv_corners_coords_nn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.non_normalized_uv_coords_to_lerp_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.normalize_uv_coord">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">normalize_uv_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.normalize_uv_coord" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.numpy_to_image">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">numpy_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">np_image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_lower_left_origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.numpy_to_image" title="Link to this definition"></a></dt>
+<dd><p>Convert a numpy array to a PIL Image with int values in 0 and 255.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.pix_to_texel_center_uv_coord">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">pix_to_texel_center_uv_coord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_pix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.pix_to_texel_center_uv_coord" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.save_numpy_as_png">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">save_numpy_as_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_np</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_dir_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.save_numpy_as_png" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.tensor_to_image">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">tensor_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">torch_tensor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.tensor_to_image" title="Link to this definition"></a></dt>
+<dd><p>Convert a torch tensor to a PIL Image with int values in 0 and 255.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.images.uv_coords_to_pix">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.images.</span></span><span class="sig-name descname"><span class="pre">uv_coords_to_pix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">uv_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.images.uv_coords_to_pix" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.memory">
+<span id="mvdatasets-utils-memory-module"></span><h2>mvdatasets.utils.memory module<a class="headerlink" href="#module-mvdatasets.utils.memory" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.memory.bytes_to_gb">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.memory.</span></span><span class="sig-name descname"><span class="pre">bytes_to_gb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mvdatasets.utils.memory.bytes_to_gb" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.memory.bytes_to_mb">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.memory.</span></span><span class="sig-name descname"><span class="pre">bytes_to_mb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_bytes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mvdatasets.utils.memory.bytes_to_mb" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.mesh">
+<span id="mvdatasets-utils-mesh-module"></span><h2>mvdatasets.utils.mesh module<a class="headerlink" href="#module-mvdatasets.utils.mesh" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.mesh.Mesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.mesh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o3d_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.mesh.Mesh" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="mvdatasets.utils.mesh.Mesh.uv">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uv</span></span><a class="headerlink" href="#mvdatasets.utils.mesh.Mesh.uv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mvdatasets.utils.mesh.Mesh.uv_idx">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">uv_idx</span></span><a class="headerlink" href="#mvdatasets.utils.mesh.Mesh.uv_idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.mesh.triangle_to_vertices_uvs_conversion">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.mesh.</span></span><span class="sig-name descname"><span class="pre">triangle_to_vertices_uvs_conversion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triangle_uvs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.mesh.triangle_to_vertices_uvs_conversion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.open3d_rendering">
+<span id="mvdatasets-utils-open3d-rendering-module"></span><h2>mvdatasets.utils.open3d_rendering module<a class="headerlink" href="#module-mvdatasets.utils.open3d_rendering" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.open3d_rendering.render_o3d_mesh">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.open3d_rendering.</span></span><span class="sig-name descname"><span class="pre">render_o3d_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o3d_mesh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh" title="Link to this definition"></a></dt>
+<dd><p>render and open3d mesh with open3d raycasting from camera</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.open3d_rendering.render_o3d_mesh_depth">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.open3d_rendering.</span></span><span class="sig-name descname"><span class="pre">render_o3d_mesh_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o3d_mesh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh_depth" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.open3d_rendering.render_o3d_mesh_normals">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.open3d_rendering.</span></span><span class="sig-name descname"><span class="pre">render_o3d_mesh_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o3d_mesh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh_normals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.open3d_rendering.render_o3d_scene">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.open3d_rendering.</span></span><span class="sig-name descname"><span class="pre">render_o3d_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">camera</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o3d_scene</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.open3d_rendering.render_o3d_scene" title="Link to this definition"></a></dt>
+<dd><p>render and open3d mesh with open3d raycasting from camera</p>
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.point_clouds">
+<span id="mvdatasets-utils-point-clouds-module"></span><h2>mvdatasets.utils.point_clouds module<a class="headerlink" href="#module-mvdatasets.utils.point_clouds" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.point_clouds.load_point_cloud">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.point_clouds.</span></span><span class="sig-name descname"><span class="pre">load_point_cloud</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_cloud_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nr_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.point_clouds.load_point_cloud" title="Link to this definition"></a></dt>
+<dd><p>Loads point cloud from file.
+If the file is a mesh, points are its vertices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_cloud_path</strong> – point cloud file path</p></li>
+<li><p><strong>max_nr_points</strong> – maximum number of points to load</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy array</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>points_3d (N, 3)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.point_clouds.load_point_clouds">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.point_clouds.</span></span><span class="sig-name descname"><span class="pre">load_point_clouds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point_clouds_paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_nr_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.point_clouds.load_point_clouds" title="Link to this definition"></a></dt>
+<dd><p>Loads point cloud from files.
+If the file is a mesh, points are its vertices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>point_clouds_paths</strong> – ordered list of point cloud file paths</p></li>
+<li><p><strong>max_nr_points</strong> – maximum number of points to load</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ordered list of (N, 3) numpy arrays</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>point_clouds []</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.printing">
+<span id="mvdatasets-utils-printing-module"></span><h2>mvdatasets.utils.printing module<a class="headerlink" href="#module-mvdatasets.utils.printing" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.RateColumn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">RateColumn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Column</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.RateColumn" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ProgressColumn</span></code></p>
+<p>Renders human readable processing rate.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.RateColumn.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Task</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Text</span></span></span><a class="headerlink" href="#mvdatasets.utils.printing.RateColumn.render" title="Link to this definition"></a></dt>
+<dd><p>Render the speed in iterations per second.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.print_error">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_traceback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">terminate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.print_error" title="Link to this definition"></a></dt>
+<dd><p>Print a detailed error message with a stack trace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> – The error message to display.</p></li>
+<li><p><strong>exc_type</strong> – The type of the exception (optional).</p></li>
+<li><p><strong>exc_value</strong> – The value of the exception (optional).</p></li>
+<li><p><strong>exc_traceback</strong> – The traceback object (optional).</p></li>
+<li><p><strong>terminate</strong> – Whether to terminate the execution by raising an exception (default: True).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.print_info">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.print_info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.print_log">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.print_log" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.print_success">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_success</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.print_success" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.print_warning">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_warning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.print_warning" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.printing.progress_bar">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.printing.</span></span><span class="sig-name descname"><span class="pre">progress_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.printing.progress_bar" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.profiler">
+<span id="mvdatasets-utils-profiler-module"></span><h2>mvdatasets.utils.profiler module<a class="headerlink" href="#module-mvdatasets.utils.profiler" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.profiler.</span></span><span class="sig-name descname"><span class="pre">Profiler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Profiler class to measure time of different parts of the code.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.end">
+<span class="sig-name descname"><span class="pre">end</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.end" title="Link to this definition"></a></dt>
+<dd><p>Ends a timer with the given name, updates the history.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.get_avg_time">
+<span class="sig-name descname"><span class="pre">get_avg_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.get_avg_time" title="Link to this definition"></a></dt>
+<dd><p>Returns the average time for the given timer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.get_last_time">
+<span class="sig-name descname"><span class="pre">get_last_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.get_last_time" title="Link to this definition"></a></dt>
+<dd><p>Returns the last time for the given timer.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.print_avg_times">
+<span class="sig-name descname"><span class="pre">print_avg_times</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.print_avg_times" title="Link to this definition"></a></dt>
+<dd><p>Prints the average time for each timer.
+Thread timers are averaged over all threads.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the profiler.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.profiler.Profiler.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.profiler.Profiler.start" title="Link to this definition"></a></dt>
+<dd><p>Starts a timer with the given name.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.raycasting">
+<span id="mvdatasets-utils-raycasting-module"></span><h2>mvdatasets.utils.raycasting module<a class="headerlink" href="#module-mvdatasets.utils.raycasting" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_data_per_pixels">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_data_per_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameras_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_data_per_pixels" title="Link to this definition"></a></dt>
+<dd><p>given a list of pixels and a list of frames, return rgb and mask values at pixels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pixels</strong> (<em>torch.Tensor</em><em>, </em><em>int32</em>) – (N, 2) with values in [0, W-1], [0, H-1]</p></li>
+<li><p><strong>cameras_idx</strong> (<em>optional</em><em>, </em><em>torch.Tensor</em><em>, </em><em>int</em>) – <ol class="upperalpha simple" start="14">
+<li><p>camera indices</p></li>
+</ol>
+</p></li>
+<li><p><strong>frames_idx</strong> (<em>optional</em><em>, </em><em>torch.Tensor</em><em>, </em><em>int</em>) – <ol class="upperalpha simple" start="14">
+<li><p>frame indices.</p></li>
+</ol>
+</p></li>
+<li><p><strong>data_dict</strong> (<em>dict</em><em>, </em><em>uint8</em>) – rgbs (optional, torch.Tensor or np.array, uint8): (N, T, H, W, 3) or (H, W, 3) None
+masks (optional, torch.Tensor or np.array, uint8): (N, T, H, W, 1) or (H, W, 1) or None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rgb (optional, torch.Tensor or np.array, float): (N, 3)
+mask (optional, torch.Tensor or np.array, float): (N, 1)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vals (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_data_per_points_2d_screen">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_data_per_points_2d_screen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_2d_screen</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cameras_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_data_per_points_2d_screen" title="Link to this definition"></a></dt>
+<dd><p>given a list of pixels and a list of frames, return rgb and mask values at pixels</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points_2d_screen</strong> (<em>torch.Tensor</em><em>, </em><em>float</em>) – (N, 2) with values in [0, W-1], [0, H-1]</p></li>
+<li><p><strong>cameras_idx</strong> (<em>optional</em><em>, </em><em>torch.Tensor</em><em> or </em><em>np.ndarray</em>) – <ol class="upperalpha simple" start="14">
+<li><p>camera indices</p></li>
+</ol>
+</p></li>
+<li><p><strong>frames_idx</strong> (<em>optional</em><em>, </em><em>torch.Tensor</em><em> or </em><em>np.ndarray</em>) – <ol class="upperalpha simple" start="14">
+<li><p>frame indices</p></li>
+</ol>
+</p></li>
+<li><p><strong>data_dict</strong> (<em>dict</em><em>, </em><em>uint8</em>) – rgbs (torch.Tensor, uint8): (H, W, 3)
+mask (torch.Tensor, uint8): (H, W, 1)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>rgb (optional, torch.Tensor, float): (N, 3)
+mask (optional, torch.Tensor, float): (N, 1)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vals (dict)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_pixels">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_pixels" title="Link to this definition"></a></dt>
+<dd><p>returns all image pixels coords
+:param height: frame height
+:type height: int
+:param width: frame width
+:type width: int
+:param device: Defaults to “cpu”.
+:type device: str, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dtype int32, shape (W, H, 2), values in [0, W-1], [0, H-1]</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pixels (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_pixels_centers">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_pixels_centers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_pixels_centers" title="Link to this definition"></a></dt>
+<dd><p>return the center of each pixel
+:param pixels: (N, 2) list of pixels
+:type pixels: torch.Tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(N, 2) list of pixels centers</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pixels_centers (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_points_2d_screen_from_pixels">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_points_2d_screen_from_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_points_2d_screen_from_pixels" title="Link to this definition"></a></dt>
+<dd><p>convert pixels to 2d points on the image plane</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pixels</strong> (<em>torch.Tensor</em>) – (W, H, 2) or (N, 2) list of pixels</p></li>
+<li><p><strong>jitter_pixels</strong> (<em>bool</em>) – whether to jitter pixels</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(N, 2) list of pixels centers (in screen space)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>points_2d_screen (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_random_pixels">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_random_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_random_pixels" title="Link to this definition"></a></dt>
+<dd><p>given a number or pixels, return random pixels
+:param height: frame height
+:type height: int
+:param width: frame width
+:type width: int
+:param nr_pixels: number of pixels to sample
+:type nr_pixels: int
+:param device: Defaults to “cpu”.
+:type device: str, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(N, 2) with values in [0, W-1], [0, H-1]</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>pixels (torch.Tensor, int)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_random_pixels_from_error_map">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_random_pixels_from_error_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">error_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_pixels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_random_pixels_from_error_map" title="Link to this definition"></a></dt>
+<dd><p>given a number of pixels and an error map, sample pixels with error map as probability</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>error_map</strong> (<em>torch.Tensor</em>) – (H, W, 1) with values in [0, 1]</p></li>
+<li><p><strong>height</strong> (<em>int</em>) – frame height</p></li>
+<li><p><strong>width</strong> (<em>int</em>) – frame width</p></li>
+<li><p><strong>nr_pixels</strong> (<em>int</em>) – number of pixels to sample</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>optional</em>) – Defaults to “cpu”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.get_rays_per_points_2d_screen">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">get_rays_per_points_2d_screen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c2w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intrinsics_inv</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points_2d_screen</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.get_rays_per_points_2d_screen" title="Link to this definition"></a></dt>
+<dd><p>given a list of pixels, return rays origins and directions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>c2w</strong> (<em>torch.Tensor</em>) – (N, 4, 4) or (4, 4)</p></li>
+<li><p><strong>intrinsics_inv</strong> (<em>torch.Tensor</em>) – (N, 3, 3) or (3, 3)</p></li>
+<li><p><strong>points_2d_screen</strong> (<em>torch.Tensor</em><em>, </em><em>float</em>) – (N, 2) with values in [0, W-1], [0, H-1]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(N, 3)
+rays_d (torch.Tensor): (N, 3)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>rays_o (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.jitter_points">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">jitter_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.jitter_points" title="Link to this definition"></a></dt>
+<dd><p>apply noise to points</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>points</strong> (<em>torch.Tensor</em>) – (…, 2) list of pixels centers (in screen space)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(…, 2) list of pixels</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>jittered_pixels (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.raycasting.points_2d_screen_to_pixels">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.raycasting.</span></span><span class="sig-name descname"><span class="pre">points_2d_screen_to_pixels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_2d_screen</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.utils.raycasting.points_2d_screen_to_pixels" title="Link to this definition"></a></dt>
+<dd><p>convert 2d points on the image plane to pixels
+:param points_2d_screen: (N, 2) list of pixels centers (in screen space)
+:type points_2d_screen: torch.Tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(N, 2) list of pixels centers (in screen space)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>points_2d_screen (torch.Tensor)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.tensor_mesh">
+<span id="mvdatasets-utils-tensor-mesh-module"></span><h2>mvdatasets.utils.tensor_mesh module<a class="headerlink" href="#module-mvdatasets.utils.tensor_mesh" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.tensor_mesh.TensorMesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.tensor_mesh.</span></span><span class="sig-name descname"><span class="pre">TensorMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.tensor_mesh.TensorMesh" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.tensor_mesh.TensorMesh.get_faces_uvs">
+<span class="sig-name descname"><span class="pre">get_faces_uvs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.tensor_mesh.TensorMesh.get_faces_uvs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.tensor_texture">
+<span id="mvdatasets-utils-tensor-texture-module"></span><h2>mvdatasets.utils.tensor_texture module<a class="headerlink" href="#module-mvdatasets.utils.tensor_texture" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.tensor_texture.TensorTexture">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.tensor_texture.</span></span><span class="sig-name descname"><span class="pre">TensorTexture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texture_np</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">texture_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lerp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.tensor_texture.TensorTexture" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mvdatasets.utils.tensor_texture.TensorTexture.to_numpy">
+<span class="sig-name descname"><span class="pre">to_numpy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.tensor_texture.TensorTexture.to_numpy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.texture">
+<span id="mvdatasets-utils-texture-module"></span><h2>mvdatasets.utils.texture module<a class="headerlink" href="#module-mvdatasets.utils.texture" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.texture.RGBATexture">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.texture.</span></span><span class="sig-name descname"><span class="pre">RGBATexture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texture_meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.texture.RGBATexture" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mvdatasets.utils.texture.SHTexture">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.texture.</span></span><span class="sig-name descname"><span class="pre">SHTexture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">textures_meta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.texture.SHTexture" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.texture.sample_texture">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.texture.</span></span><span class="sig-name descname"><span class="pre">sample_texture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uvs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.texture.sample_texture" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> – torch.Tensor, [H, W, C] or [H, W, C, F]</p></li>
+<li><p><strong>uvs</strong> – torch.Tensor, [N, 2] in [0, 1]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor, [N, C] or [N, C, F]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>vals</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.video_utils">
+<span id="mvdatasets-utils-video-utils-module"></span><h2>mvdatasets.utils.video_utils module<a class="headerlink" href="#module-mvdatasets.utils.video_utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.video_utils.extract_frames">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.video_utils.</span></span><span class="sig-name descname"><span class="pre">extract_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">video_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsample_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'png'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'00:00:00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mvdatasets.utils.video_utils.extract_frames" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mvdatasets.utils.virtual_cameras">
+<span id="mvdatasets-utils-virtual-cameras-module"></span><h2>mvdatasets.utils.virtual_cameras module<a class="headerlink" href="#module-mvdatasets.utils.virtual_cameras" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.utils.virtual_cameras.sample_cameras_on_hemisphere">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.utils.virtual_cameras.</span></span><span class="sig-name descname"><span class="pre">sample_cameras_on_hemisphere</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intrinsics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr_cameras</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'z'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">array([0,</span> <span class="pre">0,</span> <span class="pre">0])</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="camera.html#mvdatasets.camera.Camera" title="mvdatasets.camera.Camera"><span class="pre">Camera</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mvdatasets.utils.virtual_cameras.sample_cameras_on_hemisphere" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Stefano Esposito, Andreas Geiger.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

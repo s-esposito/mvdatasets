@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MVDatasets &mdash; MVDatasets 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=e0aabe19" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualize Dataset Splits" href="source/examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            MVDatasets
+              <img src="_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/examples.html">Visualize Dataset Splits</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/camera.html">Camera</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdataset.html">MVDataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/datasplit.html">DataSplit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/tensor_reel.html">Tensor Reel</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.geometry.html">Geometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.geometry.html#bibliography">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.loaders.html">Datasets loaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.utils.html">mvdatasets.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.visualization.html">mvdatasets.visualization</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">MVDatasets</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">MVDatasets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mvdatasets">
+<h1>MVDatasets<a class="headerlink" href="#mvdatasets" title="Link to this heading"></a></h1>
+<p>Welcome to the documentation of the MVDatasets: Standardized DataLoaders for 3D Computer Vision.
+Have a look around and feel free to reach out if you have any questions or suggestions.
+Examples are the best way to get started!</p>
+<p>⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates <em>will try</em> not to disrupt existing functionalities.</p>
+<p># MVDatasets</p>
+<p>&lt;img align=”right” width=”100” height=”100” src=”imgs/art.webp”&gt;</p>
+<p>### Standardized DataLoaders for 3D Computer Vision</p>
+<p>[Stefano Esposito](<a class="reference external" href="https://s-esposito.github.io/">https://s-esposito.github.io/</a>), [Andreas Geiger](<a class="reference external" href="https://www.cvlibs.net/">https://www.cvlibs.net/</a>)
+&lt;br&gt;
+University of Tübingen, [Autonomous Vision Group](<a class="reference external" href="https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/">https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/</a>)</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">⚠️</span> <span class="pre">This</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">work</span> <span class="pre">in</span> <span class="pre">progress</span> <span class="pre">research</span> <span class="pre">codebase</span> <span class="pre">designed</span> <span class="pre">with</span> <span class="pre">a</span> <span class="pre">focus</span> <span class="pre">on</span> <span class="pre">modularity;</span> <span class="pre">future</span> <span class="pre">updates</span> <span class="pre">*will</span> <span class="pre">try*</span> <span class="pre">not</span> <span class="pre">to</span> <span class="pre">disrupt</span> <span class="pre">existing</span> <span class="pre">functionalities.</span>
+<span class="pre">`</span></code></p>
+<p>—</p>
+<p>Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.</p>
+<p>&lt;table&gt;
+&lt;tr&gt;
+&lt;td&gt;</p>
+<p><strong>Static:</strong>
+- [x] [NeRF-Synthetic](<a class="reference external" href="https://www.matthewtancik.com/nerf">https://www.matthewtancik.com/nerf</a>): bounded
+- [x] [Ref-NeRF](<a class="reference external" href="https://dorverbin.github.io/refnerf/">https://dorverbin.github.io/refnerf/</a>): bounded
+- [x] [Shelly](<a class="reference external" href="https://research.nvidia.com/labs/toronto-ai/adaptive-shells/">https://research.nvidia.com/labs/toronto-ai/adaptive-shells/</a>): bounded
+- [x] [DTU](<a class="reference external" href="https://github.com/lioryariv/idr?tab=readme-ov-file">https://github.com/lioryariv/idr?tab=readme-ov-file</a>): unbounded
+- [x] [BlendedMVS](<a class="reference external" href="https://github.com/Totoro97/NeuS?tab=readme-ov-file">https://github.com/Totoro97/NeuS?tab=readme-ov-file</a>): unbounded
+- [x] [Mip-NeRF360](<a class="reference external" href="https://jonbarron.info/mipnerf360/">https://jonbarron.info/mipnerf360/</a>): unbounded
+- [ ] [NeRF-LLFF](<a class="reference external" href="https://www.matthewtancik.com/nerf">https://www.matthewtancik.com/nerf</a>): unbounded
+- [ ] …</p>
+<p>&lt;/td&gt;
+&lt;td&gt;</p>
+<p><strong>Dynamic:</strong>
+- [x] [D-NeRF](<a class="reference external" href="https://www.albertpumarola.com/research/D-NeRF/index.html">https://www.albertpumarola.com/research/D-NeRF/index.html</a>): semi-monocular, bounded
+- [x] [PanopticSports](<a class="reference external" href="https://dynamic3dgaussians.github.io/">https://dynamic3dgaussians.github.io/</a>): multi-view, bounded
+- [ ] [Neu3D](#): multi-view, unbounded
+- [x] [VISOR](<a class="reference external" href="https://epic-kitchens.github.io/VISOR/">https://epic-kitchens.github.io/VISOR/</a>): monocular, unbounded
+- [ ] [Nerfies](<a class="reference external" href="https://github.com/google/nerfies/releases/tag/0.1">https://github.com/google/nerfies/releases/tag/0.1</a>): monocular, unbounded
+- [ ] [Hypernerf](<a class="reference external" href="https://github.com/google/hypernerf/releases/tag/v0.1">https://github.com/google/hypernerf/releases/tag/v0.1</a>): monocular, unbounded
+- [x] [iPhone](<a class="reference external" href="https://kair-bair.github.io/dycheck/">https://kair-bair.github.io/dycheck/</a>): monocular, unbounded
+- [x] [MonST3R](<a class="reference external" href="https://github.com/Junyi42/monst3r">https://github.com/Junyi42/monst3r</a>): monocular, unbounded
+- [ ] [DynamicScenes aka. NVIDIA]([#](<a class="reference external" href="https://gorokee.github.io/jsyoon/dynamic_synth/">https://gorokee.github.io/jsyoon/dynamic_synth/</a>)): monocular, unbounded
+- [ ] [AMA](<a class="reference external" href="https://people.csail.mit.edu/drdaniel/mesh_animation/#data">https://people.csail.mit.edu/drdaniel/mesh_animation/#data</a>): multi-view, bounded
+- [ ] [watch-it-move](<a class="reference external" href="https://github.com/NVlabs/watch-it-move">https://github.com/NVlabs/watch-it-move</a>): multi-view, bounded
+- [ ] …</p>
+<p>&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;</p>
+<p>## Cameras</p>
+<p>We use the OpenCV camera coordinate system:
+- X axis: Points to the right of the camera’s sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
+- Y axis: Points downward from the camera’s sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
+- Z axis: Represents depth and points away from the camera lens. It extends from the camera’s lens outward into the scene. Increasing values move away from the camera.</p>
+<dl class="simple">
+<dt>&lt;p float=”left”&gt;</dt><dd><p>&lt;img src=”imgs/pose_and_intrinsics.png” width=”500”/&gt;
+&lt;img src=”imgs/projection_with_principal_point_offset.png” width=”320”/&gt;</p>
+</dd>
+</dl>
+<p>&lt;/p&gt;</p>
+<p>Images taken from Andreas Geiger’s Computer Vision [lectures](<a class="reference external" href="https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/">https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/</a>) at the University of Tübingen.</p>
+<p>## Installation</p>
+<p>Install the module with <cite>pip install mvdatasets</cite>, or from source using <cite>pip install -e</cite>.</p>
+<p>## Run the examples</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">#</span> <span class="pre">download</span> <span class="pre">data</span> <span class="pre">in</span> <span class="pre">./data</span>
+<span class="pre">bash</span> <span class="pre">scripts/download/nerf_synthetic.sh</span>
+<span class="pre">#</span> <span class="pre">visualize</span> <span class="pre">dataset</span> <span class="pre">splits</span>
+<span class="pre">python</span> <span class="pre">examples/dataset_splits_vis.py.py</span> <span class="pre">--dataset-name</span> <span class="pre">nerf_synthetic</span> <span class="pre">--datasets-path</span> <span class="pre">./data</span>
+<span class="pre">`</span></code></p>
+<dl class="simple">
+<dt>&lt;p float=”left”&gt;</dt><dd><p>&lt;img src=”imgs/blender_training_cameras.png” width=”400”/&gt;
+&lt;img src=”imgs/blender_test_cameras.png” width=”400”/&gt;</p>
+</dd>
+</dl>
+<p>&lt;/p&gt;</p>
+<p>### Disclaimer</p>
+<p>Functions located in any <cite>.deprecated</cite> folder may no longer work as expected. While they might be supported again in the future, this is not guaranteed.</p>
+<p>## License</p>
+<p>This project is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). See the [LICENSE](LICENSE) file for details.</p>
+<p>You are free to use, modify, and distribute this code as long as you provide proper attribution to the original author(s).</p>
+<p>## Citation</p>
+<p>If you use this library for your research, please consider citing:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>bibtex
+&#64;misc{Esposito2024MVDatasets,</p>
+<blockquote>
+<div><p>author       = {Stefano Esposito and Andreas Geiger},
+title        = {MVDatasets: Standardized DataLoaders for 3D Computer Vision},
+year         = {2025},
+url          = {<a class="reference external" href="https://github.com/s-esposito/mvdatasets">https://github.com/s-esposito/mvdatasets</a>},
+note         = {GitHub repository}</p>
+</div></blockquote>
+<section id="id5">
+<h2>}<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/examples.html">Visualize Dataset Splits</a></li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/camera.html">Camera</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdataset.html">MVDataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/datasplit.html">DataSplit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/tensor_reel.html">Tensor Reel</a></li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.geometry.html">Geometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.geometry.html#bibliography">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.loaders.html">Datasets loaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.utils.html">mvdatasets.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/mvdatasets.visualization.html">mvdatasets.visualization</a></li>
+</ul>
+</div>
+<section id="license">
+<h3>License<a class="headerlink" href="#license" title="Link to this heading"></a></h3>
+<p>This project is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0).
+You are free to use, modify, and distribute this code as long as you provide proper attribution to the original author(s).</p>
+</section>
+<section id="citation">
+<h3>Citation<a class="headerlink" href="#citation" title="Link to this heading"></a></h3>
+<p>If you use this library for your research, please consider citing:</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="source/examples.html" class="btn btn-neutral float-right" title="Visualize Dataset Splits" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Stefano Esposito, Andreas Geiger.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rigid geometry &mdash; MVDatasets 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=e0aabe19" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            MVDatasets
+              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MVDatasets</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Rigid geometry</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/mvdatasets.geometry.rigid.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mvdatasets.geometry.rigid">
+<span id="rigid-geometry"></span><h1>Rigid geometry<a class="headerlink" href="#module-mvdatasets.geometry.rigid" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.geometry.rigid.apply_rotation_3d">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.geometry.rigid.</span></span><span class="sig-name descname"><span class="pre">apply_rotation_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.geometry.rigid.apply_rotation_3d" title="Link to this definition"></a></dt>
+<dd><p>Applies a 3D rotation to a set of points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points_3d</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A (N, 3) array of 3D points.</p></li>
+<li><p><strong>rot</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A (3, 3) rotation matrix or a batch (N, 3, 3) of rotation matrices.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A (N, 3) array of rotated 3D points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the shapes of <cite>points_3d</cite> or <cite>rot</cite> are invalid.</p></li>
+<li><p><strong>TypeError</strong> – If the input types are inconsistent (mixing NumPy and PyTorch).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.geometry.rigid.apply_transformation_3d">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.geometry.rigid.</span></span><span class="sig-name descname"><span class="pre">apply_transformation_3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points_3d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.geometry.rigid.apply_transformation_3d" title="Link to this definition"></a></dt>
+<dd><p>Applies a 3D affine transformation to a set of points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points_3d</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A (N, 3) array of 3D points.</p></li>
+<li><p><strong>transform</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A (4, 4) affine transformation matrix
+or (N, 4, 4) for per-point transformations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A (N, 3) array of transformed 3D points.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the shapes of <cite>points_3d</cite> or <cite>transform</cite> are invalid.</p></li>
+<li><p><strong>TypeError</strong> – If the input types are inconsistent (mixing NumPy and PyTorch).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.geometry.rigid.pose_global_rotation">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.geometry.rigid.</span></span><span class="sig-name descname"><span class="pre">pose_global_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.geometry.rigid.pose_global_rotation" title="Link to this definition"></a></dt>
+<dd><p>Applies a global rotation to the pose frame using a rotation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pose</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A 4x4 homogeneous transformation matrix representing the pose.</p></li>
+<li><p><strong>rotation</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A 3x3 rotation matrix to be applied globally.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 4x4 transformation matrix after applying the global rotation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <cite>pose</cite> is not a (4, 4) matrix or <cite>rotation</cite> is not a (3, 3) matrix.</p></li>
+<li><p><strong>TypeError</strong> – If the input types are inconsistent (mixing NumPy and PyTorch).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mvdatasets.geometry.rigid.pose_local_rotation">
+<span class="sig-prename descclassname"><span class="pre">mvdatasets.geometry.rigid.</span></span><span class="sig-name descname"><span class="pre">pose_local_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></span><a class="headerlink" href="#mvdatasets.geometry.rigid.pose_local_rotation" title="Link to this definition"></a></dt>
+<dd><p>Applies a local rotation to the pose frame using a rotation matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pose</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A 4x4 homogeneous transformation matrix representing the pose.</p></li>
+<li><p><strong>rotation</strong> (<em>numpy.ndarray</em><em> or </em><em>torch.Tensor</em>) – A 3x3 rotation matrix to be applied locally.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 4x4 transformation matrix after applying the local rotation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or torch.Tensor</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If <cite>pose</cite> is not a (4, 4) matrix or <cite>rotation</cite> is not a (3, 3) matrix.</p></li>
+<li><p><strong>TypeError</strong> – If the input types are inconsistent (mixing NumPy and PyTorch).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Stefano Esposito, Andreas Geiger.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
