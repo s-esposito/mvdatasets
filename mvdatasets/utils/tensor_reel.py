@@ -23,20 +23,13 @@ class TensorReel:
         verbose: bool = False,
         modalities: list[str] = ["rgbs", "masks"],
     ):
-        """Create a tensor_reel object, containing all data
-        stored contiguosly in tensors.
-
-        Currently supports only static scenes, i.e. the first frame of each camera.
+        """Create a tensor_reel object, containing all data stored contiguosly in tensors.
 
         Args:
             cameras (list): list of cameras objects
             device (str, optional): device to move tensors to. Defaults to "cuda".
-
-        Attributes:
-            rgbs (torch.Tensor): (N, T, H, W, 3) in [0, 1]
-            masks (optional, torch.Tensor): (N, T, H, W, 1) in [0, 1] or None
-            pose (torch.Tensor): (N, 4, 4)
-            intrinsics_inv (torch.Tensor): (N, 3, 3)
+            verbose (bool, optional): print info. Defaults to False.
+            modalities (list, optional): list of modalities to include in the tensor reel. Defaults to ["rgbs", "masks"].
         """
 
         if len(cameras) == 0:
@@ -224,9 +217,7 @@ class TensorReel:
             frames_idx (np.ndarray): (batch_size)
             rays_o (torch.Tensor): (batch_size, 3)
             rays_d (torch.Tensor): (batch_size, 3)
-            vals (dict):
-                rgb (torch.Tensor): (batch_size, H, W, 3)
-                mask: (torch.Tensor): (batch_size, H, W, 1)
+            vals (dict): "modality" (torch.Tensor): (batch_size, H, W, C)
             timestamps (torch.Tensor): (batch_size)
         """
 
@@ -308,12 +299,12 @@ class TensorReel:
     #     """given a list of c2w, intrinsics_inv and points_2d_screen, return rays origins and
     #     directions from multiple cameras
 
-    #     args:
+    #     Returns:
     #         c2w_all (torch.Tensor): (N, 4, 4)
     #         intrinsics_inv_all (torch.Tensor): (N, 3, 3)
     #         points_2d_screen (torch.Tensor, int): (N, 2) with values in [0, W-1], [0, H-1]
 
-    #     out:
+    #     Returns:
     #         rays_o (torch.Tensor): (N, 3)
     #         rays_d (torch.Tensor): (N, 3)
     #     """
@@ -360,13 +351,13 @@ class TensorReel:
     #     """given a list of 2d points on the image plane and a list of rgbs,
     #     return rgb and mask values at points_2d_screen
 
-    #     args:
+    #     Returns:
     #         points_2d_screen (torch.Tensor, int): (N, 2) values in [0, W-1], [0, H-1].
     #         cameras_idx (torch.Tensor): (N) camera indices
     #         frames_idx (torch.Tensor): (N) frame indices.
     #         rgbs (optional, torch.Tensor, uint8): (N, T, H, W, 3) or None
     #         masks (optional, torch.Tensor, uint8): (N, T, H, W, 1) or None
-    #     out:
+    #     Returns:
     #         vals (dict):
     #             rgb_vals (optional, torch.Tensor, float32): (N, 3)
     #             mask_vals (optional, torch.Tensor, float32): (N, 1)

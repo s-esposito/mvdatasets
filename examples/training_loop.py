@@ -4,8 +4,8 @@ import numpy as np
 import os
 from tqdm import tqdm
 from typing import List
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
@@ -80,7 +80,8 @@ def main(args: Args):
                 epoch_nr == 0  # first iteration
                 # need to update time dimension of data split
                 or (
-                    nr_sequence_frames < cameras_temporal_dim
+                    use_incremental_sequence_lenght
+                    and nr_sequence_frames < cameras_temporal_dim
                     and epoch_nr % increase_nr_sequence_frames_each == 0
                 )
             ):

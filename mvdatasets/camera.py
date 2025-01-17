@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import cv2 as cv
 from typing import Union, Tuple, Literal
-
 from mvdatasets.geometry.rigid import apply_transformation_3d
 from mvdatasets.geometry.projections import (
     global_inv_perspective_projection,
@@ -25,9 +24,7 @@ from mvdatasets.utils.raycasting import (
 
 class Camera:
     """Camera class to manage intrinsics, pose, and various image data.
-
-    Assumptions:
-    - All data have the same temporal and spatial dimensions.
+    As of now, all given data MUST have the same temporal and spatial dimensions.
     """
 
     def __init__(
@@ -239,6 +236,10 @@ class Camera:
         return proj
 
     def get_opengl_projection_matrix(self) -> np.ndarray:
+        """return opengl projection matrix
+        Returns:
+            np.ndarray: (4, 4) opengl projection matrix
+        """
         # opengl standard
         projection_matrix = opengl_projection_matrix_from_intrinsics(
             self.get_intrinsics(), self.width, self.height, self.near, self.far
@@ -246,110 +247,186 @@ class Camera:
         return projection_matrix
 
     def get_opengl_matrix_world(self) -> np.ndarray:
+        """return w2c matrix
+        Returns:
+            np.ndarray: (4, 4) opengl matrix world
+        """
         w2c = self.get_pose_inv()
         matrix_world = opengl_matrix_world_from_w2c(w2c)
         return matrix_world
 
     def get_data_dict(self) -> dict:
-        """return all camera data"""
+        """return all camera data
+        Returns:
+            dict: all camera data
+        """
         return self.data
 
     def get_available_data(self) -> list:
-        """return all available data keys that are not None"""
+        """return all available data keys that are not None
+        Returns:
+            list: available data keys
+        """
         return [key for key, val in self.data.items() if val is not None]
 
     def has_rgbs(self) -> bool:
-        """check if rgbs exists"""
+        """check if rgbs exists
+        Returns:
+            bool: True if rgbs exists, else False
+        """
         return self.data["rgbs"] is not None
 
     def get_rgbs(self) -> np.ndarray:
-        """return, if exists, all camera frames"""
+        """return, if exists, all camera frames
+        Returns:
+            np.ndarray: (T, H, W, 3) rgb frames
+        """
         if not self.has_rgbs():
             print_error("camera has no rgb frames")
         return self.data["rgbs"]
 
     def get_rgb(self, frame_idx: int = 0) -> np.ndarray:
-        """returns, if exists, rgb at frame_idx"""
+        """returns, if exists, rgb at frame_idx
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 3) rgb frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_rgbs()[frame_idx]
 
     def has_masks(self) -> bool:
-        """check if masks exists"""
+        """check if masks exists
+        Returns:
+            bool: True if masks exists, else False
+        """
         return self.data["masks"] is not None
 
     def get_masks(self) -> np.ndarray:
-        """return, if exists, all camera masks, else None"""
+        """return, if exists, all camera masks, else None
+        Returns:
+            np.ndarray: (T, H, W, 1) mask frames
+        """
         if not self.has_masks():
             print_error("camera has no mask frames")
         return self.data["masks"]
 
     def get_mask(self, frame_idx: int = 0) -> np.ndarray:
-        """return, if exists, a mask at frame_idx, else None"""
+        """return, if exists, a mask at frame_idx, else None
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 1) mask frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_masks()[frame_idx]
 
     def has_normals(self) -> bool:
-        """check if normals exists"""
+        """check if normals exists
+        Returns:
+            bool: True if normals exists, else False
+        """
         return self.data["normals"] is not None
 
     def get_normals(self) -> np.ndarray:
-        """return, if exists, all camera normal maps, else None"""
+        """return, if exists, all camera normal maps, else None
+        Returns:
+            np.ndarray: (T, H, W, 3) normal frames
+        """
         if not self.has_normals():
             print_error("camera has no normal frames")
         return self.data["normals"]
 
     def get_normal(self, frame_idx: int = 0) -> np.ndarray:
-        """return, if exists, the normal map at frame_idx, else None"""
+        """return, if exists, the normal map at frame_idx, else None
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 3) normal frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_normals()[frame_idx]
 
     def has_depths(self) -> bool:
-        """check if depths exists"""
+        """check if depths exists
+        Returns:
+            bool: True if depths exists, else False
+        """
         return self.data["depths"] is not None
 
     def get_depths(self) -> np.ndarray:
-        """return, if exists, all camera depth maps, else None"""
+        """return, if exists, all camera depth maps, else None
+        Returns:
+            np.ndarray: (T, H, W, 1) depth frames
+        """
         if not self.has_depths():
             print_error("camera has no depth frames")
         return self.data["depths"]
 
     def get_depth(self, frame_idx: int = 0) -> np.ndarray:
-        """return, if exists, the depth map at frame_idx, else None"""
+        """return, if exists, the depth map at frame_idx, else None
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 1) depth frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_depths()[frame_idx]
 
     def has_instance_masks(self) -> bool:
-        """check if instance_masks exists"""
+        """check if instance_masks exists
+        Returns:
+            bool: True if instance_masks exists, else False
+        """
         return self.data["instance_masks"] is not None
 
     def get_instance_masks(self) -> np.ndarray:
-        """return, if exists, all camera instance masks, else None"""
+        """return, if exists, all camera instance masks, else None
+        Returns:
+            np.ndarray: (T, H, W, 1) instance mask frames
+        """
         if not self.has_instance_masks():
             print_error("camera has no instance mask frames")
         return self.data["instance_masks"]
 
     def get_instance_mask(self, frame_idx: int = 0) -> np.ndarray:
-        """return, if exists, the instance mask at frame_idx, else None"""
+        """return, if exists, the instance mask at frame_idx, else None
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 1) instance mask frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_instance_masks()[frame_idx]
 
     def has_semantic_masks(self) -> bool:
-        """check if semantic_masks exists"""
+        """check if semantic_masks exists
+        Returns:
+            bool: True if semantic_masks exists, else False
+        """
         return self.data["semantic_masks"] is not None
 
     def get_semantic_masks(self) -> np.ndarray:
-        """return, if exists, all camera semantic masks, else None"""
+        """return, if exists, all camera semantic masks, else None
+        Returns:
+            np.ndarray: (T, H, W, 1) semantic mask frames
+        """
         if not self.has_semantic_masks():
             print_error("camera has no semantic mask frames")
         return self.data["semantic_masks"]
 
     def get_semantic_mask(self, frame_idx: int = 0) -> np.ndarray:
-        """return, if exists, the semantic mask at frame_idx, else None"""
+        """return, if exists, the semantic mask at frame_idx, else None
+        Args:
+            frame_idx (int, optional): frame index. Defaults to 0.
+        Returns:
+            np.ndarray: (H, W, 1) semantic mask frame
+        """
         if frame_idx >= self.temporal_dim:
             print_error("frame_idx out of bounds")
         return self.get_semantic_masks()[frame_idx]
@@ -426,7 +503,11 @@ class Camera:
             )
 
     def _subsample_modality(self, modality_name: str, scale: float) -> None:
-        """subsample camera frames of given modality (inplace operation)"""
+        """subsample camera frames of given modality (inplace operation)
+        Args:
+            modality_name (str): modality name
+            scale (float): scale factor
+        """
 
         if self.data[modality_name] is None:
             # skip
@@ -444,6 +525,12 @@ class Camera:
         self.data[modality_name] = np.stack(new_frames)
 
     def get_pixels(self, device: str = "cpu") -> torch.Tensor:
+        """returns all pixels in the image plane
+        Args:
+            device (str, optional): device to store tensors. Defaults to "cpu".
+        Returns:
+            torch.Tensor: (H, W, 2) pixels
+        """
         return get_pixels(self.height, self.width, device=device)
 
     def get_rays(
@@ -458,7 +545,7 @@ class Camera:
         If points are not provided, they are sampled
         from the image plane for every pixel.
 
-        args:
+        Args:
             points_2d_screen (torch.Tensor, float or int, optional): (N, 2)
                                                 Values in [0, W-1], [0, H-1].
                                                 Default is None.
@@ -466,12 +553,10 @@ class Camera:
             jitter_pixels (bool, optional): Whether to jitter pixels.
                                             Only used if points_2d_screen is None.
                                             Defaults to False.
-        out:
-            rays_o (torch.Tensor): (N, 3)
-            rays_d (torch.Tensor): (N, 3)
-            points_2d_screen (torch.Tensor, float): (N, 2) screen space
-                                            sampling coordinates
-
+        Returns:
+            rays_o (torch.Tensor): rays origins (N, 3)
+            rays_d (torch.Tensor): rays directions (N, 3)
+            points_2d_screen (torch.Tensor, float): (N, 2) screen space sampling coordinates
         """
 
         # sample points if not provided
@@ -508,11 +593,10 @@ class Camera:
         device: str = "cpu",
         verbose: bool = False,
     ) -> dict:
-        """return data values for points_2d_screen
-        out:
-            vals (dict):
-                rgb_vals (optional, torch.Tensor): (N, 3)
-                mask_vals (optional, torch.Tensor): (N, 1)
+        """
+        return data values for points_2d_screen
+        Returns:
+            vals (dict): data values at points_2d_screen
         """
 
         # sample points if not provided

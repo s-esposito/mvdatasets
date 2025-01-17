@@ -829,7 +829,7 @@ def plot_3d(
     save_path: Path = None,  # if set, saves the figure to the given path
 ) -> None:
     """
-    out:
+    Returns:
         None
     """
 
@@ -937,7 +937,7 @@ def plot_camera_trajectory(
     save_path: Path = None,  # if set, saves the figure to the given path
 ) -> None:
     """
-    out:
+    Returns:
         None
     """
 
@@ -1183,7 +1183,7 @@ def plot_current_batch(
     save_path: Path = None,  # if set, saves the figure to the given path
 ) -> None:
     """
-    out:
+    Returns:
         None
     """
 
@@ -1299,7 +1299,7 @@ def _draw_camera_2d(
     if camera.has_masks():
         mask = data["masks"].cpu().numpy()
     # mask is (H*W, 1) or None
-    
+
     depth = None
     if camera.has_depths():
         depth = data["depths"].cpu().numpy()
@@ -1316,9 +1316,9 @@ def _draw_camera_2d(
     rgb = rgb.reshape(camera.width, camera.height, -1)
     # transpose to (H, W, -1)
     rgb = np.transpose(rgb, (1, 0, 2))
-    # 
+    #
     rgb = rgb / 255.0
-    
+
     # rgb and depth side by side
     if depth is not None:
         # get max depth
@@ -1336,7 +1336,7 @@ def _draw_camera_2d(
         # concatenate rgb and depth
         # print(rgb.shape, depth.shape)
         rgb = np.concatenate([rgb, depth], axis=1)
-    
+
     # display image
     ax.imshow(rgb)
 
@@ -1396,11 +1396,11 @@ def plot_camera_2d(
     save_path: Path = None,  # if set, saves the figure to the given path
 ) -> None:
     """
-    args:
+    Returns:
         camera (Camera): camera object
         points_2d_screen (np.ndarray, float, optional): (N, 2), (H, W)
         frame_idx (int, optional): Defaults to 0.
-    out:
+    Returns:
         None
     """
 
@@ -1528,7 +1528,7 @@ def plot_rays_samples(
     save_path: Path = None,  # if set, saves the figure to the given path
 ) -> None:
     """
-    out:
+    Returns:
         None
     """
 

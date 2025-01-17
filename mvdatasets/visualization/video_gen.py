@@ -128,8 +128,10 @@ def make_video_depth_unproject(
         print_error("save_path extension must be mp4")
 
     # assert len(cameras) == len(point_clouds)
-    assert len(cameras) == len(point_clouds), "cameras and point_clouds must have the same length"
-    
+    assert len(cameras) == len(
+        point_clouds
+    ), "cameras and point_clouds must have the same length"
+
     sequence_len = len(cameras)
     step_size = 1
     frames_idxs = np.arange(0, sequence_len, step_size)

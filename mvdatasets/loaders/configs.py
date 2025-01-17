@@ -1,25 +1,37 @@
 import numpy as np
 from pathlib import Path
 from mvdatasets.utils.printing import print_error
+from dataclasses import dataclass
+
 
 @dataclass
 class Config:
     # Default generic configuration
-    
+
     datasets_path: Path = Path("/home/stefano/Data")  # Path to the datasets folder
     dataset_name: str = "dtu"  # Dataset name (e.g., "nerf_synthetic", "shelly", ...)
     scene_name: str = "dtu_scan83"  # Scene name (e.g. "lego", "khady", ...)
     auto_center: bool = False  # Shift the average of cameras centers to the origin
-    rotate_deg: np.ndarray = np.array([0.0, 0.0, 0.0])  # Scene rotation angles in degrees
-    max_cameras_distance: float = None  # Maximum distance of the furthest camera from the origin (for scaling), if None, no scaling
-    foreground_scale_mult: float = 1.0  # Foreground area scale factor (<= 1.0), (1.0 = no scaling), e.g. 0.5, 1.0, 2.0, ...
-    subsample_factor: int = 1  # Subsampling factor (>= 1), (1 = no subsampling), e.g. 2, 3, 4, ...
-    init_sphere_radius_mult: float = 0.1  # Initial sphere radius multiplier (<= 1.0), (for SDF initialization)
+    rotate_deg: np.ndarray = np.array(
+        [0.0, 0.0, 0.0]
+    )  # Scene rotation angles in degrees
+    max_cameras_distance: float = (
+        None  # Maximum distance of the furthest camera from the origin (for scaling), if None, no scaling
+    )
+    foreground_scale_mult: float = (
+        1.0  # Foreground area scale factor (<= 1.0), (1.0 = no scaling), e.g. 0.5, 1.0, 2.0, ...
+    )
+    subsample_factor: int = (
+        1  # Subsampling factor (>= 1), (1 = no subsampling), e.g. 2, 3, 4, ...
+    )
+    init_sphere_radius_mult: float = (
+        0.1  # Initial sphere radius multiplier (<= 1.0), (for SDF initialization)
+    )
     pose_only: bool = False  # Load only poses (no images)
-    
+
     def __post__init__(self):
         # Check configuration values
-        
+
         # datasets_path
         if not self.datasets_path.exists():
             print_error(f"Dataset path {self.datasets_path} does not exist.")
@@ -49,7 +61,6 @@ class Config:
         # pose_only
         if type(self.pose_only) is not bool:
             print_error("pose_only must be a boolean")
-        
 
 
 @dataclass
@@ -168,7 +179,7 @@ def get_scene_preset(dataset_name: str, scene_name: str) -> dict:
     elif dataset_name == "visor":
         # dataset specific config
         config = {}
-        
+
     # test neu3d
     elif dataset_name == "neu3d":
         # dataset specific config
@@ -183,7 +194,7 @@ def get_scene_preset(dataset_name: str, scene_name: str) -> dict:
     elif dataset_name == "iphone":
         # dataset specific config
         config = {}
-        
+
     # test monst3r
     elif dataset_name == "monst3r":
         # dataset specific config

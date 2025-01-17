@@ -6,8 +6,8 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.tensor_reel import TensorReel

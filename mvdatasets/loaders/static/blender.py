@@ -36,7 +36,7 @@ class Config:
     # # Loaded images subsampling factor
     # subsample_factor: int = 1
     ## Use white background (else black)
-    #white_bg: bool = True
+    # white_bg: bool = True
     #  # Skip every test_skip images from test split
     # test_skip: int = 20
     # # Maximum distance of the furthest camera for rescaling

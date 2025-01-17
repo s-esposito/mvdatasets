@@ -7,8 +7,8 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.visualization.matplotlib import plot_camera_2d, plot_3d
 from mvdatasets.mvdataset import MVDataset
@@ -70,7 +70,7 @@ def main(args: Args):
         depth = depth.transpose(1, 0, 2)  # (W, H, 1)
         # flatten depth image
         depth = depth.flatten()  # (H*W,)
-        # 
+        #
         zero_depth_mask = depth < 1e-3
         # get rgb
         rgb = camera.get_rgb()  # (H, W, 3)
@@ -106,7 +106,7 @@ def main(args: Args):
     #     idxs = np.random.choice(points_3d.shape[0], max_nr_points, replace=False)
     #     for pc in pcs:
     #         pc.mask(idxs)
-    
+
     # make video
     make_video_depth_unproject(
         cameras=mv_data.get_split("train"),

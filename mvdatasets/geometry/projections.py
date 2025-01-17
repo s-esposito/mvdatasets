@@ -218,7 +218,7 @@ def global_inv_perspective_projection(
         intrinsics_inv,
         points_2d_screen,
     )
-    
+
     # multiply by depth
     points_3d_camera *= depth[..., None]
 

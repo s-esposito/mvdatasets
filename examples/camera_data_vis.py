@@ -2,8 +2,8 @@ import tyro
 import numpy as np
 import os
 from copy import deepcopy
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox

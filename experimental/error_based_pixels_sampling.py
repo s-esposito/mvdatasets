@@ -6,8 +6,8 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 from PIL import Image
-from config import Args
-from config import get_dataset_test_preset
+from examples import Args
+from examples import get_dataset_test_preset
 from mvdatasets.visualization.matplotlib import plot_camera_2d
 from mvdatasets.utils.raycasting import (
     get_points_2d_screen_from_pixels,

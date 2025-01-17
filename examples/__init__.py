@@ -54,9 +54,6 @@ def custom_exception_handler(exc_type, exc_value, exc_traceback):
 
 @dataclass
 class Args:
-    datasets_path: Path = Path("/home/stefano/Data")
-    dataset_name: str = "dtu"
-    scene_name: str = None
     seed: int = 42
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -75,9 +72,6 @@ class Args:
                 torch.cuda.manual_seed(self.seed)
 
     def __post_init__(self):
-        # check path and dataset
-        if not self.datasets_path.exists():
-            print_error(f"Dataset path {self.datasets_path} does not exist.")
         # set seeds
         self._set_seeds()
         # set the custom exception handler globally
@@ -98,11 +92,11 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         splits = ["train", "test"]
         pc_paths = []
 
-    # test blender
-    elif dataset_name == "blender":
+    # test nerf_synthetic
+    elif dataset_name == "nerf_synthetic":
         scene_name = "lego"
         splits = ["train", "test"]
-        pc_paths = ["tests/assets/point_clouds/blender/lego.ply"]
+        pc_paths = ["tests/assets/point_clouds/nerf_synthetic/lego.ply"]
 
     # test shelly
     elif dataset_name == "shelly":
@@ -110,8 +104,8 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
 
-    # test blendernerf
-    elif dataset_name == "blendernerf":
+    # test nerf_furry
+    elif dataset_name == "nerf_furry":
         scene_name = "plushy"
         splits = ["train", "test"]
         pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
@@ -158,6 +152,12 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         splits = ["train", "val"]
         pc_paths = []
 
+    # test neu3d
+    elif dataset_name == "neu3d":
+        scene_name = "coffee_martini"
+        splits = ["train", "val"]
+        pc_paths = []
+
     # test panoptic-sports
     elif dataset_name == "panoptic-sports":
         scene_name = "basketball"
@@ -168,6 +168,12 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     elif dataset_name == "iphone":
         scene_name = "paper-windmill"
         splits = ["train", "val"]
+        pc_paths = []
+
+    # test monst3r
+    elif dataset_name == "monst3r":
+        scene_name = "car-turn"
+        splits = ["train"]
         pc_paths = []
 
     else:

@@ -7,8 +7,11 @@ from mvdatasets.geometry.rigid import apply_rotation_3d
 
 def get_pixels(height: int, width: int, device: str = "cpu") -> torch.Tensor:
     """returns all image pixels coords
-
-    out:
+    Args:
+        height (int): frame height
+        width (int): frame width
+        device (str, optional): Defaults to "cpu".
+    Returns:
         pixels (torch.Tensor): dtype int32, shape (W, H, 2), values in [0, W-1], [0, H-1]
     """
 
@@ -26,8 +29,12 @@ def get_random_pixels(
     height: int, width: int, nr_pixels: int, device: str = "cpu"
 ) -> torch.Tensor:
     """given a number or pixels, return random pixels
-
-    out:
+    Args:
+        height (int): frame height
+        width (int): frame width
+        nr_pixels (int): number of pixels to sample
+        device (str, optional): Defaults to "cpu".
+    Returns:
         pixels (torch.Tensor, int): (N, 2) with values in [0, W-1], [0, H-1]
     """
     # sample nr_pixels random pixels
@@ -75,10 +82,9 @@ def get_random_pixels_from_error_map(
 
 def get_pixels_centers(pixels: torch.Tensor) -> torch.Tensor:
     """return the center of each pixel
-
-    args:
+    Args:
         pixels (torch.Tensor): (N, 2) list of pixels
-    out:
+    Returns:
         pixels_centers (torch.Tensor): (N, 2) list of pixels centers
     """
 
@@ -90,7 +96,9 @@ def get_pixels_centers(pixels: torch.Tensor) -> torch.Tensor:
 
 def points_2d_screen_to_pixels(points_2d_screen: torch.Tensor) -> torch.Tensor:
     """convert 2d points on the image plane to pixels
-    args:
+    Args:
+        points_2d_screen (torch.Tensor): (N, 2) list of pixels centers (in screen space)
+    Returns:
         points_2d_screen (torch.Tensor): (N, 2) list of pixels centers (in screen space)
     """
     return points_2d_screen.int()  # cast to int32 (floor)
@@ -101,7 +109,7 @@ def jitter_points(points: torch.Tensor) -> torch.Tensor:
 
     Args:
         points (torch.Tensor): (..., 2) list of pixels centers (in screen space)
-    Out:
+    Returns:
         jittered_pixels (torch.Tensor): (..., 2) list of pixels
     """
 
@@ -125,10 +133,10 @@ def jitter_points(points: torch.Tensor) -> torch.Tensor:
 def get_points_2d_screen_from_pixels(pixels: torch.Tensor, jitter_pixels: bool = False):
     """convert pixels to 2d points on the image plane
 
-    args:
+    Args:
         pixels (torch.Tensor): (W, H, 2) or (N, 2) list of pixels
         jitter_pixels (bool): whether to jitter pixels
-    out:
+    Returns:
         points_2d_screen (torch.Tensor): (N, 2) list of pixels centers (in screen space)
     """
     assert pixels.dtype == torch.int32, "pixels must be int32"
@@ -147,12 +155,12 @@ def get_rays_per_points_2d_screen(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """given a list of pixels, return rays origins and directions
 
-    args:
+    Args:
         c2w (torch.Tensor): (N, 4, 4) or (4, 4)
         intrinsics_inv (torch.Tensor): (N, 3, 3) or (3, 3)
         points_2d_screen (torch.Tensor, float): (N, 2) with values in [0, W-1], [0, H-1]
 
-    out:
+    Returns:
         rays_o (torch.Tensor): (N, 3)
         rays_d (torch.Tensor): (N, 3)
     """
@@ -228,7 +236,7 @@ def get_data_per_pixels(
 ):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
-    args:
+    Args:
         pixels (torch.Tensor, int32): (N, 2) with values in [0, W-1], [0, H-1]
         cameras_idx (optional, torch.Tensor, int): (N) camera indices
         frames_idx (optional, torch.Tensor, int): (N) frame indices.
@@ -236,7 +244,7 @@ def get_data_per_pixels(
             rgbs (optional, torch.Tensor or np.array, uint8): (N, T, H, W, 3) or (H, W, 3) None
             masks (optional, torch.Tensor or np.array, uint8): (N, T, H, W, 1) or (H, W, 1) or None
 
-    out:
+    Returns:
         vals (dict):
             rgb (optional, torch.Tensor or np.array, float): (N, 3)
             mask (optional, torch.Tensor or np.array, float): (N, 1)
@@ -323,7 +331,7 @@ def get_data_per_points_2d_screen(
 ):
     """given a list of pixels and a list of frames, return rgb and mask values at pixels
 
-    args:
+    Args:
         points_2d_screen (torch.Tensor, float): (N, 2) with values in [0, W-1], [0, H-1]
         cameras_idx (optional, torch.Tensor or np.ndarray): (N) camera indices
         frames_idx (optional, torch.Tensor or np.ndarray): (N) frame indices
@@ -331,7 +339,7 @@ def get_data_per_points_2d_screen(
             rgbs (torch.Tensor, uint8): (H, W, 3)
             mask (torch.Tensor, uint8): (H, W, 1)
 
-    out:
+    Returns:
         vals (dict):
             rgb (optional, torch.Tensor, float): (N, 3)
             mask (optional, torch.Tensor, float): (N, 1)

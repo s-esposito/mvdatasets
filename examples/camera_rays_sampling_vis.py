@@ -5,8 +5,8 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.visualization.matplotlib import plot_3d, plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere

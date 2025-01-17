@@ -7,7 +7,7 @@
 
 [Stefano Esposito](https://s-esposito.github.io/), [Andreas Geiger](https://www.cvlibs.net/)
 <br>
-University of Tübingen, Autonomous Vision Group (AVG)
+University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/)
 
 ```
 ⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
@@ -24,10 +24,11 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 
 **Static:**
 - [x] [NeRF-Synthetic](https://www.matthewtancik.com/nerf): bounded
-- [x] [Ref-NeRF](#): bounded
-- [x] [Shelly](#): bounded
-- [x] [DTU](#): unbounded
-- [x] [Mip-NeRF360](#): unbounded
+- [x] [Ref-NeRF](https://dorverbin.github.io/refnerf/): bounded
+- [x] [Shelly](https://research.nvidia.com/labs/toronto-ai/adaptive-shells/): bounded
+- [x] [DTU](https://github.com/lioryariv/idr?tab=readme-ov-file): unbounded
+- [x] [BlendedMVS](https://github.com/Totoro97/NeuS?tab=readme-ov-file): unbounded
+- [x] [Mip-NeRF360](https://jonbarron.info/mipnerf360/): unbounded
 - [ ] [NeRF-LLFF](https://www.matthewtancik.com/nerf): unbounded
 - [ ] ...
 
@@ -55,57 +56,36 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 ## Cameras
 
 We use the OpenCV camera coordinate system:
-- X-Axis: Points to the right of the camera's sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
-- Y-Axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
-- Z-Axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
+- X axis: Points to the right of the camera's sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
+- Y axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
+- Z axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
 
 <p float="left">
   <img src="imgs/pose_and_intrinsics.png" width="500"/>
   <img src="imgs/projection_with_principal_point_offset.png" width="320"/>
-</p>   
+</p>
 
 Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/) at the University of Tübingen.
 
-
 ## Installation
 
-```bash
-# 1) install requirements
-conda create -n mv_datasets python=3.8
-conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=11.8 -c pytorch -c nvidia
-pip install -r requirements.txt
-pip install -e .
-```
+Install the module with `pip install mvdatasets`, or from source using `pip install -e`.
 
-Configure your datasets root folder path in `config`, e.g.:
-```python
-Config.datasets_path = Path("/home/stefano/Data")
-```
-
-## Testing
+## Run the examples
 
 ```bash
-# download data
+# download data in ./data
 bash scripts/download/nerf_synthetic.sh
-# reproduce images
-python tests/cameras_splits.py --dataset-name nerf_synthetic
-python tests/camera_rays.py --dataset-name nerf_synthetic
-python tests/reproject_points.py --dataset-name nerf_synthetic
-python tests/cameras_rays_batch_sampling.py --dataset-name nerf_synthetic
-python tests/virtual_cameras_rays_batch_sampling.py --dataset-name nerf_synthetic
-python tests/pixels_sampling.py --dataset-name nerf_synthetic
-python tests/overlay_bounding_primitives.py --dataset-name nerf_synthetic
+# visualize dataset splits
+python examples/dataset_splits_vis.py.py --dataset-name nerf_synthetic --datasets-path ./data
 ```
-
-e.g.: `python tests/cameras_splits.py --dataset-name nerf_synthetic` should render:
 
 <p float="left">
   <img src="imgs/blender_training_cameras.png" width="400"/>
   <img src="imgs/blender_test_cameras.png" width="400"/>
 </p>
 
-## Disclaimer
+### Disclaimer
 
 Functions located in any `.deprecated` folder may no longer work as expected. While they might be supported again in the future, this is not guaranteed.
 

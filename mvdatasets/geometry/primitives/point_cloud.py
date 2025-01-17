@@ -52,13 +52,13 @@ class PointCloud:
         if nr_points >= self.points_3d.shape[0]:
             # do nothing
             return
-        
+
         idxs = np.random.choice(self.points_3d.shape[0], nr_points, replace=False)
         self.points_3d = self.points_3d[idxs]
 
         if self.points_rgb is not None:
             self.points_rgb = self.points_rgb[idxs]
-            
+
     def mask(self, mask: np.ndarray):
         self.points_3d = self.points_3d[mask]
 

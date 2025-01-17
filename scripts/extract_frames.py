@@ -50,7 +50,7 @@ def extract_frames(
 #     print(f"Skip time: {skip_time}")
 #     print(f"Start time: {start_time}")
 #     print(f"End time: {end_time}")
-        
+
 #     extract_frames(
 #         video_path, output_path, video_nr, res, ext, skip_time, start_time, end_time
 #     )

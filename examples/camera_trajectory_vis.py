@@ -2,8 +2,8 @@ import tyro
 import os
 import numpy as np
 from pathlib import Path
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.visualization.matplotlib import plot_camera_trajectory
 from mvdatasets.visualization.video_gen import make_video_camera_trajectory
 from mvdatasets.mvdataset import MVDataset

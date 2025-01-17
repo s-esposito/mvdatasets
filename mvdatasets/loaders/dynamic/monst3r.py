@@ -23,7 +23,7 @@ from mvdatasets.geometry.quaternions import quats_to_rots
 def _tum_to_c2w(tum_pose):
     """
     Convert a TUM pose (x, y, z, qw, qx, qy, qz) back to a 4x4 c2w matrix.
-    
+
     input: tum_pose: 1D array or list [x, y, z, qw, qx, qy, qz]
     output: c2w: 4x4 numpy array
     """
@@ -64,7 +64,7 @@ def load(
         global_transform (np.ndarray): (4, 4)
     """
     scene_path = dataset_path / scene_name
-    
+
     # Default configuration
     defaults = {
         "scene_type": "unbounded",
@@ -77,7 +77,7 @@ def load(
         "pose_only": False,
         "frame_rate": 30,
     }
-    
+
     # Update config with defaults
     for key, default_value in defaults.items():
         if key not in config:
@@ -87,7 +87,7 @@ def load(
         else:
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
-                
+
     # Valid values for specific keys
     valid_values = {
         "subsample_factor": [1],
@@ -105,7 +105,7 @@ def load(
             print(f"\t{k}: {v}")
 
     # -------------------------------------------------------------------------
-    
+
     # open pred_traj.txt
     pred_traj_file = scene_path / "pred_traj.txt"
     # read all lines as np.array
@@ -123,7 +123,7 @@ def load(
         c2w = _tum_to_c2w(tum_pose)
         # print(tt, c2w)
         poses_list.append(c2w)
-    
+
     # open pred_intrinsics.txt
     pred_intrinsics_file = scene_path / "pred_intrinsics.txt"
     # read all lines as np.array
@@ -138,7 +138,7 @@ def load(
 
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_list)
-    
+
     if config["rescale"]:
 
         # scene scale such that furthest away camera is at target distance
@@ -150,7 +150,7 @@ def load(
 
         # scene radius
         scene_radius = new_max_camera_distance
-    
+
     else:
         # scene scale such that furthest away camera is at target distance
         scene_radius_mult = 1.0
@@ -172,22 +172,22 @@ def load(
 
     # local transform
     local_transform = np.eye(4)
-    
+
     # find all frame_0000.png frames rgb
     rgb_frames = list(scene_path.glob("frame_*.png"))
     rgb_frames = sorted(rgb_frames)
     print(f"Found {len(rgb_frames)} RGB frames")
-    
+
     # find all frame_0028.npy frames depth
     depth_frames = list(scene_path.glob("frame_*.npy"))
     depth_frames = sorted(depth_frames)
     print(f"Found {len(depth_frames)} depth frames")
-    
+
     # find all enlarged_dynamic_mask_0.png frames masks
     masks_frames = list(scene_path.glob("enlarged_dynamic_mask_*.png"))
     masks_frames = sorted(masks_frames)
     print(f"Found {len(masks_frames)} masks frames")
-    
+
     rgbs_list = []
     depths_list = []
     masks_list = []
@@ -204,7 +204,7 @@ def load(
             width, height = rgb.shape[1], rgb.shape[0]
             # print(rgb.shape, rgb.dtype)
             rgbs_list.append(rgb)
-        
+
         # load all depth frames
         if config["load_depths"]:
             pbar = tqdm(depth_frames, desc="depths", ncols=100)
@@ -216,16 +216,16 @@ def load(
                 depth_np = np.expand_dims(depth_np, axis=-1)
                 # print(depth.shape, depth.dtype)
                 depths_list.append(depth_np)
-            
+
         if config["load_masks"]:
             # TODO
             pass
-    
+
     # cameras objects
     cameras_splits = {}
     for split in splits:
         cameras_splits[split] = []
-        
+
         for i in range(len(rgbs_list)):
             # create camera object
             camera = Camera(
@@ -244,7 +244,7 @@ def load(
                 # verbose=verbose,
             )
             cameras_splits[split].append(camera)
-    
+
     return {
         "scene_type": config["scene_type"],
         "point_clouds": [],

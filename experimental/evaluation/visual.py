@@ -13,7 +13,7 @@ from mvdatasets.utils.printing import print_warning, print_info, print_error
 def eval_rendered_imgs(renders_path, scene_name):
     """
 
-    out:
+    Returns:
         list of results (PerSceneEvaluator), one for each render mode
     """
     # iterate over folders in renders_path

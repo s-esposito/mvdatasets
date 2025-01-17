@@ -22,7 +22,7 @@ def extract_frames(
         # whose name is the video name
         output_path = video_path.parent / video_name
     else:
-        # create output folder in output path 
+        # create output folder in output path
         # whose name is the video name
         output_path = output_path / video_name
     # create output folder

@@ -2,8 +2,8 @@ import tyro
 import numpy as np
 import os
 from tqdm import tqdm
-from config import Args
-from config import get_dataset_test_preset
+from examples import Args
+from examples import get_dataset_test_preset
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.visualization.matplotlib import plot_current_batch
 from mvdatasets.visualization.matplotlib import plot_rays_samples

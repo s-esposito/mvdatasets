@@ -10,8 +10,7 @@ from mvdatasets.loaders.configs import get_scene_preset
 
 
 class MVDataset:
-    """Dataset class for all static multi-view datasets.
-
+    """Any dataset container.
     All data is stored in CPU memory.
     """
 
@@ -66,6 +65,7 @@ class MVDataset:
         # STATIC SCENE DATASETS -----------------------------------------------
 
         # load dtu
+        # load blended-mvs
         if self.dataset_name == "dtu" or self.dataset_name == "blended-mvs":
             from mvdatasets.loaders.static.dtu import load
 
@@ -81,7 +81,7 @@ class MVDataset:
             or self.dataset_name == "refnerf"
             or self.dataset_name == "shelly"
         ):
-            from mvdatasets.loaders.static.nerf_synthetic import load
+            from mvdatasets.loaders.static.blender import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
@@ -119,7 +119,7 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.visor import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
-            
+
         elif self.dataset_name == "neu3d":
             from mvdatasets.loaders.dynamic.neu3d import load
 
@@ -139,10 +139,10 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.iphone import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
-            
+
         elif self.dataset_name == "monst3r":
             from mvdatasets.loaders.dynamic.monst3r import load
-            
+
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         else:
@@ -246,7 +246,9 @@ class MVDataset:
             # print modalities loaded
             for key, val in self.data[split][0].data.items():
                 if val is not None:
-                    print_info(f"{key} loaded with shape {val.shape}, dtype {val.dtype}")
+                    print_info(
+                        f"{key} loaded with shape {val.shape}, dtype {val.dtype}"
+                    )
 
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""

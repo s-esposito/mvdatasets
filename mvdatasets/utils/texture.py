@@ -12,7 +12,7 @@ def sample_texture(image, uvs):
     Args:
         image: torch.Tensor, [H, W, C] or [H, W, C, F]
         uvs: torch.Tensor, [N, 2] in [0, 1]
-    Out:
+    Returns:
         vals: torch.Tensor, [N, C] or [N, C, F]
     """
     # get image dims

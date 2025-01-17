@@ -12,7 +12,7 @@ def _intersect_sphere(rays_o, rays_d, center, radius):
         rays_d (torch.Tensor): (N, 3)
         center (torch.Tensor): (3,)
         radius (float)
-    Out:
+    Returns:
         is_hit (torch.Tensor): (N,)
         t_near (torch.Tensor): (N,)
         t_far (torch.Tensor): (N,)
@@ -137,7 +137,7 @@ class BoundingSphere:
             rays in world space
             rays_o (torch.Tensor): (N, 3)
             rays_d (torch.Tensor): (N, 3)
-        Out:
+        Returns:
             is_hit (torch.Tensor): (N,)
             t_near (torch.Tensor): (N,)
             t_far (torch.Tensor): (N,)

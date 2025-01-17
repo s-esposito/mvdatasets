@@ -8,8 +8,9 @@ from mvdatasets.geometry.quaternions import (
     make_quaternion_rad,
     rots_to_quats,
     angular_distance,
-    quats_to_rots
+    quats_to_rots,
 )
+
 
 class TestQuaternionFunctions(unittest.TestCase):
 
@@ -53,13 +54,7 @@ class TestQuaternionFunctions(unittest.TestCase):
         self.assertTrue(torch.allclose(result, expected))
 
         # Test rotation matrix for a 90-degree rotation around Z-axis
-        rot_z = torch.tensor([
-            [
-                [0.0, -1.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0]
-            ]
-        ])
+        rot_z = torch.tensor([[[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]])
         result = rots_to_quats(rot_z)
         expected = torch.tensor([[0.7071, 0.0, 0.0, 0.7071]])
         self.assertTrue(torch.allclose(result, expected, atol=1e-4))
@@ -85,13 +80,7 @@ class TestQuaternionFunctions(unittest.TestCase):
         # Test quaternion to rotation matrix for 90-degree rotation around Y-axis
         quats = torch.tensor([[0.7071, 0.0, 0.7071, 0.0]])
         result = quats_to_rots(quats)
-        expected = torch.tensor([
-            [
-                [0.0, 0.0, 1.0],
-                [0.0, 1.0, 0.0],
-                [-1.0, 0.0, 0.0]
-            ]
-        ])
+        expected = torch.tensor([[[0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [-1.0, 0.0, 0.0]]])
         self.assertTrue(torch.allclose(result, expected, atol=1e-4))
 
 

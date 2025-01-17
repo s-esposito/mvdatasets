@@ -66,7 +66,7 @@ def load(
         else:
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
-                
+
     # Valid values for specific keys
     valid_values = {
         "subsample_factor": [1, 2],
@@ -195,12 +195,12 @@ def load(
                 )
                 intrinsics_dict[split_name].append(K)
 
-    # 
+    #
     if config["subsample_factor"] > 1:
         subsample_factor = int(config["subsample_factor"])
     else:
         subsample_factor = 1
-    
+
     width, height = image_size
     width, height = width // subsample_factor, height // subsample_factor
 
@@ -224,9 +224,9 @@ def load(
 
         # scene radius
         scene_radius = new_max_camera_distance
-    
+
     else:
-        
+
         # scene scale such that furthest away camera is at target distance
         scene_radius_mult = 1.0
 
@@ -260,7 +260,9 @@ def load(
 
             frames_pbar = tqdm(split_data["frame_names"], desc=split_name, ncols=100)
             for frame_name in frames_pbar:
-                rgb_path = os.path.join(scene_path, "rgb", f"{subsample_factor}x", f"{frame_name}.png")
+                rgb_path = os.path.join(
+                    scene_path, "rgb", f"{subsample_factor}x", f"{frame_name}.png"
+                )
                 # load PIL image
                 img_pil = Image.open(rgb_path)
                 img_np = image_to_numpy(img_pil, use_uint8=True)
@@ -300,7 +302,7 @@ def load(
                     depth_np *= scene_radius_mult
                     #
                     depths_dict[split_name].append(depth_np)
-                    
+
         # TODO: load covisible for validation split
 
     # cameras objects
@@ -337,7 +339,7 @@ def load(
             pose = poses_dict[split][i]
             # get camera intrinsics
             intrinsics = intrinsics_dict[split][i]
-            
+
             # update intrinsics based on subsample factor
             intrinsics[0, :] *= 1 / float(subsample_factor)
             intrinsics[1, :] *= 1 / float(subsample_factor)

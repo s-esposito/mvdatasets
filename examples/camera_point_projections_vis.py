@@ -6,8 +6,8 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from config import get_dataset_test_preset
-from config import Args
+from examples import get_dataset_test_preset
+from examples import Args
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.visualization.matplotlib import plot_camera_2d, plot_3d
 from mvdatasets.mvdataset import MVDataset

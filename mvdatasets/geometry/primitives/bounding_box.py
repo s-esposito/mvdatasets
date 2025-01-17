@@ -16,7 +16,7 @@ def _intersect_aabb(rays_o, rays_d, aabb_min, aabb_max):
         rays_d (torch.Tensor): (N, 3)
         aabb_min (np.ndarray): (3,)
         aabb_max (np.ndarray): (3,)
-    Out:
+    Returns:
         is_hit (torch.Tensor): (N,)
         t_near (torch.Tensor): (N,)
         t_far (torch.Tensor): (N,)
@@ -196,7 +196,7 @@ class BoundingBox:
             rays in world space
             rays_o (torch.Tensor): (N, 3)
             rays_d (torch.Tensor): (N, 3)
-        Out:
+        Returns:
             is_hit (torch.Tensor): (N,)
             t_near (torch.Tensor): (N,)
             t_far (torch.Tensor): (N,)
@@ -306,10 +306,10 @@ class BoundingBox:
     def check_points_inside(self, points):
         """checks if points are inside the bounding box
 
-        args:
+        Args:
             points (torch.Tensor): (N, 3) points are in world space
 
-        returns:
+        Returns:
             is_inside (torch.Tensor): (N,)
         """
 
