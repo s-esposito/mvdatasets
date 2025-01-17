@@ -19,7 +19,9 @@
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mvdatasets.visualization" href="mvdatasets.visualization.html" />
+    <link rel="prev" title="Dynamic scenes" href="mvdatasets.loaders.dynamic.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,14 +44,143 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.geometry.html">Geometry</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.geometry.html#bibliography">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.loaders.html">Datasets loaders</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">mvdatasets.utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.camera_utils">mvdatasets.utils.camera_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.images">mvdatasets.utils.images module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.bilinear_downscale"><code class="docutils literal notranslate"><span class="pre">bilinear_downscale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.bilinear_upscale"><code class="docutils literal notranslate"><span class="pre">bilinear_upscale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.flip_image_horizontally"><code class="docutils literal notranslate"><span class="pre">flip_image_horizontally()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.flip_image_vertically"><code class="docutils literal notranslate"><span class="pre">flip_image_vertically()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.get_pixel_corners"><code class="docutils literal notranslate"><span class="pre">get_pixel_corners()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.image_float32_to_uint8"><code class="docutils literal notranslate"><span class="pre">image_float32_to_uint8()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.image_to_numpy"><code class="docutils literal notranslate"><span class="pre">image_to_numpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.image_to_tensor"><code class="docutils literal notranslate"><span class="pre">image_to_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.image_uint8_to_float32"><code class="docutils literal notranslate"><span class="pre">image_uint8_to_float32()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.load_image_as_numpy"><code class="docutils literal notranslate"><span class="pre">load_image_as_numpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.load_image_as_tensor"><code class="docutils literal notranslate"><span class="pre">load_image_as_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.non_normalize_uv_coord"><code class="docutils literal notranslate"><span class="pre">non_normalize_uv_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.non_normalized_uv_coords_to_interp_corners"><code class="docutils literal notranslate"><span class="pre">non_normalized_uv_coords_to_interp_corners()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.non_normalized_uv_coords_to_lerp_weights"><code class="docutils literal notranslate"><span class="pre">non_normalized_uv_coords_to_lerp_weights()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.normalize_uv_coord"><code class="docutils literal notranslate"><span class="pre">normalize_uv_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.numpy_to_image"><code class="docutils literal notranslate"><span class="pre">numpy_to_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.pix_to_texel_center_uv_coord"><code class="docutils literal notranslate"><span class="pre">pix_to_texel_center_uv_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.save_numpy_as_png"><code class="docutils literal notranslate"><span class="pre">save_numpy_as_png()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.tensor_to_image"><code class="docutils literal notranslate"><span class="pre">tensor_to_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.images.uv_coords_to_pix"><code class="docutils literal notranslate"><span class="pre">uv_coords_to_pix()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.memory">mvdatasets.utils.memory module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.memory.bytes_to_gb"><code class="docutils literal notranslate"><span class="pre">bytes_to_gb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.memory.bytes_to_mb"><code class="docutils literal notranslate"><span class="pre">bytes_to_mb()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.mesh">mvdatasets.utils.mesh module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.mesh.Mesh"><code class="docutils literal notranslate"><span class="pre">Mesh</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.mesh.Mesh.uv"><code class="docutils literal notranslate"><span class="pre">Mesh.uv</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.mesh.Mesh.uv_idx"><code class="docutils literal notranslate"><span class="pre">Mesh.uv_idx</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.mesh.triangle_to_vertices_uvs_conversion"><code class="docutils literal notranslate"><span class="pre">triangle_to_vertices_uvs_conversion()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.open3d_rendering">mvdatasets.utils.open3d_rendering module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh"><code class="docutils literal notranslate"><span class="pre">render_o3d_mesh()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh_depth"><code class="docutils literal notranslate"><span class="pre">render_o3d_mesh_depth()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.open3d_rendering.render_o3d_mesh_normals"><code class="docutils literal notranslate"><span class="pre">render_o3d_mesh_normals()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.open3d_rendering.render_o3d_scene"><code class="docutils literal notranslate"><span class="pre">render_o3d_scene()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.point_clouds">mvdatasets.utils.point_clouds module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.point_clouds.load_point_cloud"><code class="docutils literal notranslate"><span class="pre">load_point_cloud()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.point_clouds.load_point_clouds"><code class="docutils literal notranslate"><span class="pre">load_point_clouds()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.printing">mvdatasets.utils.printing module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.RateColumn"><code class="docutils literal notranslate"><span class="pre">RateColumn</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.printing.RateColumn.render"><code class="docutils literal notranslate"><span class="pre">RateColumn.render()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.print_error"><code class="docutils literal notranslate"><span class="pre">print_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.print_info"><code class="docutils literal notranslate"><span class="pre">print_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.print_log"><code class="docutils literal notranslate"><span class="pre">print_log()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.print_success"><code class="docutils literal notranslate"><span class="pre">print_success()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.print_warning"><code class="docutils literal notranslate"><span class="pre">print_warning()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.printing.progress_bar"><code class="docutils literal notranslate"><span class="pre">progress_bar()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.profiler">mvdatasets.utils.profiler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler"><code class="docutils literal notranslate"><span class="pre">Profiler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.end"><code class="docutils literal notranslate"><span class="pre">Profiler.end()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.get_avg_time"><code class="docutils literal notranslate"><span class="pre">Profiler.get_avg_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.get_last_time"><code class="docutils literal notranslate"><span class="pre">Profiler.get_last_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.print_avg_times"><code class="docutils literal notranslate"><span class="pre">Profiler.print_avg_times()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.reset"><code class="docutils literal notranslate"><span class="pre">Profiler.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.profiler.Profiler.start"><code class="docutils literal notranslate"><span class="pre">Profiler.start()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.raycasting">mvdatasets.utils.raycasting module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_data_per_pixels"><code class="docutils literal notranslate"><span class="pre">get_data_per_pixels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_data_per_points_2d_screen"><code class="docutils literal notranslate"><span class="pre">get_data_per_points_2d_screen()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_pixels"><code class="docutils literal notranslate"><span class="pre">get_pixels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_pixels_centers"><code class="docutils literal notranslate"><span class="pre">get_pixels_centers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_points_2d_screen_from_pixels"><code class="docutils literal notranslate"><span class="pre">get_points_2d_screen_from_pixels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_random_pixels"><code class="docutils literal notranslate"><span class="pre">get_random_pixels()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_random_pixels_from_error_map"><code class="docutils literal notranslate"><span class="pre">get_random_pixels_from_error_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.get_rays_per_points_2d_screen"><code class="docutils literal notranslate"><span class="pre">get_rays_per_points_2d_screen()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.jitter_points"><code class="docutils literal notranslate"><span class="pre">jitter_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.raycasting.points_2d_screen_to_pixels"><code class="docutils literal notranslate"><span class="pre">points_2d_screen_to_pixels()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.tensor_mesh">mvdatasets.utils.tensor_mesh module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.tensor_mesh.TensorMesh"><code class="docutils literal notranslate"><span class="pre">TensorMesh</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.tensor_mesh.TensorMesh.get_faces_uvs"><code class="docutils literal notranslate"><span class="pre">TensorMesh.get_faces_uvs()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.tensor_texture">mvdatasets.utils.tensor_texture module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.tensor_texture.TensorTexture"><code class="docutils literal notranslate"><span class="pre">TensorTexture</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.utils.tensor_texture.TensorTexture.to_numpy"><code class="docutils literal notranslate"><span class="pre">TensorTexture.to_numpy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.texture">mvdatasets.utils.texture module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.texture.RGBATexture"><code class="docutils literal notranslate"><span class="pre">RGBATexture</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.texture.SHTexture"><code class="docutils literal notranslate"><span class="pre">SHTexture</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.texture.sample_texture"><code class="docutils literal notranslate"><span class="pre">sample_texture()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.video_utils">mvdatasets.utils.video_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.video_utils.extract_frames"><code class="docutils literal notranslate"><span class="pre">extract_frames()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-mvdatasets.utils.virtual_cameras">mvdatasets.utils.virtual_cameras module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mvdatasets.utils.virtual_cameras.sample_cameras_on_hemisphere"><code class="docutils literal notranslate"><span class="pre">sample_cameras_on_hemisphere()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.visualization.html">mvdatasets.visualization</a></li>
 </ul>
 
         </div>
@@ -708,7 +839,10 @@ rays_d (torch.Tensor): (N, 3)</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mvdatasets.loaders.dynamic.html" class="btn btn-neutral float-left" title="Dynamic scenes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mvdatasets.visualization.html" class="btn btn-neutral float-right" title="mvdatasets.visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

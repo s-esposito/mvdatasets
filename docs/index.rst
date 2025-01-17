@@ -37,6 +37,8 @@ Examples are the best way to get started!
    source/mvdatasets.utils
    source/mvdatasets.visualization
 
+---------------
+
 License
 -------
 
@@ -48,3 +50,12 @@ Citation
 
 If you use this library for your research, please consider citing:
 
+.. code-block:: bibtex
+
+   @misc{Esposito2024MVDatasets,
+      author       = {Stefano Esposito and Andreas Geiger},
+      title        = {MVDatasets: Standardized DataLoaders for 3D Computer Vision},
+      year         = {2025},
+      url          = {https://github.com/s-esposito/mvdatasets},
+      note         = {GitHub repository}
+   }

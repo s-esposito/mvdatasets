@@ -19,7 +19,9 @@
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Space contraction" href="mvdatasets.geometry.contraction.html" />
+    <link rel="prev" title="Bounding Box" href="mvdatasets.geometry.primitives.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,14 +44,57 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="mvdatasets.geometry.html">Geometry</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mvdatasets.geometry.html#primitives">Primitives</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mvdatasets.geometry.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Common</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.convert_6d_to_rotation_matrix"><code class="docutils literal notranslate"><span class="pre">convert_6d_to_rotation_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.deg2rad"><code class="docutils literal notranslate"><span class="pre">deg2rad()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.euclidean_to_homogeneous"><code class="docutils literal notranslate"><span class="pre">euclidean_to_homogeneous()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.get_mask_points_in_image_range"><code class="docutils literal notranslate"><span class="pre">get_mask_points_in_image_range()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.get_min_max_cameras_distances"><code class="docutils literal notranslate"><span class="pre">get_min_max_cameras_distances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.homogeneous_to_euclidean"><code class="docutils literal notranslate"><span class="pre">homogeneous_to_euclidean()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.look_at"><code class="docutils literal notranslate"><span class="pre">look_at()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.opengl_matrix_world_from_w2c"><code class="docutils literal notranslate"><span class="pre">opengl_matrix_world_from_w2c()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.opengl_projection_matrix_from_intrinsics"><code class="docutils literal notranslate"><span class="pre">opengl_projection_matrix_from_intrinsics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.qvec2rotmat"><code class="docutils literal notranslate"><span class="pre">qvec2rotmat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rot_euler_3d"><code class="docutils literal notranslate"><span class="pre">rot_euler_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rot_euler_3d_deg"><code class="docutils literal notranslate"><span class="pre">rot_euler_3d_deg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rot_x_3d"><code class="docutils literal notranslate"><span class="pre">rot_x_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rot_y_3d"><code class="docutils literal notranslate"><span class="pre">rot_y_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rot_z_3d"><code class="docutils literal notranslate"><span class="pre">rot_z_3d()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rotation_matrix"><code class="docutils literal notranslate"><span class="pre">rotation_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.rotmat2qvec"><code class="docutils literal notranslate"><span class="pre">rotmat2qvec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.common.scale_3d"><code class="docutils literal notranslate"><span class="pre">scale_3d()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.contraction.html">Space contraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.interpolation.html">Interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.projections.html">Projections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.quaternions.html">Quaternions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.rigid.html">Rigid geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.trajectories.html">Trajectories</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.geometry.html#bibliography">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.loaders.html">Datasets loaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.utils.html">mvdatasets.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.visualization.html">mvdatasets.visualization</a></li>
 </ul>
 
         </div>
@@ -66,6 +111,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="mvdatasets.geometry.html">Geometry</a></li>
       <li class="breadcrumb-item active">Common</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/source/mvdatasets.geometry.common.rst.txt" rel="nofollow"> View page source</a>
@@ -263,7 +309,10 @@ max_dist (float): maximum camera distance from origin</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mvdatasets.geometry.primitives.html" class="btn btn-neutral float-left" title="Bounding Box" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mvdatasets.geometry.contraction.html" class="btn btn-neutral float-right" title="Space contraction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

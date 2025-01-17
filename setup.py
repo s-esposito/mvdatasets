@@ -15,7 +15,7 @@ setup(
         "sphinx>=8.1.3",
         "sphinx-rtd-theme>=3.0.2",
         "sphinxcontrib-mermaid>=1.0.0",
-        "pip install sphinxcontrib-bibtex>=2.6.3",
+        "sphinxcontrib-bibtex>=2.6.3",
         "myst-parser>=4.0.0",
         # main
         "numpy>=1.24.4",

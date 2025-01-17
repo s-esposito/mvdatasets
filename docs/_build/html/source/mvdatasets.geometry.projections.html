@@ -19,7 +19,9 @@
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Quaternions" href="mvdatasets.geometry.quaternions.html" />
+    <link rel="prev" title="Interpolation" href="mvdatasets.geometry.interpolation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,14 +44,43 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="mvdatasets.geometry.html">Geometry</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="mvdatasets.geometry.html#primitives">Primitives</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="mvdatasets.geometry.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.common.html">Common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.contraction.html">Space contraction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.interpolation.html">Interpolation</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Projections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.projections.global_inv_perspective_projection"><code class="docutils literal notranslate"><span class="pre">global_inv_perspective_projection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.projections.global_perspective_projection"><code class="docutils literal notranslate"><span class="pre">global_perspective_projection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.projections.local_inv_perspective_projection"><code class="docutils literal notranslate"><span class="pre">local_inv_perspective_projection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mvdatasets.geometry.projections.local_perspective_projection"><code class="docutils literal notranslate"><span class="pre">local_perspective_projection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.quaternions.html">Quaternions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.rigid.html">Rigid geometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.trajectories.html">Trajectories</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.geometry.html#bibliography">Bibliography</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.loaders.html">Datasets loaders</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.utils.html">mvdatasets.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mvdatasets.visualization.html">mvdatasets.visualization</a></li>
 </ul>
 
         </div>
@@ -66,6 +97,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="mvdatasets.geometry.html">Geometry</a></li>
       <li class="breadcrumb-item active">Projections</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/source/mvdatasets.geometry.projections.rst.txt" rel="nofollow"> View page source</a>
@@ -179,7 +211,10 @@ in_front_of_camera_mask (np.ndarray or torch.Tensor): Boolean mask indicating po
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mvdatasets.geometry.interpolation.html" class="btn btn-neutral float-left" title="Interpolation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mvdatasets.geometry.quaternions.html" class="btn btn-neutral float-right" title="Quaternions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
