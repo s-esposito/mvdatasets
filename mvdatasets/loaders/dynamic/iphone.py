@@ -49,9 +49,10 @@ def load(
         # "use_binary_mask": True,
         # "white_bg": True,
         "rotate_scene_x_axis_deg": 90.0,
-        "subsample_factor": 1,
+        "subsample_factor": 2,
         "target_max_camera_distance": 1.0,
-        # "foreground_radius_mult": 0.5,
+        "rescale": False,  # TODO: testing
+        # "foreground_scale_mult": 0.5,
         # "init_sphere_radius_mult": 0.3,
         "pose_only": False,
     }
@@ -65,10 +66,20 @@ def load(
         else:
             if verbose:
                 print_success(f"Using '{key}': {config[key]}")
+                
+    # Valid values for specific keys
+    valid_values = {
+        "subsample_factor": [1, 2],
+    }
+
+    # Validate specific keys
+    for key, valid in valid_values.items():
+        if key in config and config[key] not in valid:
+            print_error(f"{key} {config[key]} must be a value in {valid}")
 
     # Debugging output
     if verbose:
-        print("load_blender config:")
+        print("load_iphone config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -184,7 +195,14 @@ def load(
                 )
                 intrinsics_dict[split_name].append(K)
 
+    # 
+    if config["subsample_factor"] > 1:
+        subsample_factor = int(config["subsample_factor"])
+    else:
+        subsample_factor = 1
+    
     width, height = image_size
+    width, height = width // subsample_factor, height // subsample_factor
 
     #
     poses_all = []
@@ -195,15 +213,29 @@ def load(
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
 
-    # scene scale such that furthest away camera is at target distance
-    scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
+    if config["rescale"]:
 
-    # new scene scale
-    new_min_camera_distance = min_camera_distance * scene_radius_mult
-    new_max_camera_distance = max_camera_distance * scene_radius_mult
+        # scene scale such that furthest away camera is at target distance
+        scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
 
-    # scene radius
-    scene_radius = new_max_camera_distance
+        # new scene scale
+        new_min_camera_distance = min_camera_distance * scene_radius_mult
+        new_max_camera_distance = max_camera_distance * scene_radius_mult
+
+        # scene radius
+        scene_radius = new_max_camera_distance
+    
+    else:
+        
+        # scene scale such that furthest away camera is at target distance
+        scene_radius_mult = 1.0
+
+        # new scene scale
+        new_min_camera_distance = min_camera_distance
+        new_max_camera_distance = max_camera_distance
+
+        # scene radius
+        scene_radius = max_camera_distance
 
     # global transform
     global_transform = np.eye(4)
@@ -228,7 +260,7 @@ def load(
 
             frames_pbar = tqdm(split_data["frame_names"], desc=split_name, ncols=100)
             for frame_name in frames_pbar:
-                rgb_path = os.path.join(scene_path, "rgb", "1x", f"{frame_name}.png")
+                rgb_path = os.path.join(scene_path, "rgb", f"{subsample_factor}x", f"{frame_name}.png")
                 # load PIL image
                 img_pil = Image.open(rgb_path)
                 img_np = image_to_numpy(img_pil, use_uint8=True)
@@ -256,7 +288,7 @@ def load(
                 )
                 for frame_name in frames_pbar:
                     depth_path = os.path.join(
-                        scene_path, "depth", "1x", f"{frame_name}.npy"
+                        scene_path, "depth", f"{subsample_factor}x", f"{frame_name}.npy"
                     )
                     # check if file exists
                     if not os.path.exists(depth_path):
@@ -264,7 +296,12 @@ def load(
                         continue
                     # load npy
                     depth_np = np.load(depth_path)
+                    # multiply depth times scene scale mult
+                    depth_np *= scene_radius_mult
+                    #
                     depths_dict[split_name].append(depth_np)
+                    
+        # TODO: load covisible for validation split
 
     # cameras objects
     cameras_splits = {}
@@ -300,6 +337,10 @@ def load(
             pose = poses_dict[split][i]
             # get camera intrinsics
             intrinsics = intrinsics_dict[split][i]
+            
+            # update intrinsics based on subsample factor
+            intrinsics[0, :] *= 1 / float(subsample_factor)
+            intrinsics[1, :] *= 1 / float(subsample_factor)
 
             camera = Camera(
                 intrinsics=intrinsics,
@@ -313,7 +354,7 @@ def load(
                 camera_label=str(idx),
                 width=width,
                 height=height,
-                subsample_factor=int(config["subsample_factor"]),
+                subsample_factor=1,  # int(config["subsample_factor"]),
                 # verbose=verbose,
             )
 
@@ -322,7 +363,7 @@ def load(
     return {
         "scene_type": config["scene_type"],
         # "init_sphere_radius_mult": config["init_sphere_radius_mult"],
-        # "foreground_radius_mult": config["foreground_radius_mult"],
+        # "foreground_scale_mult": config["foreground_scale_mult"],
         "point_clouds": [point_cloud],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,

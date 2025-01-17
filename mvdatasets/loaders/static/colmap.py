@@ -49,7 +49,7 @@ def load(
         "train_test_overlap": False,
         "subsample_factor": 1,
         "init_sphere_radius_mult": 0.1,
-        "foreground_radius_mult": 0.5,
+        "foreground_scale_mult": 0.5,
         "pose_only": False,
     }
 
@@ -65,7 +65,7 @@ def load(
 
     # Valid values for specific keys
     valid_values = {
-        "scene_type": ["bounded", "unbounded", "forward-facing"],
+        "scene_type": ["bounded", "unbounded"],
         "subsample_factor": [1, 2, 4, 8],
     }
 
@@ -79,8 +79,8 @@ def load(
         config["target_max_camera_distance"] = 1.0
     elif config["scene_type"] == "unbounded":
         config["target_max_camera_distance"] = 0.5
-    elif config["scene_type"] == "forward-facing":
-        print_error("forward-facing scene type not implemented yet")
+    else:
+        print_error(f"Unknown scene type {config['scene_type']}")
 
     # Debugging output
     if verbose:
@@ -205,48 +205,6 @@ def load(
     imgs_names = [imgs_names[i] for i in inds]
     c2w_mats = c2w_mats[inds]
     camera_ids = [camera_ids[i] for i in inds]
-
-    # TODO: test this on Bilarf dataset
-    # # Load extended metadata. Used by Bilarf dataset.
-    # extconf = {
-    #     "spiral_radius_scale": 1.0,
-    #     "no_factor_suffix": False,
-    # }
-    # extconf_file = os.path.join(scene_path, "ext_metadata.json")
-    # if os.path.exists(extconf_file):
-    #     with open(extconf_file) as f:
-    #         extconf.update(json.load(f))
-
-    # # TODO: forward-facing specific
-    # # Load bounds if possible (only used in forward facing scenes).
-    # if config["scene_type"] == "forward-facing":
-    #     bounds = np.array([0.01, 1.0])
-    #     posefile = os.path.join(scene_path, "poses_bounds.npy")
-    #     if not os.path.exists(posefile):
-    #         print_error(f"Pose bounds file {posefile} does not exist.")
-    #     bounds = np.load(posefile)[:, -2:]
-
-    # if config["scene_type"] == "forward-facing":
-    #     pass
-    # else:
-    #     # unbouded
-    #     poses = unpad_poses(poses)
-    #     # Rotate/scale poses to align ground with xy plane and fit to unit cube.
-    #     poses, transform = transform_poses_pca(poses)
-    #     poses = pad_poses(poses)
-
-    # load images
-    # for d in [image_dir, colmap_image_dir]:
-    #     if not os.path.exists(d):
-    #         raise ValueError(f"Image folder {d} does not exist.")
-
-    # # size of the scene measured by cameras
-    # camera_locations = c2w_mats[:, :3, 3]
-    # # scene_center = np.mean(camera_locations, axis=0)
-    # # dists = np.linalg.norm(camera_locations - scene_center, axis=1)
-    # dists = np.linalg.norm(camera_locations, axis=1)
-    # scene_radius = np.max(dists)
-    # print(f"Scene scale: {scene_radius:.3f}")
 
     # find scene radius
     min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
@@ -382,7 +340,7 @@ def load(
     return {
         "scene_type": config["scene_type"],
         "init_sphere_radius_mult": config["init_sphere_radius_mult"],
-        "foreground_radius_mult": config["foreground_radius_mult"],
+        "foreground_scale_mult": config["foreground_scale_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "point_clouds": [point_cloud],

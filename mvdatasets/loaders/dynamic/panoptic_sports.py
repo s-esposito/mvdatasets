@@ -28,7 +28,7 @@ def load(
         "rotate_scene_x_axis_deg": -90.0,
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
-        "foreground_radius_mult": 1.0,
+        "foreground_scale_mult": 1.0,
         "frame_rate": 30.0,
         "pose_only": False,
     }
@@ -221,7 +221,7 @@ def load(
         "point_clouds": point_clouds,
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
-        "foreground_radius_mult": config["foreground_radius_mult"],
+        "foreground_scale_mult": config["foreground_scale_mult"],
         "scene_radius": scene_radius,
         "nr_per_camera_frames": temporal_dim,
         "fps": config["frame_rate"],

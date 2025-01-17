@@ -66,7 +66,7 @@ def make_quaternion_rad(rad_x, rad_y, rad_z, dtype=torch.float32, device="cpu"):
     return q
 
 
-def rot_to_quat(rots: torch.tensor) -> torch.tensor:
+def rots_to_quats(rots: torch.tensor) -> torch.tensor:
     """
     Convert rotations given as rotation matrices to quaternions.
 

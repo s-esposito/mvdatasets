@@ -25,28 +25,28 @@ class Config:
     # Default configuration
     # Type of scene (bounded or unbounded)
     scene_type: str = "bounded"
-    # Load mask images
-    load_masks: bool = True
-    # Convert masks to binary
-    use_binary_mask: bool = True
+    # # Load mask images
+    # load_masks: bool = True
+    # # Convert masks to binary
+    # use_binary_mask: bool = True
     # Rotate scene around x-axis
     # TODO: scene_rot_deg: np.asarray = np.array([0.0, 0.0, 0.0])
     # TODO: scene_transl: np.asarray = np.array([0.0, 0.0, 0.0])
-    rotate_scene_x_axis_deg: float = 0.0
-    # Loaded images subsampling factor
-    subsample_factor: int = 1
-    # Use white background (else black)
-    white_bg: bool = True
-    # Skip every test_skip images from test split
-    test_skip: int = 20
-    # Maximum distance of the furthest camera for rescaling
-    target_max_camera_distance: float = 1.0
-    # Foreground area radius multiplier
-    foreground_radius_mult: float = 0.5
-    # Initial sphere radius multiplier (for SDF initialization)
-    init_sphere_radius_mult: float = 0.3
-    # Does not load images, only poses
-    pose_only: bool = False
+    # rotate_scene_x_axis_deg: float = 0.0
+    # # Loaded images subsampling factor
+    # subsample_factor: int = 1
+    ## Use white background (else black)
+    #white_bg: bool = True
+    #  # Skip every test_skip images from test split
+    # test_skip: int = 20
+    # # Maximum distance of the furthest camera for rescaling
+    # target_max_camera_distance: float = 1.0
+    # # Foreground area radius multiplier
+    # foreground_scale_mult: float = 0.5
+    # # Initial sphere radius multiplier (for SDF initialization)
+    # init_sphere_radius_mult: float = 0.3
+    # # Does not load images, only poses
+    # pose_only: bool = False
 
 
 def load(
@@ -256,7 +256,7 @@ def load(
     return {
         "scene_type": config["scene_type"],
         "init_sphere_radius_mult": config["init_sphere_radius_mult"],
-        "foreground_radius_mult": config["foreground_radius_mult"],
+        "foreground_scale_mult": config["foreground_scale_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "min_camera_distance": new_min_camera_distance,

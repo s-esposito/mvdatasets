@@ -74,59 +74,59 @@ def main(args: Args):
         ),
     )
 
-    # reproject to 3D
-    points_3d_r = camera.unproject_points_2d_screen_to_3d_world(
-        points_2d_screen=points_2d_screen, depth=camera_points_dists
-    )
+    # # reproject to 3D
+    # points_3d_r = camera.unproject_points_2d_screen_to_3d_world(
+    #     points_2d_screen=points_2d_screen, depth=camera_points_dists
+    # )
 
-    # filter out random number of points
-    num_points = 100
-    if len(points_3d) > num_points:
-        idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
-        points_3d = points_3d[idx]
-        points_3d_r = points_3d_r[idx]
+    # # filter out random number of points
+    # num_points = 100
+    # if len(points_3d) > num_points:
+    #     idx = np.random.choice(range(len(points_3d)), num_points, replace=False)
+    #     points_3d = points_3d[idx]
+    #     points_3d_r = points_3d_r[idx]
 
-    # create new point clouds for visualization
-    pcs = []
-    pcs.append(
-        PointCloud(
-            points_3d=points_3d,
-            color="red",
-            label="point cloud",
-            marker="o",
-            size=150,
-        )
-    )
-    pcs.append(
-        PointCloud(
-            points_3d=points_3d_r,
-            color="blue",
-            label="reprojected points",
-            marker="x",
-            size=100,
-        )
-    )
+    # # create new point clouds for visualization
+    # pcs = []
+    # pcs.append(
+    #     PointCloud(
+    #         points_3d=points_3d,
+    #         color="red",
+    #         label="point cloud",
+    #         marker="o",
+    #         size=150,
+    #     )
+    # )
+    # pcs.append(
+    #     PointCloud(
+    #         points_3d=points_3d_r,
+    #         color="blue",
+    #         label="reprojected points",
+    #         marker="x",
+    #         size=100,
+    #     )
+    # )
 
-    # plot point clouds and camera
-    plot_3d(
-        cameras=[camera],
-        point_clouds=pcs,
-        azimuth_deg=20,
-        elevation_deg=30,
-        up="z",
-        scene_radius=mv_data.get_scene_radius(),
-        draw_bounding_cube=True,
-        draw_image_planes=True,
-        figsize=(15, 15),
-        title="point cloud unprojection",
-        show=False,
-        save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_point_cloud_unprojection.png"
-        ),
-    )
+    # # plot point clouds and camera
+    # plot_3d(
+    #     cameras=[camera],
+    #     point_clouds=pcs,
+    #     azimuth_deg=20,
+    #     elevation_deg=30,
+    #     up="z",
+    #     scene_radius=mv_data.get_scene_radius(),
+    #     draw_bounding_cube=True,
+    #     draw_image_planes=True,
+    #     figsize=(15, 15),
+    #     title="point cloud unprojection",
+    #     show=False,
+    #     save_path=os.path.join(
+    #         "plots", f"{dataset_name}_{scene_name}_point_cloud_unprojection.png"
+    #     ),
+    # )
 
-    error = np.mean(np.abs(points_3d_r - points_3d))
-    print("error", error.item())
+    # error = np.mean(np.abs(points_3d_r - points_3d))
+    # print("error", error.item())
 
 
 if __name__ == "__main__":

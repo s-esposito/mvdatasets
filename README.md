@@ -23,22 +23,26 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 <td>
 
 **Static:**
-- [x] [NeRF-Synthetic](#): bounded
+- [x] [NeRF-Synthetic](https://www.matthewtancik.com/nerf): bounded
+- [x] [Ref-NeRF](#): bounded
 - [x] [Shelly](#): bounded
 - [x] [DTU](#): unbounded
 - [x] [Mip-NeRF360](#): unbounded
-- [ ] [NeRF-LLFF](#): forward-facing
+- [ ] [NeRF-LLFF](https://www.matthewtancik.com/nerf): unbounded
 - [ ] ...
 
 </td>
 <td>
 
 **Dynamic:**
-- [x] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
 - [x] [D-NeRF](https://www.albertpumarola.com/research/D-NeRF/index.html): semi-monocular, bounded
+- [x] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
+- [ ] [Neu3D](#): multi-view, unbounded
 - [x] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
-- [ ] [iPhone](#): monocular, unbounded
-- [ ] [DAVIS 2017](https://davischallenge.org/davis2017/code.html): monocular, unbounded
+- [ ] [Nerfies](https://github.com/google/nerfies/releases/tag/0.1): monocular, unbounded
+- [ ] [Hypernerf](https://github.com/google/hypernerf/releases/tag/v0.1): monocular, unbounded
+- [x] [iPhone](https://kair-bair.github.io/dycheck/): monocular, unbounded
+- [x] [MonST3R](https://github.com/Junyi42/monst3r): monocular, unbounded
 - [ ] [DynamicScenes aka. NVIDIA]([#](https://gorokee.github.io/jsyoon/dynamic_synth/)): monocular, unbounded
 - [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded
 - [ ] [watch-it-move](https://github.com/NVlabs/watch-it-move): multi-view, bounded
@@ -82,17 +86,19 @@ Config.datasets_path = Path("/home/stefano/Data")
 ## Testing
 
 ```bash
+# download data
+bash scripts/download/nerf_synthetic.sh
 # reproduce images
-python tests/cameras_splits.py --dataset-name blender
-python tests/camera_rays.py --dataset-name blender
-python tests/reproject_points.py --dataset-name blender
-python tests/cameras_rays_batch_sampling.py --dataset-name blender
-python tests/virtual_cameras_rays_batch_sampling.py --dataset-name blender
-python tests/pixels_sampling.py --dataset-name blender
-python tests/overlay_bounding_primitives.py --dataset-name blender
+python tests/cameras_splits.py --dataset-name nerf_synthetic
+python tests/camera_rays.py --dataset-name nerf_synthetic
+python tests/reproject_points.py --dataset-name nerf_synthetic
+python tests/cameras_rays_batch_sampling.py --dataset-name nerf_synthetic
+python tests/virtual_cameras_rays_batch_sampling.py --dataset-name nerf_synthetic
+python tests/pixels_sampling.py --dataset-name nerf_synthetic
+python tests/overlay_bounding_primitives.py --dataset-name nerf_synthetic
 ```
 
-e.g.: `python tests/cameras_splits.py --dataset-name blender` should render:
+e.g.: `python tests/cameras_splits.py --dataset-name nerf_synthetic` should render:
 
 <p float="left">
   <img src="imgs/blender_training_cameras.png" width="400"/>
@@ -103,6 +109,12 @@ e.g.: `python tests/cameras_splits.py --dataset-name blender` should render:
 
 Functions located in any `.deprecated` folder may no longer work as expected. While they might be supported again in the future, this is not guaranteed.
 
+## License
+
+This project is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). See the [LICENSE](LICENSE) file for details.
+
+You are free to use, modify, and distribute this code as long as you provide proper attribution to the original author(s).
+
 ## Citation
 
 If you use this library for your research, please consider citing:
@@ -111,7 +123,7 @@ If you use this library for your research, please consider citing:
 @misc{Esposito2024MVDatasets,
   author       = {Stefano Esposito and Andreas Geiger},
   title        = {MVDatasets: Standardized DataLoaders for 3D Computer Vision},
-  year         = {2024},
+  year         = {2025},
   url          = {https://github.com/s-esposito/mvdatasets},
   note         = {GitHub repository}
 }

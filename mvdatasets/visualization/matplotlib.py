@@ -558,7 +558,7 @@ def _draw_frustum(
     # get image plane corner points in 3D
     # from screen coordinates
     image_plane_vertices_2d = np.array(
-        [[0, 0], [camera.height, 0], [0, camera.width], [camera.height, camera.width]]
+        [[0, 0], [camera.width, 0], [0, camera.height], [camera.width, camera.height]]
     )
 
     rays_o, rays_d, _ = camera.get_rays(
@@ -1023,32 +1023,27 @@ def plot_camera_trajectory(
         points_3d = []
         for pc in point_clouds:
             points_3d.append(pc.points_3d)
-        points_3d = np.concatenate(points_3d, axis=0)
-
-        # project 3d points to 2d
-        points_2d_screen, points_mask = camera.project_points_3d_world_to_2d_screen(
-            points_3d=points_3d, filter_points=True
-        )
-        points_3d = points_3d[points_mask]
-
-        # 3d points distance from camera center
-        camera_points_dists = camera.distance_to_points_3d_world(points_3d)
+        if len(points_3d) > 0:
+            points_3d = np.concatenate(points_3d, axis=0)
+            # project 3d points to 2d
+            points_2d_screen, points_mask = camera.project_points_3d_world_to_2d_screen(
+                points_3d=points_3d, filter_points=True
+            )
+            # 3d points distance from camera center
+            points_3d = points_3d[points_mask]
+            camera_points_dists = camera.distance_to_points_3d_world(points_3d)
+        else:
+            points_2d_screen = None
+            points_3d = None
+            camera_points_dists = None
 
         # draw projected points
-
         _draw_camera_points_2d(
             ax=ax_rgb,
             camera=cameras[last_frame_idx],
             points_2d_screen=points_2d_screen,
             points_norms=camera_points_dists,
         )
-        # data = cameras[last_frame_idx].get_data(keys=["rgbs"])
-        # camera_width = cameras[last_frame_idx].width
-        # camera_height = cameras[last_frame_idx].height
-        # rgb = data["rgbs"].reshape(camera_width, camera_height, 3)
-        # # transpose to (H, W, C)
-        # rgb = np.transpose(rgb, (1, 0, 2))
-        # ax_rgb.imshow(rgb)
 
     if save_path is not None:
         plt.savefig(
@@ -1326,9 +1321,11 @@ def _draw_camera_2d(
     
     # rgb and depth side by side
     if depth is not None:
+        # get max depth
+        max_depth = np.max(depth)
         # TODO: improve depth map visualization
         # apply colormap to depth
-        depth = plt.cm.jet(depth, )  # (H*W, 3)
+        depth = plt.cm.jet(depth / max_depth)  # (H*W, 3)
         # reshape to (W, H, 3)
         depth = depth.reshape(camera.width, camera.height, -1)  # (W, H, 3)
         # # replicate depth to 3 channels

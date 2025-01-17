@@ -71,17 +71,17 @@ class MVDataset:
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        # load blender
-        # load blendernerf
+        # load nerf_synthetic
+        # load nerf_furry
         # load refnerf
         # load shelly
         elif (
-            self.dataset_name == "blender"
-            or self.dataset_name == "blendernerf"
+            self.dataset_name == "nerf_synthetic"
+            or self.dataset_name == "nerf_furry"
             or self.dataset_name == "refnerf"
             or self.dataset_name == "shelly"
         ):
-            from mvdatasets.loaders.static.blender import load
+            from mvdatasets.loaders.static.nerf_synthetic import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
@@ -119,6 +119,11 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.visor import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            
+        elif self.dataset_name == "neu3d":
+            from mvdatasets.loaders.dynamic.neu3d import load
+
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         elif self.dataset_name == "panoptic-sports":
             from mvdatasets.loaders.dynamic.panoptic_sports import load
@@ -133,6 +138,11 @@ class MVDataset:
         elif self.dataset_name == "iphone":
             from mvdatasets.loaders.dynamic.iphone import load
 
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            
+        elif self.dataset_name == "monst3r":
+            from mvdatasets.loaders.dynamic.monst3r import load
+            
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         else:
@@ -161,13 +171,13 @@ class MVDataset:
             self.scene_radius = res["scene_radius"]
             print("scene_radius:", self.scene_radius)
 
-            if "foreground_radius_mult" not in res:
-                print_warning("foreground_radius_mult not found, setting to 0.5")
-                self.foreground_radius_mult = 0.5
+            if "foreground_scale_mult" not in res:
+                print_warning("foreground_scale_mult not found, setting to 0.5")
+                self.foreground_scale_mult = 0.5
             else:
-                self.foreground_radius_mult = res["foreground_radius_mult"]
+                self.foreground_scale_mult = res["foreground_scale_mult"]
 
-            self.foreground_radius = self.scene_radius * self.foreground_radius_mult
+            self.foreground_radius = self.scene_radius * self.foreground_scale_mult
             print("foreground_radius:", self.foreground_radius)
 
             # SDF sphere init radius
@@ -236,7 +246,7 @@ class MVDataset:
             # print modalities loaded
             for key, val in self.data[split][0].data.items():
                 if val is not None:
-                    print_info(f"{key} loaded with shape {val.shape}")
+                    print_info(f"{key} loaded with shape {val.shape}, dtype {val.dtype}")
 
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""

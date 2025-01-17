@@ -213,7 +213,7 @@ def load(
         # "train_test_overlap": False,
         "subsample_factor": 1,
         "target_max_camera_distance": 1.0,
-        "foreground_radius_mult": 1.0,
+        "foreground_scale_mult": 1.0,
         "frame_rate": 59.94,
         "pose_only": False,
     }
@@ -473,7 +473,7 @@ def load(
         "min_camera_distance": new_min_camera_distance,
         "max_camera_distance": new_max_camera_distance,
         "scene_radius": scene_radius,
-        "foreground_radius_mult": config["foreground_radius_mult"],
+        "foreground_scale_mult": config["foreground_scale_mult"],
         "nr_per_camera_frames": 1,
         "fps": config["frame_rate"],
         "nr_sequence_frames": len(cameras_splits["train"]),

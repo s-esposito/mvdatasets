@@ -76,7 +76,7 @@ def load(
         "subsample_factor": 1,
         "init_sphere_radius_mult": 0.1,
         "target_max_camera_distance": 0.5,
-        "foreground_radius_mult": 1.0,
+        "foreground_scale_mult": 1.0,
         "pose_only": False,
     }
 
@@ -226,7 +226,7 @@ def load(
     return {
         "scene_type": config["scene_type"],
         "init_sphere_radius_mult": config["init_sphere_radius_mult"],
-        "foreground_radius_mult": config["foreground_radius_mult"],
+        "foreground_scale_mult": config["foreground_scale_mult"],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "min_camera_distance": new_min_camera_distance,

@@ -6,7 +6,7 @@ from mvdatasets.geometry.quaternions import (
     quat_invert,
     make_quaternion_deg,
     make_quaternion_rad,
-    rot_to_quat,
+    rots_to_quats,
     angular_distance,
     quats_to_rots
 )
@@ -46,9 +46,9 @@ class TestQuaternionFunctions(unittest.TestCase):
         expected = torch.tensor([0.7071, 0.7071, 0.0, 0.0])
         self.assertTrue(torch.allclose(q, expected, atol=1e-4))
 
-    def test_rot_to_quat(self):
+    def test_rots_to_quats(self):
         rots = torch.eye(3).unsqueeze(0)  # Single identity matrix
-        result = rot_to_quat(rots)
+        result = rots_to_quats(rots)
         expected = torch.tensor([[1.0, 0.0, 0.0, 0.0]])
         self.assertTrue(torch.allclose(result, expected))
 
@@ -60,7 +60,7 @@ class TestQuaternionFunctions(unittest.TestCase):
                 [0.0, 0.0, 1.0]
             ]
         ])
-        result = rot_to_quat(rot_z)
+        result = rots_to_quats(rot_z)
         expected = torch.tensor([[0.7071, 0.0, 0.0, 0.7071]])
         self.assertTrue(torch.allclose(result, expected, atol=1e-4))
 
