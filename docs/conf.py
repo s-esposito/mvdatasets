@@ -23,7 +23,6 @@ extensions = [
     'sphinx.ext.napoleon',  # Supports Google-style and NumPy-style docstrings (optional)
     'sphinxcontrib.mermaid',  # Enables Mermaid diagrams
     'sphinxcontrib.bibtex',  # Enables BibTeX citations
-    'myst_parser',  # Enables Markdown parsing
 ]
 
 
@@ -41,6 +40,3 @@ html_logo = '_static/logo.png'
 
 # bibtex
 bibtex_bibfiles = ['refs.bib']
-
-# markdown
-source_suffix = ['.rst', '.md']

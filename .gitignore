@@ -12,3 +12,4 @@ mvdatasets.egg-info
 dist
 cpp
 docs/_build
+*.pickle
