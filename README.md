@@ -20,9 +20,10 @@ University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/faku
 Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.
 
 
-<table>
+<div style="display: flex; justify-content: center;">
+<table style="text-align: left; border-collapse: collapse; width: 80%; margin: auto;">
 <tr>
-<td>
+<td style="vertical-align: top; padding: 10px; border: 1px solid #ddd;">
 
 **Static:**
 - [x] [NeRF-Synthetic](https://www.matthewtancik.com/nerf): bounded
@@ -35,12 +36,13 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 - [ ] ...
 
 </td>
-<td>
+<td style="vertical-align: top; padding: 10px; border: 1px solid #ddd;">
+
 
 **Dynamic:**
 - [x] [D-NeRF](https://www.albertpumarola.com/research/D-NeRF/index.html): semi-monocular, bounded
 - [x] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
-- [ ] [Neu3D](#): multi-view, unbounded
+- [ ] [Neu3D](https://github.com/facebookresearch/Neural_3D_Video): multi-view, unbounded
 - [x] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
 - [ ] [Nerfies](https://github.com/google/nerfies/releases/tag/0.1): monocular, unbounded
 - [ ] [Hypernerf](https://github.com/google/hypernerf/releases/tag/v0.1): monocular, unbounded
@@ -54,6 +56,7 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 </td>
 </tr>
 </table>
+</div>
 
 ## Cameras
 
