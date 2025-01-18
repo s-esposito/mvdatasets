@@ -90,6 +90,28 @@
              
   <section id="datasplit">
 <h1>DataSplit<a class="headerlink" href="#datasplit" title="Link to this heading"></a></h1>
+<p>Given a dataset split, it aggregated data for frames or pixels level indexing.
+All data in stored in CPU.</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># index frames</span>
+<span class="n">data_split</span> <span class="o">=</span> <span class="n">DataSplit</span><span class="p">(</span>
+   <span class="n">cameras</span><span class="o">=</span><span class="n">mv_data</span><span class="o">.</span><span class="n">get_split</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">),</span>
+   <span class="n">nr_sequence_frames</span><span class="o">=</span><span class="n">nr_sequence_frames</span><span class="p">,</span>
+   <span class="n">modalities</span><span class="o">=</span><span class="n">mv_data</span><span class="o">.</span><span class="n">get_split_modalities</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">),</span>
+   <span class="n">index_pixels</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># or, index pixels</span>
+<span class="n">data_split</span> <span class="o">=</span> <span class="n">DataSplit</span><span class="p">(</span>
+   <span class="n">cameras</span><span class="o">=</span><span class="n">mv_data</span><span class="o">.</span><span class="n">get_split</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">),</span>
+   <span class="n">nr_sequence_frames</span><span class="o">=</span><span class="n">nr_sequence_frames</span><span class="p">,</span>
+   <span class="n">modalities</span><span class="o">=</span><span class="n">mv_data</span><span class="o">.</span><span class="n">get_split_modalities</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">),</span>
+   <span class="n">index_pixels</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
 </section>
 
 
