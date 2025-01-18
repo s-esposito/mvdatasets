@@ -17,7 +17,7 @@ from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.utils.profiler import Profiler
 from mvdatasets.mvdataset import MVDataset
 from config import get_dataset_test_preset
-from mvdatasets.utils.tensor_reel import TensorReel
+from mvdatasets.tensorreel import TensorReel
 from mvdatasets.utils.virtual_cameras import sample_cameras_on_hemisphere
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 

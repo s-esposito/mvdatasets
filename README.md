@@ -86,7 +86,7 @@ python examples/dataset_splits_vis.py.py --dataset-name nerf_synthetic --dataset
 ```
 
 <p float="left">
-  <img src="imgs/blender_training_cameras.png" width="400"/>
+  <img src="imgs/blender_train_cameras.png" width="400"/>
   <img src="imgs/blender_test_cameras.png" width="400"/>
 </p>
 

@@ -2,7 +2,6 @@ from rich import print
 from pathlib import Path
 import os
 import json
-from glob import glob
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -18,58 +17,26 @@ from mvdatasets.geometry.common import (
 from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
 from mvdatasets.utils.printing import print_error, print_warning, print_success
 from dataclasses import dataclass, asdict
-
-
-@dataclass
-class Config:
-    # Default configuration
-    # Type of scene (bounded or unbounded)
-    scene_type: str = "bounded"
-    # # Load mask images
-    # load_masks: bool = True
-    # # Convert masks to binary
-    # use_binary_mask: bool = True
-    # Rotate scene around x-axis
-    # TODO: scene_rot_deg: np.asarray = np.array([0.0, 0.0, 0.0])
-    # TODO: scene_transl: np.asarray = np.array([0.0, 0.0, 0.0])
-    # rotate_scene_x_axis_deg: float = 0.0
-    # # Loaded images subsampling factor
-    # subsample_factor: int = 1
-    ## Use white background (else black)
-    # white_bg: bool = True
-    #  # Skip every test_skip images from test split
-    # test_skip: int = 20
-    # # Maximum distance of the furthest camera for rescaling
-    # target_max_camera_distance: float = 1.0
-    # # Foreground area radius multiplier
-    # foreground_scale_mult: float = 0.5
-    # # Initial sphere radius multiplier (for SDF initialization)
-    # init_sphere_radius_mult: float = 0.3
-    # # Does not load images, only poses
-    # pose_only: bool = False
+from mvdatasets.config import BlenderConfig as Config
 
 
 def load(
-    dataset_path: Path,
-    scene_name: str,
-    splits: list[str] = ["train", "test"],
-    config: dict = {},
+    config: Config,
     verbose: bool = False,
 ):
     """Blender data format loader.
 
     Args:
-        dataset_path (Path): Path to the dataset folder.
-        scene_name (str): Name of the scene / sequence to load.
-        splits (list): Splits to load (e.g., ["train", "test"]).
-        config (dict): Dictionary of configuration parameters.
+        config (Config): Dataset configuration.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-
+    
+    dataset_path = config.datasets_path
+    scene_name = config.scene_name
     scene_path = dataset_path / scene_name
 
     # Default configuration
@@ -90,6 +57,8 @@ def load(
         print("load_blender config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
+            
+    exit(0)
 
     # -------------------------------------------------------------------------
 

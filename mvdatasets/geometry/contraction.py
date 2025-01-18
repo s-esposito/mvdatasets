@@ -1,13 +1,18 @@
 import numpy as np
 import torch
+from typing import Union
 
 
-def contract_points(points, scale=2):
+def contract_points(points, scale=2) -> Union[np.ndarray, torch.Tensor]:
     """
-    Warping function that smoothly maps
-    all coordinates outside of a ball of
-    radius 0.5 into a ball of radius 1.
-    From MipNeRF360.
+    Warping function that smoothly maps all coordinates outside of a ball of radius 0.5 into a ball of radius 1.
+    From :cite:t:`barron2022mipnerf360`.
+    
+    Args:
+        points: (N, 3) numpy array or torch tensor
+        scale: float
+    Returns:
+        (N, 3) numpy array or torch tensor of contracted points
     """
     # compute points norm
     if isinstance(points, np.ndarray):
@@ -24,9 +29,15 @@ def contract_points(points, scale=2):
         raise ValueError("points must be a numpy array or a torch tensor")
 
 
-def uncontract_points(points, scale=2):
+def uncontract_points(points, scale=2) -> Union[np.ndarray, torch.Tensor]:
     """
     Inverse of contract_points.
+    
+    Args:
+        points: (N, 3) numpy array or torch tensor
+        scale: float
+    Returns:
+        (N, 3) numpy array or torch tensor of uncontracted points
     """
     # compute points norm
     if isinstance(points, np.ndarray):

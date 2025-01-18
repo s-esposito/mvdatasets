@@ -23,8 +23,3 @@ Functions
    mvdatasets.geometry.rigid
    mvdatasets.geometry.trajectories
 
-Bibliography
-============
-.. bibliography::
-
-
