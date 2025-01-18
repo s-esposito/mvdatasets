@@ -49,6 +49,8 @@ def main(args: Args):
     pin_memory = True  # For faster transfer to GPU
     batch_size = 4  # nr full frames per batch
     print(f"batch_size: {batch_size}")
+    
+    benchmark = True
 
     # -------------------------------------------------------------------------
 
@@ -63,18 +65,22 @@ def main(args: Args):
     # index frames -------------------------------------------------------------
 
     run_index_frames = True
-
     if run_index_frames:
-
-        # profiler = Profiler(verbose=False)
-
-        # test loop
+        
+        if benchmark:
+            # Set profiler
+            profiler = Profiler()  # nb: might slow down the code
+        else:
+            profiler = None
 
         # Loop over epochs
         step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
-
+            
+            if profiler is not None:
+                profiler.start("epoch")
+            
             # if first iteration or need to update time dimension of data split
             if (
                 epoch_nr == 0  # first iteration
@@ -93,7 +99,7 @@ def main(args: Args):
                     cameras=mv_data.get_split("train"),
                     nr_sequence_frames=nr_sequence_frames,
                     modalities=mv_data.get_split_modalities("train"),
-                    index_pixels=False,
+                    index_pixels=False,  # index frames (!!!)
                 )
 
                 #
@@ -109,26 +115,44 @@ def main(args: Args):
             # Iterate over batches
             iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
             for iter_nr, batch in enumerate(iter_pbar):
+                
+                if profiler is not None:
+                    profiler.start("iter")
+                
                 # Move batch to device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                # print(batch["timestamps"])
-                # # Print batch shape
-                # for k, v in batch.items():
-                #     print(
-                #         f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
-                #     )
+                
+                if not benchmark:
+                    # Print batch shape
+                    for k, v in batch.items():
+                        print(
+                            f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
+                        )
+
                 # Increment step
                 step += 1
-
-        # profiler.print_avg_times()
+                
+                if profiler is not None:
+                    profiler.end("iter")
+                
+            if profiler is not None:
+                profiler.end("epoch")
+                
+        print_success(f"Done after {step} steps")
+        
+        if profiler is not None:
+            profiler.print_avg_times()
 
     # index pixels (too slow) -------------------------------------------------
 
     run_index_pixels = False
-
     if run_index_pixels:
-
-        profiler = Profiler(verbose=False)
+        
+        if benchmark:
+            # Set profiler
+            profiler = Profiler()  # nb: might slow down the code
+        else:
+            profiler = None
 
         # initialize data loader
         data_split = DataSplit(
@@ -137,50 +161,80 @@ def main(args: Args):
             index_pixels=True,
         )
 
-        #
-        real_batch_size = batch_size * data_split.width * data_split.height
-        data_loader = torch.utils.data.DataLoader(
-            data_split,
-            batch_size=real_batch_size,
-            num_workers=num_workers,
-            shuffle=shuffle,
-            persistent_workers=persistent_workers,
-            pin_memory=pin_memory,
-        )
-        print(f"real_batch_size: {real_batch_size}")
+        batch_size = 512  # nr of rays sampled per batch
+        print(f"batch_size: {batch_size}")
 
         # test loop
 
         # Loop over epochs
+        step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
-            # Get iterator over data
-            dataiter = iter(data_loader)
-            # Loop over batches
-            iter_pbar = tqdm(
-                range(len(dataiter)), desc="iter", ncols=100, disable=False
-            )
-            for iter_nr in iter_pbar:
+            
+            if profiler is not None:
+                profiler.start("epoch")
+            
+            # if first iteration or need to update time dimension of data split
+            if (
+                epoch_nr == 0  # first iteration
+                # need to update time dimension of data split
+                or (
+                    use_incremental_sequence_lenght
+                    and nr_sequence_frames < cameras_temporal_dim
+                    and epoch_nr % increase_nr_sequence_frames_each == 0
+                )
+            ):
 
-                try:
+                nr_sequence_frames += 1
 
-                    profiler.start("fetch_batch")
+                # initialize data loader
+                data_split = DataSplit(
+                    cameras=mv_data.get_split("train"),
+                    nr_sequence_frames=nr_sequence_frames,
+                    modalities=mv_data.get_split_modalities("train"),
+                    index_pixels=True,  # index pixels (!!!)
+                )
 
-                    # Fetch the next batch
-                    batch = next(dataiter)
-                    # Move batch to device
-                    batch = {k: v.to(device) for k, v in batch.items()}
-                    # # Print batch shape
-                    # for k, v in batch.items():
-                    #     print(f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}")
+                #
+                data_loader = torch.utils.data.DataLoader(
+                    data_split,
+                    batch_size=batch_size,
+                    num_workers=num_workers,
+                    shuffle=shuffle,
+                    persistent_workers=persistent_workers,
+                    pin_memory=pin_memory,
+                )
+            
+            # Iterate over batches
+            iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
+            for iter_nr, batch in enumerate(iter_pbar):
+                
+                if profiler is not None:
+                    profiler.start("iter")
 
-                    profiler.end("fetch_batch")
+                # Move batch to device
+                batch = {k: v.to(device) for k, v in batch.items()}
+                
+                if not benchmark:
+                    # Print batch shape
+                    for k, v in batch.items():
+                        print(
+                            f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
+                        )
+                
+                # Increment step
+                step += 1
+                
+                if profiler is not None:
+                    profiler.end("iter")
+                
+            if profiler is not None:
+                profiler.end("epoch")
+                
+        print_success(f"Done after {step} steps")
 
-                except StopIteration:
-                    # Handle iterator exhaustion (shouldn't occur unless manually breaking loop)
-                    break
-
-        profiler.print_avg_times()
+        if profiler is not None:
+            profiler.print_avg_times()
 
 
 if __name__ == "__main__":

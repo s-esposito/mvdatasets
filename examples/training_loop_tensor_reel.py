@@ -27,9 +27,6 @@ def main(args: Args):
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
-    # Set profiler
-    profiler = Profiler()  # nb: might slow down the code
-
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
@@ -53,21 +50,32 @@ def main(args: Args):
     tensor_reel = TensorReel(mv_data.get_split("train"), device=device)
     print(tensor_reel)
 
-    nr_cameras = len(mv_data.get_split("train"))
-    nr_per_camera_frames = mv_data.get_nr_per_camera_frames()
-    benchmark = False
     batch_size = 512
-    nr_iterations = 10
-    cameras_idx = np.random.permutation(nr_cameras)[:5]
-    frames_idx = np.random.permutation(nr_per_camera_frames)[:2]
+    nr_iterations = 1000
+
+    benchmark = True
+    
+    if benchmark:
+        # Set profiler
+        profiler = Profiler()  # nb: might slow down the code
+    else:
+        profiler = None
+    
+    # use a subset of cameras and frames
+    # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:5]
+    # frames_idx = np.random.permutation(mv_data.get_nr_per_camera_frames())[:2]
+    # or use all
+    cameras_idx = None
+    frames_idx = None
     print("cameras_idx", cameras_idx)
     print("frames_idx", frames_idx)
+    
+    # -------------------------------------------------------------------------
+    
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)
     azimuth_deg = 20
-    azimuth_deg_delta = 1  # 360 / (nr_iterations / 2)
+    azimuth_deg_delta = 1
     for i in pbar:
-
-        # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:2]
 
         if profiler is not None:
             profiler.start("get_next_rays_batch")
@@ -91,30 +99,17 @@ def main(args: Args):
             batch_rays_o = batch["rays_o"]
             batch_rays_d = batch["rays_d"]
             batch_vals = batch["vals"]
-            batch_frames_idx = batch["frames_idx"]
-            batch_timestamps = batch["timestamps"]
+            # batch_frames_idx = batch["frames_idx"]
+            # batch_timestamps = batch["timestamps"]
 
             # print data shapes
-            print("batch_cameras_idx", batch_cameras_idx.shape, batch_cameras_idx.dtype)
-            print("batch_frames_idx", batch_frames_idx.shape, batch_frames_idx.dtype)
-            print(
-                "batch_rays_o",
-                batch_rays_o.shape,
-                batch_rays_o.device,
-                batch_rays_o.dtype,
-            )
-            print(
-                "batch_rays_d",
-                batch_rays_d.shape,
-                batch_rays_d.device,
-                batch_rays_d.dtype,
-            )
-            print(
-                "batch_timestamps",
-                batch_timestamps.shape,
-                batch_timestamps.device,
-                batch_timestamps.dtype,
-            )
+            for k, v in batch:
+                # if v is a dict
+                if isinstance(v, dict):
+                    for k1, v1 in v.items():
+                        print(f"{k}, "f"{k1}", v1.shape, v1.device, v1.dtype)
+                else:
+                    print(f"{k}", v.shape, v.device, v.dtype)
             for k, v in batch_vals.items():
                 if v is not None:
                     print(f"{k}", v.shape, v.device, v.dtype)

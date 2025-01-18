@@ -16,7 +16,7 @@ class DataSplit:
         modalities: list[str] = ["rgbs", "masks"],
         index_pixels: bool = False,
     ):
-        """_summary_
+        """Class to store a split of dataset cameras.
 
         Args:
             cameras (List[Camera]): list of Camera objects.
@@ -97,7 +97,7 @@ class DataSplit:
             return self.nr_cameras * self.temporal_dim
 
     def __getitem__(self, idx) -> Camera:
-        """_summary_
+        """Indexing the split.
 
         Args:
             idx (int): sample index
@@ -163,6 +163,12 @@ class DataSplit:
         return f"DataSplit with {len(self)} indexable items (nr_cameras: {self.nr_cameras}, temporal_dim: {self.temporal_dim}, width: {self.width}, height: {self.height}), totalling {bytes_to_gb(self.get_memory_footprint())} GB."
 
     def get_memory_footprint(self) -> int:
+        """
+        returns the memory footprint of the split in bytes
+
+        Returns:
+            int: memory footprint in bytes
+        """
         # returns the memory footprint of the split in bytes
         memory_footprint = 0
         for key, val in self.data.items():

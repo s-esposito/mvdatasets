@@ -199,10 +199,12 @@ def global_inv_perspective_projection(
         intrinsics_inv = np.asarray(intrinsics_inv, dtype=np.float32)
         c2w = np.asarray(c2w, dtype=np.float32)
     elif isinstance(points_2d_screen, torch.Tensor):
-        intrinsics_inv = torch.tensor(
-            intrinsics_inv, dtype=torch.float32, device=points_2d_screen.device
-        )
-        c2w = torch.tensor(c2w, dtype=torch.float32, device=points_2d_screen.device)
+        if not isinstance(intrinsics_inv, torch.Tensor):
+            intrinsics_inv = torch.tensor(
+                intrinsics_inv, dtype=torch.float32, device=points_2d_screen.device
+            )
+        if not isinstance(c2w, torch.Tensor):
+            c2w = torch.tensor(c2w, dtype=torch.float32, device=points_2d_screen.device)
     else:
         raise ValueError("`points_2d_screen` must be a torch.Tensor or np.ndarray.")
 

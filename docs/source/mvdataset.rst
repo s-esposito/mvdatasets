@@ -1,5 +1,5 @@
 MVDataset
--------------------
+---------
 
 .. automodule:: mvdatasets.mvdataset
    :members:

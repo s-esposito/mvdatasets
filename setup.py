@@ -16,7 +16,10 @@ setup(
         "sphinx-rtd-theme>=3.0.2",
         "sphinxcontrib-mermaid>=1.0.0",
         "sphinxcontrib-bibtex>=2.6.3",
+        "sphinxcontrib-osexample>=0.1.1",
         "myst-parser>=4.0.0",
+        "pre-commit>=4.0.1",
+        "pytest>=8.3.4",
         # main
         "numpy>=1.24.4",
         "tqdm>=4.66.1",
