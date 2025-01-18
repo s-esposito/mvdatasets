@@ -1,13 +1,15 @@
 # MVDatasets
 
 
-<img align="right" width="100" height="100" src="imgs/art.webp">
+<img align="right" width="130" height="130" src="imgs/art.webp">
 
 ### Standardized DataLoaders for 3D Computer Vision
 
 [Stefano Esposito](https://s-esposito.github.io/), [Andreas Geiger](https://www.cvlibs.net/)
 <br>
 University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/)
+
+[![Unit tests](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml/badge.svg?branch=dev)](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml) [![deploy-documentation](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml/badge.svg?branch=dev)](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml)
 
 ```
 ⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
@@ -85,7 +87,7 @@ python examples/dataset_splits_vis.py.py --dataset-name nerf_synthetic --dataset
   <img src="imgs/blender_test_cameras.png" width="400"/>
 </p>
 
-### Disclaimer
+## Disclaimer
 
 Functions located in any `.deprecated` folder may no longer work as expected. While they might be supported again in the future, this is not guaranteed.
 
