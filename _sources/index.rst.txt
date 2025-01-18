@@ -11,9 +11,11 @@ Examples are the best way to get started!
 
 .. toctree::
    :maxdepth: 1
-   :caption: Examples
+   :caption: Get started
 
+   source/installation
    source/examples
+   source/datasets
 
 ------------
 
@@ -24,7 +26,7 @@ Examples are the best way to get started!
    source/camera
    source/mvdataset
    source/datasplit
-   source/tensor_reel
+   source/tensorreel
 
 ---------------
 

@@ -28,13 +28,13 @@
   <div class="wy-grid-for-nav">
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search"  style="background: black" >
 
           
           
           <a href="../index.html" class="icon icon-home">
             MVDatasets
-              <img src="../_static/logo.png" class="logo" alt="Logo"/>
+              <img src="../_static/MVD.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -44,16 +44,18 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Visualize Dataset Splits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">Datasets</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="camera.html">Camera</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tensor_reel.html">Tensor Reel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tensorreel.html">TensorReel</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Utility Modules</span></p>
 <ul class="current">
@@ -63,7 +65,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.common.html">Common</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.contraction.html">Space contraction</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.interpolation.html">Interpolation</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Projections</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Projections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.quaternions.html">Quaternions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.rigid.html">Rigid geometry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mvdatasets.geometry.trajectories.html">Trajectories</a></li>
@@ -71,7 +76,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="mvdatasets.geometry.html#bibliography">Bibliography</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdatasets.loaders.html">Datasets loaders</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdatasets.utils.html">mvdatasets.utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mvdatasets.visualization.html">mvdatasets.visualization</a></li>
@@ -81,7 +85,7 @@
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: black" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MVDatasets</a>
       </nav>
@@ -104,6 +108,9 @@
              
   <section id="projections">
 <h1>Projections<a class="headerlink" href="#projections" title="Link to this heading"></a></h1>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<span class="target" id="id1"></span></section>
 </section>
 
 
@@ -134,7 +141,18 @@
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+    <!-- Theme Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1T0QG65M3V"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-1T0QG65M3V', {
+          'anonymize_ip': false,
+      });
+    </script> 
 
 </body>
 </html>
