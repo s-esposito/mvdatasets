@@ -5,9 +5,12 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout repository
@@ -31,3 +34,5 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html/
+        git_config_user_name: github-actions[bot]
+        git_config_user_email: github-actions[bot]@users.noreply.github.com
