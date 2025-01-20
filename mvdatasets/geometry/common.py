@@ -20,30 +20,6 @@ def convert_6d_to_rotation_matrix(d6: torch.Tensor) -> torch.Tensor:
     return torch.stack((b1, b2, b3), dim=-2)
 
 
-def get_min_max_cameras_distances(poses: list) -> tuple:
-    """
-    return maximum pose distance from origin
-
-    Args:
-        poses (list): list of numpy (4, 4) poses
-
-    Returns:
-        min_dist (float): minumum camera distance from origin
-        max_dist (float): maximum camera distance from origin
-    """
-    if len(poses) == 0:
-        raise ValueError("poses list empty")
-
-    # get all camera centers
-    camera_centers = np.stack(poses, 0)[:, :3, 3]
-    camera_distances_from_origin = np.linalg.norm(camera_centers, axis=1)
-
-    min_dist = np.min(camera_distances_from_origin)
-    max_dist = np.max(camera_distances_from_origin)
-
-    return min_dist, max_dist
-
-
 def rotation_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """Compute the rotation matrix that rotates vector a to vector b.
 

@@ -10,21 +10,17 @@ from mvdatasets import Camera
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.utils.printing import print_error, print_warning, print_success
-from mvdatasets.geometry.common import (
-    deg2rad,
-    scale_3d,
-    rot_x_3d,
-    rot_y_3d,
-    get_min_max_cameras_distances,
-)
+from mvdatasets.utils.loader_utils import rescale
+from mvdatasets.geometry.common import rot_euler_3d_deg
 from mvdatasets.geometry.quaternions import quats_to_rots
+from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str] = ["train", "val"],
-    config: dict = {},
+    splits: list[str],
+    config: DatasetConfig,
     verbose: bool = False,
 ):
     """neu3d data format loader.
@@ -33,28 +29,38 @@ def load(
         dataset_path (Path): Path to the dataset folder.
         scene_name (str): Name of the scene / sequence to load.
         splits (list): Splits to load (e.g., ["train", "val"]).
-        config (dict): Dictionary of configuration parameters.
+        config (DatasetConfig): Dataset configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
-        global_transform (np.ndarray): (4, 4)
+        dict: Dictionary of splits with lists of Camera objects.
+        np.ndarray: Global transform (4, 4)
+        str: Scene type
+        List[PointCloud]: List of PointClouds
+        float: Minimum camera distance
+        float: Maximum camera distance
+        float: Foreground scale multiplier
+        float: Scene radius
+        int: Number of frames per camera
+        int: Number of sequence frames
+        float: Frames per second
     """
+    
     scene_path = dataset_path / scene_name
 
-    # Update config with defaults
-    for key, default_value in defaults.items():
-        if key not in config:
-            config[key] = default_value
-            if verbose:
-                print_warning(f"Setting '{key}' to default value: {default_value}")
-        else:
-            if verbose:
-                print_success(f"Using '{key}': {config[key]}")
+    config = config.asdict()  # Convert Config to dictionary
+
+    # Valid values for specific keys
+    valid_values = {}
+
+    # Validate specific keys
+    for key, valid in valid_values.items():
+        if key in config and config[key] not in valid:
+            raise ValueError(f"{key} {config[key]} must be a value in {valid}")
 
     # Debugging output
     if verbose:
-        print("load_neu3d config:")
+        print("config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -112,4 +118,6 @@ def load(
             )
             print_success(f"Frames extracted to {frames_folder}")
 
+    # TODO: complete implementation
+    
     exit(0)

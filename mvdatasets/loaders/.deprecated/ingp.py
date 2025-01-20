@@ -46,7 +46,7 @@ def load_ingp(
         "subsample_factor": 1,
         "test_camera_freq": 8,
         "train_test_overlap": False,
-        "target_max_camera_distance": 1.0,
+        "max_cameras_distance": 1.0,
         "init_sphere_radius_mult": 0.5,
         "pose_only": False,
     }
@@ -88,26 +88,18 @@ def load_ingp(
         pose = np.array(frame["transform_matrix"], dtype=np.float32)
         poses_all.append(pose)
 
-    # find scene radius
-    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_all)
-
-    # define scene scale
-    scene_scale = max_camera_distance  # (1/metas["aabb_scale"])
-    # round to 2 decimals
-    scene_scale = round(scene_scale, 2)
-
-    # scene scale such that furthest away camera is at target distance
-    scene_scale_mult = config["target_max_camera_distance"] / (
-        max_camera_distance + 1e-2
+    # rescale (optional)
+    scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
+        poses_all, to_distance=config["max_cameras_distance"]
     )
 
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_scale_mult * rot_x_3d(
-        deg2rad(rotate_scene_x_axis_deg)
+    rot = rot_euler_3d_deg(
+        config["rotate_deg"][0], config["rotate_deg"][1], config["rotate_deg"][2]
     )
+    global_transform[:3, :3] = scene_radius_mult * rot
 
     # local transform
     local_transform = np.eye(4)

@@ -6,6 +6,7 @@ from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
+from mvdatasets.configs.dataset_config import DatasetConfig
 
 # from mvdatasets.loaders.configs import get_scene_preset
 
@@ -29,6 +30,7 @@ DATASET_LOADER_MAPPING = {
     "nerfies": "nerfies",
     "iphone": "nerfies",
     "monst3r": "monst3r",
+    "iphone_som": "flow3d",
 }
 
 
@@ -42,32 +44,20 @@ class MVDataset:
         dataset_name: str,
         scene_name: str,
         datasets_path: Path,
-        splits: list,
+        splits: List[str],
+        config: DatasetConfig,
         point_clouds_paths: list = [],
-        config: dict = {},  # if not specified, use default config
-        pose_only: bool = False,  # if set, does not load images
         verbose: bool = False,
     ):
         self.dataset_name = dataset_name
         self.scene_name = scene_name
-
-        # load dataset and scene default config
-        # default_config = get_scene_preset(dataset_name, scene_name)
-
-        # # override default config with user config
-        # for key, value in config.items():
-        #     default_config[key] = value
-        # config = default_config
-
-        # default config
-        config["pose_only"] = pose_only
 
         # datasets_path/dataset_name/scene_name
         dataset_path = Path(datasets_path) / dataset_name
 
         # check if path exists
         if not dataset_path.exists():
-            raise ValueError(f"data path {dataset_path} does not exist")
+            raise ValueError(f"Data path {dataset_path} does not exist")
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
@@ -153,6 +143,12 @@ class MVDataset:
         # monst3r loader
         elif loader == "monst3r":
             from mvdatasets.loaders.dynamic.monst3r import load
+
+            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+
+        # flow3d loader
+        elif loader == "flow3d":
+            from mvdatasets.loaders.dynamic.flow3d import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 

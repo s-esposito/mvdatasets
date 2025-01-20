@@ -1,8 +1,6 @@
 import tyro
 import numpy as np
 import os
-from examples import get_dataset_test_preset
-from examples import Args
 from mvdatasets.visualization.matplotlib import plot_camera_trajectory
 from mvdatasets.visualization.video_gen import make_video_camera_trajectory
 from mvdatasets.mvdataset import MVDataset
@@ -13,7 +11,6 @@ from mvdatasets.geometry.trajectories import (
     generate_ellipse_path_y,
     generate_interpolated_path,
 )
-from examples import Args
 
 # TODO: write tests for the functions in mvdatasets.geometry.trajectories
 

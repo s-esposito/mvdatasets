@@ -43,7 +43,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
         splits = ["train", "test"]
-        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
 
     # test blended-mvs
     elif dataset_name == "blended-mvs":
@@ -55,25 +55,25 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     elif dataset_name == "nerf_synthetic":
         scene_name = "lego"
         splits = ["train", "test"]
-        pc_paths = ["tests/assets/point_clouds/nerf_synthetic/lego.ply"]
+        pc_paths = ["examples/assets/point_clouds/nerf_synthetic/lego.ply"]
 
     # test shelly
     elif dataset_name == "shelly":
         scene_name = "khady"
         splits = ["train", "test"]
-        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
 
     # test nerf_furry
     elif dataset_name == "nerf_furry":
         scene_name = "plushy"
         splits = ["train", "test"]
-        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
 
     # test dmsr
     elif dataset_name == "dmsr":
         scene_name = "dinning"
         splits = ["train", "test"]
-        pc_paths = [f"tests/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
 
     # test refnerf
     elif dataset_name == "refnerf":
@@ -91,7 +91,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     elif dataset_name == "llff":
         scene_name = "fern"
         splits = ["train", "test"]
-        pc_paths = ["tests/assets/point_clouds/llff/fern.ply"]
+        pc_paths = ["examples/assets/point_clouds/llff/fern.ply"]
 
     # test mipnerf360
     elif dataset_name == "mipnerf360":
@@ -125,6 +125,12 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
 
     # test iphone
     elif dataset_name == "iphone":
+        scene_name = "paper-windmill"
+        splits = ["train", "val"]
+        pc_paths = []
+
+    # test iphone_som
+    elif dataset_name == "iphone_som":
         scene_name = "paper-windmill"
         splits = ["train", "val"]
         pc_paths = []

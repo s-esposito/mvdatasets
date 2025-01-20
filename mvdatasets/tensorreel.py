@@ -240,6 +240,9 @@ class TensorReel:
             sampled_idx = np.random.randint(0, len(cameras_idx), size=real_batch_size)
             cameras_idx = cameras_idx[sampled_idx]
         cameras_idx = cameras_idx.astype(np.int32)
+        
+        # move cameras_idx to device
+        cameras_idx = torch.tensor(cameras_idx, device=self.device)
 
         # sample frames_idx
         if frames_idx is None:
@@ -250,6 +253,9 @@ class TensorReel:
             sampled_idx = np.random.randint(0, len(frames_idx), size=real_batch_size)
             frames_idx = frames_idx[sampled_idx]
         frames_idx = frames_idx.astype(np.int32)
+        
+        # move frames_idx to device
+        frames_idx = torch.tensor(frames_idx, device=self.device)
 
         # get random pixels
         pixels = get_random_pixels(
@@ -260,9 +266,8 @@ class TensorReel:
         if nr_rays_per_pixel > 1:
             # torch Tensors
             pixels = pixels.repeat_interleave(nr_rays_per_pixel, dim=0)  # (N, 2)
-            # numpy arrays
-            cameras_idx = np.repeat(cameras_idx, nr_rays_per_pixel, axis=0)  # (N)
-            frames_idx = np.repeat(frames_idx, nr_rays_per_pixel, axis=0)  # (N)
+            cameras_idx = cameras_idx.repeat_interleave(nr_rays_per_pixel, dim=0)  # (N)
+            frames_idx = frames_idx.repeat_interleave(nr_rays_per_pixel, dim=0)  # (N)
 
         # get 2d points on the image plane
         points_2d_screen = get_points_2d_screen_from_pixels(

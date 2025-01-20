@@ -6,8 +6,6 @@ import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
 from PIL import Image
-from examples import Args
-from examples import get_dataset_test_preset
 from mvdatasets.visualization.matplotlib import plot_camera_2d
 from mvdatasets.utils.raycasting import (
     get_points_2d_screen_from_pixels,
@@ -86,7 +84,7 @@ def main(args: Args):
     )
 
     # load error map
-    error_map_pil = Image.open("tests/assets/error_maps/plushy_test_0.png")
+    error_map_pil = Image.open("examples/assets/error_maps/plushy_test_0.png")
     error_map = image_to_tensor(error_map_pil, device=device)
 
     # gen rays (biased sampling)

@@ -7,7 +7,8 @@ from tqdm import tqdm
 from PIL import Image
 import cv2
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
-from mvdatasets.geometry.common import rot_x_3d, deg2rad, get_min_max_cameras_distances
+from mvdatasets.utils.loader_utils import rescale
+from mvdatasets.geometry.common import rot_euler_3d_deg
 from mvdatasets.utils.printing import (
     print_error,
     print_warning,
@@ -16,6 +17,7 @@ from mvdatasets.utils.printing import (
 )
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
+from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def _generate_mask_from_polygons(
@@ -183,8 +185,8 @@ def _extract_data(
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str] = ["train", "val"],
-    config: dict = {},
+    splits: list[str],
+    config: DatasetConfig,
     verbose: bool = False,
 ):
     """VISOR data format loader.
@@ -193,27 +195,38 @@ def load(
         dataset_path (Path): Path to the dataset folder.
         scene_name (str): Name of the scene / sequence to load.
         splits (list): Splits to load (e.g., ["train", "val"]).
-        config (dict): Dictionary of configuration parameters.
+        config (DatasetConfig): Dataset configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
-        global_transform (np.ndarray): (4, 4)
+        dict: Dictionary of splits with lists of Camera objects.
+        np.ndarray: Global transform (4, 4)
+        str: Scene type
+        List[PointCloud]: List of PointClouds
+        float: Minimum camera distance
+        float: Maximum camera distance
+        float: Foreground scale multiplier
+        float: Scene radius
+        int: Number of frames per camera
+        int: Number of sequence frames
+        float: Frames per second
     """
 
-    # Update config with defaults
-    for key, default_value in defaults.items():
-        if key not in config:
-            config[key] = default_value
-            if verbose:
-                print_warning(f"Setting '{key}' to default value: {default_value}")
-        else:
-            if verbose:
-                print_success(f"Using '{key}': {config[key]}")
+    scene_path = dataset_path / scene_name
+
+    config = config.asdict()  # Convert Config to dictionary
+
+    # Valid values for specific keys
+    valid_values = {}
+
+    # Validate specific keys
+    for key, valid in valid_values.items():
+        if key in config and config[key] not in valid:
+            raise ValueError(f"{key} {config[key]} must be a value in {valid}")
 
     # Debugging output
     if verbose:
-        print("load_visor config:")
+        print("config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -308,53 +321,52 @@ def load(
     mapped_images_names = res[3]
     images_segments_dict = res[4]
 
-    # find scene radius
-    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(c2w_mats)
-
-    # scene scale such that furthest away camera is at target distance
-    scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
-
-    # new scene scale
-    new_min_camera_distance = min_camera_distance * scene_radius_mult
-    new_max_camera_distance = max_camera_distance * scene_radius_mult
-
-    # scene radius
-    scene_radius = new_max_camera_distance
-
-    scene_transform = np.eye(4)
-
-    # scene rotation
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
-
-    # translate
-    translation_matrix = np.eye(4)
-    # translation_matrix[:3, 3] = [
-    #     config["translate_scene_x"],
-    #     config["translate_scene_y"],
-    #     config["translate_scene_z"],
-    # ]
-
-    # Incorporate translation into scene_transform
-    scene_transform = translation_matrix @ scene_transform
-
-    # Create scaling matrix
-    scaling_matrix = np.diag(
-        [scene_radius_mult, scene_radius_mult, scene_radius_mult, 1]
+    # rescale (optional)
+    scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
+        c2w_mats, to_distance=config["max_cameras_distance"]
     )
 
-    # Incorporate scaling into scene_transform
-    scene_transform = scaling_matrix @ scene_transform
+    scene_radius = max_camera_distance
+
+    # scene_transform = np.eye(4)
+
+    # # scene rotation
+    # rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
+    # scene_transform[:3, :3] = rot_x_3d(deg2rad(rotate_scene_x_axis_deg))
+
+    # # translate
+    # translation_matrix = np.eye(4)
+    # # translation_matrix[:3, 3] = [
+    # #     config["translate_scene_x"],
+    # #     config["translate_scene_y"],
+    # #     config["translate_scene_z"],
+    # # ]
+
+    # # Incorporate translation into scene_transform
+    # scene_transform = translation_matrix @ scene_transform
+
+    # # Create scaling matrix
+    # scaling_matrix = np.diag(
+    #     [scene_radius_mult, scene_radius_mult, scene_radius_mult, 1]
+    # )
+
+    # # Incorporate scaling into scene_transform
+    # scene_transform = scaling_matrix @ scene_transform
 
     # global transform
     global_transform = np.eye(4)
+    # rotate and scale
+    rot = rot_euler_3d_deg(
+        config["rotate_deg"][0], config["rotate_deg"][1], config["rotate_deg"][2]
+    )
+    global_transform[:3, :3] = scene_radius_mult * rot
 
     # local transform
     local_transform = np.eye(4)
 
     # apply global transform
     # point_cloud *= scene_radius_mult
-    point_cloud.transform(scene_transform)
+    # point_cloud.transform(scene_transform)
 
     # build cameras
     cameras_all = []
@@ -369,7 +381,7 @@ def load(
         # c2w
         c2w_mat = camera_meta[0]
         # c2w_mat[:3, 3] *= scene_radius_mult
-        c2w_mat = scene_transform @ c2w_mat
+        # c2w_mat = scene_transform @ c2w_mat
         # img path
         img_path = camera_meta[1]
         # frame_index / frame_rate = time
@@ -453,8 +465,8 @@ def load(
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
         "point_clouds": [point_cloud],
-        "min_camera_distance": new_min_camera_distance,
-        "max_camera_distance": new_max_camera_distance,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
         "scene_radius": scene_radius,
         "foreground_scale_mult": config["foreground_scale_mult"],
         "nr_per_camera_frames": 1,

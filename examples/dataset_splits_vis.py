@@ -1,16 +1,14 @@
 import tyro
 import numpy as np
 import os
-
-# from examples import get_dataset_test_preset
-# from examples import Args
+import sys
 from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
 from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets.configs.example_config import ExampleConfig
-from examples import get_dataset_test_preset
+from examples import get_dataset_test_preset, custom_exception_handler
 
 
 def main(cfg: ExampleConfig):
@@ -24,19 +22,18 @@ def main(cfg: ExampleConfig):
     if scene_name is None:
         scene_name = test_preset["scene_name"]
     print("scene_name: ", scene_name)
-    
+
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
-    
-    exit(0)
-    
+
     # dataset loading
     mv_data = MVDataset(
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=pc_paths,
         splits=splits,
+        config=cfg.data,
+        point_clouds_paths=pc_paths,
         verbose=True,
     )
 
@@ -102,7 +99,7 @@ def main(cfg: ExampleConfig):
             draw_contraction_spheres=draw_contraction_spheres,
             figsize=(15, 15),
             title=f"{split} cameras",
-            show=True,
+            show=cfg.with_viewer,
             save_path=os.path.join(
                 output_path, f"{dataset_name}_{scene_name}_{split}_cameras.png"
             ),
@@ -112,10 +109,7 @@ def main(cfg: ExampleConfig):
 
 
 if __name__ == "__main__":
-    # Choose a base configuration and override values
-
-    # tyro.extras.set_accent_color("bright_yellow")
+    sys.excepthook = custom_exception_handler
     args = tyro.cli(ExampleConfig)
     print(args)
-
     main(args)

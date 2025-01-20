@@ -5,23 +5,26 @@ import torch
 import numpy as np
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from examples import get_dataset_test_preset
-from examples import Args
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
 from mvdatasets.visualization.matplotlib import plot_image
+from mvdatasets.configs.example_config import ExampleConfig
+from examples import get_dataset_test_preset, custom_exception_handler
 
 
-def main(args: Args):
+def main(cfg: ExampleConfig):
 
-    device = args.device
-    datasets_path = args.datasets_path
-    dataset_name = args.dataset_name
-    scene_name = args.scene_name
+    device = cfg.machine.device
+    datasets_path = cfg.datasets_path
+    output_path = cfg.output_path
+    dataset_name = cfg.data.dataset_name
+    scene_name = cfg.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
     if scene_name is None:
         scene_name = test_preset["scene_name"]
+    print("scene_name: ", scene_name)
+
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
@@ -30,8 +33,9 @@ def main(args: Args):
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=pc_paths,
         splits=splits,
+        config=cfg.data,
+        point_clouds_paths=pc_paths,
         verbose=True,
     )
 
@@ -64,7 +68,7 @@ def main(args: Args):
     plot_image(
         image=img_np,
         title="Bounding Box",
-        show=False,
+        show=cfg.with_viewer,
         save_path=os.path.join(
             output_path, f"{dataset_name}_{scene_name}_bounding_box.png"
         ),
@@ -91,7 +95,7 @@ def main(args: Args):
     plot_image(
         image=img_np,
         title="Bounding Sphere",
-        show=False,
+        show=cfg.with_viewer,
         save_path=os.path.join(
             output_path, f"{dataset_name}_{scene_name}_bounding_sphere.png"
         ),
@@ -99,5 +103,7 @@ def main(args: Args):
 
 
 if __name__ == "__main__":
-    args = tyro.cli(Args)
+    sys.excepthook = custom_exception_handler
+    args = tyro.cli(ExampleConfig)
+    print(args)
     main(args)

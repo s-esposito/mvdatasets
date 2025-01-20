@@ -15,9 +15,9 @@ class ExampleConfig(PrintableConfig):
     """Name of the scene (e.g., "dtu_scan83", "khady", ...)"""
 
     # paths
-    datasets_path: Path = Path("data")
+    datasets_path: Path = Path("/home/stefano/Data")
     """Relative or absolute path to the root datasets directory"""
-    output_path: Path = Path("outputs")
+    output_path: Path = Path("plots")
     """Relative or absolute path to the output directory to save splots, videos, etc..."""
 
     # dataset configuration
@@ -25,6 +25,9 @@ class ExampleConfig(PrintableConfig):
         default_factory=lambda: datasets_configs["nerf_synthetic"]
     )
     """Dataset configuration"""
+
+    with_viewer: bool = False
+    """Show viewers to visualize the examples"""
 
     # nested configs
     machine: MachineConfig = field(default_factory=MachineConfig)

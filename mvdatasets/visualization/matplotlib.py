@@ -130,7 +130,13 @@ def _draw_rays(
     for i, (ray_o, ray_d) in enumerate(zip(rays_o, rays_d)):
         start_point = ray_o
         end_point = ray_o + ray_d * ray_lenght
-        color = rgbs[i] if rgbs is not None else "blue"
+        if rgbs is not None:
+            color = rgbs[i]
+            # check if color is in [0, 255]
+            if np.max(color) > 1.0:
+                color = color / 255.0
+        else:
+            color = "blue"
         alpha = 0.75
         if masks is not None:
             mask = masks[i]

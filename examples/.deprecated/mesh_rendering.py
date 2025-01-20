@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     dataset_name = "dtu"
     scene_name, pc_paths, config = get_dataset_test_preset(args.dataset_name)
-    mesh_file_path = "tests/assets/meshes/dtu/dtu_scan83.ply"
+    mesh_file_path = "examples/assets/meshes/dtu/dtu_scan83.ply"
 
     # dataset loading
     mv_data = MVDataset(

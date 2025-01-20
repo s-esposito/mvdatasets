@@ -10,14 +10,10 @@ from mvdatasets import Camera
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.utils.printing import print_error, print_warning, print_success
-from mvdatasets.geometry.common import (
-    deg2rad,
-    scale_3d,
-    rot_x_3d,
-    rot_y_3d,
-    get_min_max_cameras_distances,
-)
+from mvdatasets.utils.loader_utils import rescale
+from mvdatasets.geometry.common import rot_euler_3d_deg
 from mvdatasets.geometry.quaternions import quats_to_rots
+from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def _tum_to_c2w(tum_pose):
@@ -46,8 +42,8 @@ def _tum_to_c2w(tum_pose):
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str] = ["train", "val"],
-    config: dict = {},
+    splits: list[str],
+    config: DatasetConfig,
     verbose: bool = False,
 ):
     """monst3r data format loader.
@@ -56,24 +52,26 @@ def load(
         dataset_path (Path): Path to the dataset folder.
         scene_name (str): Name of the scene / sequence to load.
         splits (list): Splits to load (e.g., ["train", "val"]).
-        config (dict): Dictionary of configuration parameters.
+        config (DatasetConfig): Dataset configuration parameters.
         verbose (bool, optional): Whether to print debug information. Defaults to False.
 
     Returns:
-        cameras_splits (dict): Dictionary of splits with lists of Camera objects.
-        global_transform (np.ndarray): (4, 4)
+        dict: Dictionary of splits with lists of Camera objects.
+        np.ndarray: Global transform (4, 4)
+        str: Scene type
+        List[PointCloud]: List of PointClouds
+        float: Minimum camera distance
+        float: Maximum camera distance
+        float: Foreground scale multiplier
+        float: Scene radius
+        int: Number of frames per camera
+        int: Number of sequence frames
+        float: Frames per second
     """
+
     scene_path = dataset_path / scene_name
 
-    # Update config with defaults
-    for key, default_value in defaults.items():
-        if key not in config:
-            config[key] = default_value
-            if verbose:
-                print_warning(f"Setting '{key}' to default value: {default_value}")
-        else:
-            if verbose:
-                print_success(f"Using '{key}': {config[key]}")
+    config = config.asdict()  # Convert Config to dictionary
 
     # Valid values for specific keys
     valid_values = {
@@ -87,7 +85,7 @@ def load(
 
     # Debugging output
     if verbose:
-        print("load_monst3r config:")
+        print("config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
 
@@ -123,39 +121,20 @@ def load(
         intrinsics = intrinsics.reshape(3, 3)
         intrinsics_list.append(intrinsics)
 
-    # find scene radius
-    min_camera_distance, max_camera_distance = get_min_max_cameras_distances(poses_list)
-
-    if config["rescale"]:
-
-        # scene scale such that furthest away camera is at target distance
-        scene_radius_mult = config["target_max_camera_distance"] / max_camera_distance
-
-        # new scene scale
-        new_min_camera_distance = min_camera_distance * scene_radius_mult
-        new_max_camera_distance = max_camera_distance * scene_radius_mult
-
-        # scene radius
-        scene_radius = new_max_camera_distance
-
-    else:
-        # scene scale such that furthest away camera is at target distance
-        scene_radius_mult = 1.0
-
-        # new scene scale
-        new_min_camera_distance = min_camera_distance
-        new_max_camera_distance = max_camera_distance
-
-        # scene radius
-        scene_radius = max_camera_distance
+    # rescale (optional)
+    scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
+        poses_list, to_distance=config["max_cameras_distance"]
+    )
+    
+    scene_radius = max_camera_distance
 
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
-    rotate_scene_x_axis_deg = config["rotate_scene_x_axis_deg"]
-    global_transform[:3, :3] = scene_radius_mult * rot_x_3d(
-        deg2rad(rotate_scene_x_axis_deg)
+    rot = rot_euler_3d_deg(
+        config["rotate_deg"][0], config["rotate_deg"][1], config["rotate_deg"][2]
     )
+    global_transform[:3, :3] = scene_radius_mult * rot
 
     # local transform
     local_transform = np.eye(4)
@@ -172,7 +151,7 @@ def load(
 
     # find all enlarged_dynamic_mask_0.png frames masks
     masks_frames = list(scene_path.glob("enlarged_dynamic_mask_*.png"))
-    masks_frames = sorted(masks_frames)
+    masks_frames = sorted(masks_frames, key=lambda x: int(x.stem.split("_")[-1]))
     print(f"Found {len(masks_frames)} masks frames")
 
     rgbs_list = []
@@ -204,9 +183,13 @@ def load(
                 # print(depth.shape, depth.dtype)
                 depths_list.append(depth_np)
 
+        # load all mask frames
         if config["load_masks"]:
-            # TODO
-            pass
+            pbar = tqdm(masks_frames, desc="masks", ncols=100)
+            for mask_frame in pbar:
+                mask_np = image_to_numpy(Image.open(mask_frame), use_uint8=True)
+                mask_np = mask_np[:, :, None]
+                masks_list.append(mask_np)
 
     # cameras objects
     cameras_splits = {}
@@ -214,6 +197,17 @@ def load(
         cameras_splits[split] = []
 
         for i in range(len(rgbs_list)):
+            
+            if len(depths_list) == 0:
+                depths = None
+            else:
+                depths = depths_list[i][None, ...]
+            
+            if len(masks_list) == 0:
+                masks = None
+            else:
+                masks = masks_list[i][None, ...]
+            
             # create camera object
             camera = Camera(
                 intrinsics=intrinsics_list[i],
@@ -221,8 +215,8 @@ def load(
                 global_transform=global_transform,
                 local_transform=local_transform,
                 rgbs=rgbs_list[i][None, ...],
-                depths=depths_list[i][None, ...],
-                masks=None,
+                depths=depths,
+                masks=masks,
                 timestamps=tt_list[i],
                 camera_label=str(i),
                 width=width,
@@ -237,8 +231,8 @@ def load(
         "point_clouds": [],
         "cameras_splits": cameras_splits,
         "global_transform": global_transform,
-        "min_camera_distance": new_min_camera_distance,
-        "max_camera_distance": new_max_camera_distance,
+        "min_camera_distance": min_camera_distance,
+        "max_camera_distance": max_camera_distance,
         "scene_radius": scene_radius,
         "fps": config["frame_rate"],
         "nr_per_camera_frames": 1,

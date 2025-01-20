@@ -1,26 +1,27 @@
 import tyro
+import sys
 import numpy as np
-import os
-from copy import deepcopy
 from examples import get_dataset_test_preset
-from examples import Args
-from mvdatasets.visualization.matplotlib import plot_3d
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.geometry.primitives.bounding_box import BoundingBox
-from mvdatasets.geometry.primitives.bounding_sphere import BoundingSphere
-from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets.visualization.matplotlib import plot_cameras_2d
+from mvdatasets.configs.example_config import ExampleConfig
+from examples import get_dataset_test_preset, custom_exception_handler
+from mvdatasets.configs.example_config import ExampleConfig
+from examples import get_dataset_test_preset, custom_exception_handler
 
 
-def main(args: Args):
+def main(cfg: ExampleConfig):
 
-    device = args.device
-    datasets_path = args.datasets_path
-    dataset_name = args.dataset_name
-    scene_name = args.scene_name
+    device = cfg.machine.device
+    datasets_path = cfg.datasets_path
+    output_path = cfg.output_path
+    dataset_name = cfg.data.dataset_name
+    scene_name = cfg.scene_name
     test_preset = get_dataset_test_preset(dataset_name)
     if scene_name is None:
         scene_name = test_preset["scene_name"]
+    print("scene_name: ", scene_name)
+
     pc_paths = test_preset["pc_paths"]
     splits = test_preset["splits"]
 
@@ -29,8 +30,9 @@ def main(args: Args):
         dataset_name,
         scene_name,
         datasets_path,
-        point_clouds_paths=pc_paths,
         splits=splits,
+        config=cfg.data,
+        point_clouds_paths=pc_paths,
         verbose=True,
     )
 
@@ -44,5 +46,7 @@ def main(args: Args):
 
 
 if __name__ == "__main__":
-    args = tyro.cli(Args)
+    sys.excepthook = custom_exception_handler
+    args = tyro.cli(ExampleConfig)
+    print(args)
     main(args)

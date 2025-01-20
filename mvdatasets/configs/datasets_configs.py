@@ -39,7 +39,10 @@ class BlenderConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
 
 @dataclass
 class DTUConfig(DatasetConfig):
@@ -68,7 +71,9 @@ class DTUConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
 
 
 @dataclass
@@ -93,7 +98,9 @@ class ColmapConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
 
 
 @dataclass
@@ -126,7 +133,9 @@ class DMRSConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
 
 
 # Dynamic Datasets Configurations -----------------------------------------------
@@ -164,20 +173,22 @@ class DNeRFConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
-            
-            
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
+
 @dataclass
 class VISORConfig(DatasetConfig):
     # Default dataset configuration
-    
+
     load_masks: bool = True
     """Load mask images"""
     load_semantic_masks: bool = True
     """Load semantic mask images"""
     frame_rate: float = 10.0
     """Frame rate of the sequence"""
-    
+
     def __post__init__(self):
         # Check configuration values
         super().__post__init__()
@@ -194,16 +205,18 @@ class VISORConfig(DatasetConfig):
         valid_splits = ["train", "val"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
-            
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
 
 @dataclass
 class Neu3DConfig(DatasetConfig):
     # Default dataset configuration
-    
+
     frame_rate: float = 30.0
     """Frame rate of the sequence"""
-    
+
     def __post__init__(self):
         # Check configuration values
         super().__post__init__()
@@ -214,18 +227,20 @@ class Neu3DConfig(DatasetConfig):
         valid_splits = ["train", "val"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
-            
-            
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
+
 @dataclass
 class PanopticSportsConfig(DatasetConfig):
     # Default dataset configuration
-    
+
     load_masks: bool = True
     """Load mask images"""
     frame_rate: float = 30.0
     """Frame rate of the sequence"""
-    
+
     def __post__init__(self):
         # Check configuration values
         super().__post__init__()
@@ -239,20 +254,22 @@ class PanopticSportsConfig(DatasetConfig):
         valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
 
 
 @dataclass
 class NerfiesConfig(DatasetConfig):
     # Default dataset configuration
-    
+
     # load_masks: bool = True
     # """Load mask images"""
     load_depths: bool = True
     """Load depth images"""
     frame_rate: float = 30.0
     """Frame rate of the sequence"""
-    
+
     def __post__init__(self):
         # Check configuration values
         super().__post__init__()
@@ -269,25 +286,28 @@ class NerfiesConfig(DatasetConfig):
         valid_splits = ["train", "val"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
 
 @dataclass
 class MonST3RConfig(DatasetConfig):
     # Default dataset configuration
-    
-    # load_masks: bool = True
-    # """Load mask images"""
+
+    load_masks: bool = True
+    """Load mask images"""
     load_depths: bool = True
     """Load depth images"""
     frame_rate: float = 30.0
     """Frame rate of the sequence"""
-    
+
     def __post__init__(self):
         # Check configuration values
         super().__post__init__()
         # load_masks
-        # if type(self.load_masks) is not bool:
-        #     raise ValueError("load_masks must be a boolean")
+        if type(self.load_masks) is not bool:
+            raise ValueError("load_masks must be a boolean")
         # load_depths
         if type(self.load_depths) is not bool:
             raise ValueError("load_depths must be a boolean")
@@ -298,7 +318,52 @@ class MonST3RConfig(DatasetConfig):
         valid_splits = ["train", "val"]
         for split in self.splits:
             if split not in valid_splits:
-                raise ValueError(f"split {split} not supported, must be one of {valid_splits}")
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
+
+@dataclass
+class Flow3DConfig(DatasetConfig):
+    # Default dataset configuration
+
+    load_masks: bool = True
+    """Load mask images"""
+    load_depths: bool = True
+    """Load depth images"""
+    load_2d_tracks: bool = True
+    """Load 2D tracks"""
+    load_3d_tracks: bool = True
+    """Load 3D tracks"""
+    frame_rate: float = 30.0
+    """Frame rate of the sequence"""
+
+    def __post__init__(self):
+        # Check configuration values
+        super().__post__init__()
+        # load_masks
+        if type(self.load_masks) is not bool:
+            raise ValueError("load_masks must be a boolean")
+        # load_depths
+        if type(self.load_depths) is not bool:
+            raise ValueError("load_depths must be a boolean")
+        # load_2d_tracks
+        if type(self.load_2d_tracks) is not bool:
+            raise ValueError("load_2d_tracks must be a boolean")
+        # load_3d_tracks
+        if type(self.load_3d_tracks) is not bool:
+            raise ValueError("load_3d_tracks must be a boolean")
+        # frame_rate
+        if type(self.frame_rate) is not float or self.frame_rate <= 0:
+            raise ValueError("frame_rate must be a float > 0")
+        # check if splits are valid
+        valid_splits = ["train", "val"]
+        for split in self.splits:
+            if split not in valid_splits:
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
 
 # -------------------------------------------------------------------------------
 
@@ -424,10 +489,22 @@ datasets_configs: Dict[str, DatasetConfig] = {
         dataset_name="monst3r",
         scene_type="unbounded",
         subsample_factor=1,
-        # load_masks=True,
+        load_masks=True,
         load_depths=True,
         rotate_deg=[90.0, 0.0, 0.0],
         max_cameras_distance=1.0,  # scale to 1.0
+    ),
+    # Flow3D format
+    "iphone_som": Flow3DConfig(
+        dataset_name="iphone_som",
+        scene_type="unbounded",
+        subsample_factor=2,
+        load_masks=True,
+        load_depths=True,
+        load_2d_tracks=True,
+        load_3d_tracks=True,
+        rotate_deg=[90.0, 0.0, 0.0],
+        max_cameras_distance=None,  # no scaling
     ),
 }
 
@@ -440,12 +517,13 @@ datasets_descriptions: Dict[str, str] = {
     "llff": "LLFF dataset",
     "mipnerf360": "MipNerf360 dataset",
     "d-nerf": "D-NeRF dataset",
-    # "visor": "VISOR dataset",
-    # "neu3d": "Neu3D dataset",
-    # "panoptic-sports": "Panoptic-Sports dataset",
-    # "nerfies": "Nerfies dataset",
-    # "iphone": "iPhone dataset",
-    # "monst3r": "MonST3R dataset",
+    "visor": "VISOR dataset",
+    "neu3d": "Neu3D dataset",
+    "panoptic-sports": "Panoptic-Sports dataset",
+    "nerfies": "Nerfies dataset",
+    "iphone": "iPhone dataset",
+    "monst3r": "MonST3R dataset",
+    "iphone_som": "iPhone-SOM dataset",
 }
 
 

@@ -15,6 +15,7 @@ class DataSplit:
         nr_sequence_frames: int = -1,
         modalities: list[str] = ["rgbs", "masks"],
         index_pixels: bool = False,
+        contiguous: bool = False,
     ):
         """Class to store a split of dataset cameras.
 
@@ -84,9 +85,11 @@ class DataSplit:
         self.w2c_all = np.stack(w2c_all)  # (N, 4, 4)
         self.timestamps_all = np.stack(timestamps_all)  # (N, T)
 
-        # concat data and move to device
+        # concat data
         for key, val in data.items():
             data[key] = np.stack(val)  # (N, T, H, W, C)
+            if contiguous:
+                data[key] = np.ascontiguousarray(data[key])
         self.data = data
 
         print_success(self)

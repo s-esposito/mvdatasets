@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     # create bounding boxes
     bounding_boxes = []
-    scene_path = f"tests/assets/assetsnerf/{dataset_name}/{scene_name}"
+    scene_path = f"examples/assets/assetsnerf/{dataset_name}/{scene_name}"
     icp_path = os.path.join(scene_path, "icp")
     # bounding_boxes_path = os.path.join(scene_path, "bounding_boxes")
 

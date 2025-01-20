@@ -1,12 +1,16 @@
+from rich import print
 from pathlib import Path
 from typing import Tuple, Any, Type, Literal, List, Optional
 import numpy as np
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 
 # Pretty printing class
 class PrintableConfig:
     """Printable Config defining str function"""
+
+    def asdict(self):
+        return asdict(self)
 
     def __str__(self):
         lines = [self.__class__.__name__ + ":"]
@@ -19,15 +23,3 @@ class PrintableConfig:
                 val = flattened_val + "]"
             lines += f"{key}: {str(val)}".split("\n")
         return "\n    ".join(lines)
-
-
-# # Base instantiate configs
-# @dataclass
-# class InstantiateConfig(PrintableConfig):
-#     """Config class for instantiating an the class specified in the _target attribute."""
-
-#     _target: Type
-
-#     def setup(self, **kwargs) -> Any:
-#         """Returns the instantiated object using the config."""
-#         return self._target(self, **kwargs)
