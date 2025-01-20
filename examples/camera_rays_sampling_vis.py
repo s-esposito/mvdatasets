@@ -59,7 +59,7 @@ def main(args: Args):
             draw_contraction_spheres = False
 
     else:
-        print_error("scene_type not supported")
+        raise ValueError("scene_type not supported")
 
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
@@ -85,7 +85,7 @@ def main(args: Args):
         figsize=(15, 15),
         title=f"test camera {rand_idx} rays",
         show=False,
-        save_path=os.path.join("plots", f"{dataset_name}_{scene_name}_camera_rays.png"),
+        save_path=os.path.join(output_path, f"{dataset_name}_{scene_name}_camera_rays.png"),
     )
 
     # Visualize intersections with bounding box
@@ -110,7 +110,7 @@ def main(args: Args):
             )
             exit(0)
     else:
-        print_error("scene_type not supported")
+        raise ValueError("scene_type not supported")
 
     plot_rays_samples(
         rays_o=rays_o.cpu().numpy(),
@@ -128,7 +128,7 @@ def main(args: Args):
         title="bounding box intersections",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_bounding_box_intersections.png"
+            output_path, f"{dataset_name}_{scene_name}_bounding_box_intersections.png"
         ),
     )
 

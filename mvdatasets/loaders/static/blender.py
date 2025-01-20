@@ -34,7 +34,7 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-    
+
     dataset_path = config.datasets_path
     scene_name = config.scene_name
     scene_path = dataset_path / scene_name
@@ -57,7 +57,7 @@ def load(
         print("load_blender config:")
         for k, v in config.items():
             print(f"\t{k}: {v}")
-            
+
     exit(0)
 
     # -------------------------------------------------------------------------

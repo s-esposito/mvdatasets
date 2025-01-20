@@ -28,14 +28,14 @@ def make_video_camera_trajectory(
 
     # check if save_path extension is mp4
     if save_path.suffix != ".mp4":
-        print_error("save_path extension must be mp4")
+        raise ValueError("save_path extension must be mp4")
 
     # uniform sampling of sequence lenght
     sequence_len = len(cameras)
     if nr_frames == -1:
         nr_frames = sequence_len
     elif nr_frames > sequence_len or nr_frames <= 0:
-        print_error(
+        raise ValueError(
             f"nr_frames must be less than or equal to {sequence_len} and greater than 0"
         )
     step_size = sequence_len // nr_frames
@@ -125,7 +125,7 @@ def make_video_depth_unproject(
 
     # check if save_path extension is mp4
     if save_path.suffix != ".mp4":
-        print_error("save_path extension must be mp4")
+        raise ValueError("save_path extension must be mp4")
 
     # assert len(cameras) == len(point_clouds)
     assert len(cameras) == len(

@@ -68,16 +68,16 @@ def load(
 
     # Default configuration
     defaults = {
-        "scene_type": "unbounded",
-        "load_masks": True,
-        "test_camera_freq": 8,
-        "train_test_overlap": False,
-        "rotate_scene_x_axis_deg": 205,
-        "subsample_factor": 1,
-        "init_sphere_radius_mult": 0.1,
-        "target_max_camera_distance": 0.5,
-        "foreground_scale_mult": 1.0,
-        "pose_only": False,
+        # "scene_type": "unbounded",
+        # "load_masks": True,
+        # "test_camera_freq": 8,
+        # "train_test_overlap": False,
+        # "rotate_scene_x_axis_deg": 205,
+        # "subsample_factor": 1,
+        # "init_sphere_radius_mult": 0.1,
+        # "target_max_camera_distance": 0.5,
+        # "foreground_scale_mult": 1.0,
+        # "pose_only": False,
     }
 
     # Update config with defaults and handle warnings

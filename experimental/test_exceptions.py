@@ -12,4 +12,4 @@ if __name__ == "__main__":
     pc = PointCloud()
     subtract(5.0, pc)  # This will raise a TypeError
 
-    print_error("test")
+    raise ValueError("test")

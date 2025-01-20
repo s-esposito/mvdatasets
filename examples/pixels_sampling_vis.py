@@ -57,7 +57,7 @@ def main(args: Args):
         title="screen space sampling (jittered)",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_screen_space_sampling_jittered.png"
+            output_path, f"{dataset_name}_{scene_name}_screen_space_sampling_jittered.png"
         ),
     )
 
@@ -71,7 +71,7 @@ def main(args: Args):
         title="screen space sampling",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_screen_space_sampling.png"
+            output_path, f"{dataset_name}_{scene_name}_screen_space_sampling.png"
         ),
     )
 

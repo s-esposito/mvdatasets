@@ -199,4 +199,6 @@ class BoundingSphere:
         return points_norm < self.get_radius()
 
     def save_as_ply():
-        print_error("saving as ply is not currently implemented for BoundingSphere")
+        raise ValueError(
+            "saving as ply is not currently implemented for BoundingSphere"
+        )

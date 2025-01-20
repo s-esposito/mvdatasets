@@ -6,7 +6,30 @@ from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
-from mvdatasets.loaders.configs import get_scene_preset
+
+# from mvdatasets.loaders.configs import get_scene_preset
+
+
+DATASET_LOADER_MAPPING = {
+    "nerf_synthetic": "blender",
+    "nerf_furry": "blender",
+    "refnerf": "blender",
+    "shelly": "blender",
+    "llff": "colmap",
+    "mipnerf360": "colmap",
+    "colmap": "colmap",
+    "dtu": "dtu",
+    "blended-mvs": "dtu",
+    "dmsr": "dmsr",
+    # "ingp": "ingp",
+    "d-nerf": "d-nerf",
+    "visor": "visor",
+    "neu3d": "neu3d",
+    "panoptic-sports": "panoptic-sports",
+    "nerfies": "nerfies",
+    "iphone": "nerfies",
+    "monst3r": "monst3r",
+}
 
 
 class MVDataset:
@@ -29,12 +52,12 @@ class MVDataset:
         self.scene_name = scene_name
 
         # load dataset and scene default config
-        default_config = get_scene_preset(dataset_name, scene_name)
+        # default_config = get_scene_preset(dataset_name, scene_name)
 
-        # override default config with user config
-        for key, value in config.items():
-            default_config[key] = value
-        config = default_config
+        # # override default config with user config
+        # for key, value in config.items():
+        #     default_config[key] = value
+        # config = default_config
 
         # default config
         config["pose_only"] = pose_only
@@ -44,7 +67,7 @@ class MVDataset:
 
         # check if path exists
         if not dataset_path.exists():
-            print_error(f"data path {dataset_path} does not exist")
+            raise ValueError(f"data path {dataset_path} does not exist")
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
@@ -64,91 +87,78 @@ class MVDataset:
 
         # STATIC SCENE DATASETS -----------------------------------------------
 
-        # load dtu
-        # load blended-mvs
-        if self.dataset_name == "dtu" or self.dataset_name == "blended-mvs":
+        loader = DATASET_LOADER_MAPPING.get(dataset_name, None)
+
+        # dtu loader
+        if loader == "dtu":
             from mvdatasets.loaders.static.dtu import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        # load nerf_synthetic
-        # load nerf_furry
-        # load refnerf
-        # load shelly
-        elif (
-            self.dataset_name == "nerf_synthetic"
-            or self.dataset_name == "nerf_furry"
-            or self.dataset_name == "refnerf"
-            or self.dataset_name == "shelly"
-        ):
+        # blender loader
+        elif loader == "blender":
             from mvdatasets.loaders.static.blender import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
             self.cameras_on_hemisphere = True
 
-        # # load ingp
-        # elif self.dataset_name == "ingp":
+        # ingp loader
+        # elif loader == "ingp":
         #     res = load_ingp(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        # load dmsr
-        elif self.dataset_name == "dmsr":
+        # dmsr loader
+        elif loader == "dmsr":
             from mvdatasets.loaders.static.dmsr import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        # load generic colmap reconstruction
-        # load llff
-        # load mipnerf360
-        elif (
-            self.dataset_name == "colmap"
-            or self.dataset_name == "llff"
-            or self.dataset_name == "mipnerf360"
-        ):
+        # colmap loader
+        elif loader == "colmap":
             from mvdatasets.loaders.static.colmap import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
-        elif self.dataset_name == "d-nerf":
+        # d-nerf loader
+        elif loader == "d-nerf":
             from mvdatasets.loaders.dynamic.d_nerf import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "visor":
+        # visor loader
+        elif loader == "visor":
             from mvdatasets.loaders.dynamic.visor import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "neu3d":
+        # neu3d loader
+        elif loader == "neu3d":
             from mvdatasets.loaders.dynamic.neu3d import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "panoptic-sports":
+        # panoptic-sports loader
+        elif loader == "panoptic-sports":
             from mvdatasets.loaders.dynamic.panoptic_sports import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "nerfies":
+        # nerfies loader
+        elif loader == "nerfies":
             from mvdatasets.loaders.dynamic.nerfies import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
-        elif self.dataset_name == "iphone":
-            from mvdatasets.loaders.dynamic.iphone import load
-
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
-
-        elif self.dataset_name == "monst3r":
+        # monst3r loader
+        elif loader == "monst3r":
             from mvdatasets.loaders.dynamic.monst3r import load
 
             res = load(dataset_path, scene_name, splits, config, verbose=verbose)
 
         else:
 
-            print_warning(f"dataset {self.dataset_name} is not supported")
-            res = None
+            raise ValueError(f"Dataset {dataset_name} is not supported")
 
         # UNPACK -------------------------------------------------------------
 
@@ -157,7 +167,7 @@ class MVDataset:
             # cameras
             cameras_splits = res["cameras_splits"]
             if cameras_splits is None or len(cameras_splits.keys()) == 0:
-                print_error("no cameras found")  # this should never happen
+                raise ValueError("no cameras found")
 
             # config
             self.scene_type = res["scene_type"]
@@ -193,7 +203,9 @@ class MVDataset:
             print("init_sphere_radius:", self.init_sphere_radius)
 
             if self.init_sphere_radius > self.foreground_radius:
-                print_error("init_sphere_radius > scene_radius, this can't be true")
+                raise ValueError(
+                    "init_sphere_radius > foreground_radius, this can't be true"
+                )
 
             # dynamic scenes
             self.nr_per_camera_frames = res.get("nr_per_camera_frames", 1)
@@ -253,7 +265,7 @@ class MVDataset:
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""
         if split not in self.get_splits():
-            print_error(
+            raise ValueError(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
         return self.data[split]
@@ -312,11 +324,11 @@ class MVDataset:
             if camera_idx >= 0 and camera_idx < len(self.data[split]):
                 return self.data[split][camera_idx].width
             else:
-                print_error(
+                raise ValueError(
                     f"camera index {camera_idx} out of range [0, {len(self.data[split])})"
                 )
         else:
-            print_error(
+            raise ValueError(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
 
@@ -334,11 +346,11 @@ class MVDataset:
             if camera_idx >= 0 and camera_idx < len(self.data[split]):
                 return self.data[split][camera_idx].height
             else:
-                print_error(
+                raise ValueError(
                     f"camera index {camera_idx} out of range [0, {len(self.data[split])})"
                 )
         else:
-            print_error(
+            raise ValueError(
                 f"split {split} does not exist, available splits: {list(self.data.keys())}"
             )
 

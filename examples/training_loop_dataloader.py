@@ -49,7 +49,7 @@ def main(args: Args):
     pin_memory = True  # For faster transfer to GPU
     batch_size = 4  # nr full frames per batch
     print(f"batch_size: {batch_size}")
-    
+
     benchmark = True
 
     # -------------------------------------------------------------------------
@@ -66,7 +66,7 @@ def main(args: Args):
 
     run_index_frames = True
     if run_index_frames:
-        
+
         if benchmark:
             # Set profiler
             profiler = Profiler()  # nb: might slow down the code
@@ -77,10 +77,10 @@ def main(args: Args):
         step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
-            
+
             if profiler is not None:
                 profiler.start("epoch")
-            
+
             # if first iteration or need to update time dimension of data split
             if (
                 epoch_nr == 0  # first iteration
@@ -115,13 +115,13 @@ def main(args: Args):
             # Iterate over batches
             iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
             for iter_nr, batch in enumerate(iter_pbar):
-                
+
                 if profiler is not None:
                     profiler.start("iter")
-                
+
                 # Move batch to device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                
+
                 if not benchmark:
                     # Print batch shape
                     for k, v in batch.items():
@@ -131,15 +131,15 @@ def main(args: Args):
 
                 # Increment step
                 step += 1
-                
+
                 if profiler is not None:
                     profiler.end("iter")
-                
+
             if profiler is not None:
                 profiler.end("epoch")
-                
+
         print_success(f"Done after {step} steps")
-        
+
         if profiler is not None:
             profiler.print_avg_times()
 
@@ -147,7 +147,7 @@ def main(args: Args):
 
     run_index_pixels = False
     if run_index_pixels:
-        
+
         if benchmark:
             # Set profiler
             profiler = Profiler()  # nb: might slow down the code
@@ -170,10 +170,10 @@ def main(args: Args):
         step = 0
         epochs_pbar = tqdm(range(nr_epochs), desc="epochs", ncols=100)
         for epoch_nr in epochs_pbar:
-            
+
             if profiler is not None:
                 profiler.start("epoch")
-            
+
             # if first iteration or need to update time dimension of data split
             if (
                 epoch_nr == 0  # first iteration
@@ -204,33 +204,33 @@ def main(args: Args):
                     persistent_workers=persistent_workers,
                     pin_memory=pin_memory,
                 )
-            
+
             # Iterate over batches
             iter_pbar = tqdm(data_loader, desc="iter", ncols=100, disable=False)
             for iter_nr, batch in enumerate(iter_pbar):
-                
+
                 if profiler is not None:
                     profiler.start("iter")
 
                 # Move batch to device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                
+
                 if not benchmark:
                     # Print batch shape
                     for k, v in batch.items():
                         print(
                             f"{epoch_nr}, {iter_nr}, {k}: {v.shape}, {v.dtype}, {v.device}"
                         )
-                
+
                 # Increment step
                 step += 1
-                
+
                 if profiler is not None:
                     profiler.end("iter")
-                
+
             if profiler is not None:
                 profiler.end("epoch")
-                
+
         print_success(f"Done after {step} steps")
 
         if profiler is not None:

@@ -65,19 +65,6 @@ def load(
     """
     scene_path = dataset_path / scene_name
 
-    # Default configuration
-    defaults = {
-        "scene_type": "unbounded",
-        "load_masks": True,
-        "load_depths": True,
-        "rescale": True,  # TODO: testing
-        "rotate_scene_x_axis_deg": 90.0,
-        "subsample_factor": 1,
-        "target_max_camera_distance": 1.0,
-        "pose_only": False,
-        "frame_rate": 30,
-    }
-
     # Update config with defaults
     for key, default_value in defaults.items():
         if key not in config:
@@ -96,7 +83,7 @@ def load(
     # Validate specific keys
     for key, valid in valid_values.items():
         if key in config and config[key] not in valid:
-            print_error(f"{key} {config[key]} must be a value in {valid}")
+            raise ValueError(f"{key} {config[key]} must be a value in {valid}")
 
     # Debugging output
     if verbose:

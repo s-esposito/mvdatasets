@@ -27,7 +27,7 @@ class TensorTexture:
 
         if texture_np is None:
             if texture_path is None:
-                print_error("texture_np and texture_path cannot be both None")
+                raise ValueError("texture_np and texture_path cannot be both None")
 
             texture_pil = Image.open(texture_path).convert("RGBA")
             texture_np = np.array(texture_pil) / 255.0

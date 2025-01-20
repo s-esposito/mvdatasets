@@ -18,7 +18,7 @@ import traceback
 logging.basicConfig(level=logging.INFO)
 
 
-# def print_error(message, exc_type=None, exc_value=None, exc_traceback=None):
+# def raise ValueError(message, exc_type=None, exc_value=None, exc_traceback=None):
 #     """
 #     Print a detailed error message with a stack trace.
 

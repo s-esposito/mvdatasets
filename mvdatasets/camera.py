@@ -119,7 +119,7 @@ class Camera:
         if rgbs is not None:
             self.temporal_dim, self.height, self.width = rgbs.shape[:3]
             if self.timestamps.shape[0] != self.temporal_dim:
-                print_error("timestamps not provided for all frames")
+                raise ValueError("timestamps not provided for all frames")
         elif width is not None and height is not None:
             self.height = height
             self.width = width
@@ -282,7 +282,7 @@ class Camera:
             np.ndarray: (T, H, W, 3) rgb frames
         """
         if not self.has_rgbs():
-            print_error("camera has no rgb frames")
+            raise ValueError("camera has no rgb frames")
         return self.data["rgbs"]
 
     def get_rgb(self, frame_idx: int = 0) -> np.ndarray:
@@ -293,7 +293,7 @@ class Camera:
             np.ndarray: (H, W, 3) rgb frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_rgbs()[frame_idx]
 
     def has_masks(self) -> bool:
@@ -309,7 +309,7 @@ class Camera:
             np.ndarray: (T, H, W, 1) mask frames
         """
         if not self.has_masks():
-            print_error("camera has no mask frames")
+            raise ValueError("camera has no mask frames")
         return self.data["masks"]
 
     def get_mask(self, frame_idx: int = 0) -> np.ndarray:
@@ -320,7 +320,7 @@ class Camera:
             np.ndarray: (H, W, 1) mask frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_masks()[frame_idx]
 
     def has_normals(self) -> bool:
@@ -336,7 +336,7 @@ class Camera:
             np.ndarray: (T, H, W, 3) normal frames
         """
         if not self.has_normals():
-            print_error("camera has no normal frames")
+            raise ValueError("camera has no normal frames")
         return self.data["normals"]
 
     def get_normal(self, frame_idx: int = 0) -> np.ndarray:
@@ -347,7 +347,7 @@ class Camera:
             np.ndarray: (H, W, 3) normal frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_normals()[frame_idx]
 
     def has_depths(self) -> bool:
@@ -363,7 +363,7 @@ class Camera:
             np.ndarray: (T, H, W, 1) depth frames
         """
         if not self.has_depths():
-            print_error("camera has no depth frames")
+            raise ValueError("camera has no depth frames")
         return self.data["depths"]
 
     def get_depth(self, frame_idx: int = 0) -> np.ndarray:
@@ -374,7 +374,7 @@ class Camera:
             np.ndarray: (H, W, 1) depth frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_depths()[frame_idx]
 
     def has_instance_masks(self) -> bool:
@@ -390,7 +390,7 @@ class Camera:
             np.ndarray: (T, H, W, 1) instance mask frames
         """
         if not self.has_instance_masks():
-            print_error("camera has no instance mask frames")
+            raise ValueError("camera has no instance mask frames")
         return self.data["instance_masks"]
 
     def get_instance_mask(self, frame_idx: int = 0) -> np.ndarray:
@@ -401,7 +401,7 @@ class Camera:
             np.ndarray: (H, W, 1) instance mask frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_instance_masks()[frame_idx]
 
     def has_semantic_masks(self) -> bool:
@@ -417,7 +417,7 @@ class Camera:
             np.ndarray: (T, H, W, 1) semantic mask frames
         """
         if not self.has_semantic_masks():
-            print_error("camera has no semantic mask frames")
+            raise ValueError("camera has no semantic mask frames")
         return self.data["semantic_masks"]
 
     def get_semantic_mask(self, frame_idx: int = 0) -> np.ndarray:
@@ -428,7 +428,7 @@ class Camera:
             np.ndarray: (H, W, 1) semantic mask frame
         """
         if frame_idx >= self.temporal_dim:
-            print_error("frame_idx out of bounds")
+            raise ValueError("frame_idx out of bounds")
         return self.get_semantic_masks()[frame_idx]
 
     def get_pose(self) -> np.ndarray:

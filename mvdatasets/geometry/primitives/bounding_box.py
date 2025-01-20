@@ -143,7 +143,7 @@ class BoundingBox:
 
     def get_max_traversable_distance(self):
         # TODO: implement
-        print_error("get_max_traversable_distance not implemented yet")
+        raise ValueError("get_max_traversable_distance not implemented yet")
 
     def get_center(self):
         """get center of the bounding box in world space

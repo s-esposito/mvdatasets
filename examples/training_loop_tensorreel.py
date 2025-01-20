@@ -54,13 +54,13 @@ def main(args: Args):
     nr_iterations = 1000
 
     benchmark = True
-    
+
     if benchmark:
         # Set profiler
         profiler = Profiler()  # nb: might slow down the code
     else:
         profiler = None
-    
+
     # use a subset of cameras and frames
     # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:5]
     # frames_idx = np.random.permutation(mv_data.get_nr_per_camera_frames())[:2]
@@ -69,9 +69,9 @@ def main(args: Args):
     frames_idx = None
     print("cameras_idx", cameras_idx)
     print("frames_idx", frames_idx)
-    
+
     # -------------------------------------------------------------------------
-    
+
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)
     azimuth_deg = 20
     azimuth_deg_delta = 1
@@ -105,7 +105,7 @@ def main(args: Args):
                 # if v is a dict
                 if isinstance(v, dict):
                     for k1, v1 in v.items():
-                        print(f"{k}, "f"{k1}", v1.shape, v1.device, v1.dtype)
+                        print(f"{k}, " f"{k1}", v1.shape, v1.device, v1.dtype)
                 else:
                     print(f"{k}", v.shape, v.device, v.dtype)
 
@@ -132,7 +132,7 @@ def main(args: Args):
                 title=f"rays batch sampling {i}",
                 show=False,
                 save_path=os.path.join(
-                    "plots", f"{dataset_name}_{scene_name}_batch_{i}.png"
+                    output_path, f"{dataset_name}_{scene_name}_batch_{i}.png"
                 ),
             )
 

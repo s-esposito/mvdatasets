@@ -23,22 +23,22 @@ class PointCloud:
             if self.points_rgb.ndim == 2:
                 # first dimension must be the same as points_3d
                 if self.points_rgb.shape[0] != self.points_3d.shape[0]:
-                    print_error(
+                    raise ValueError(
                         f"Points RGB must have the same number of points as points 3D, got {self.points_rgb.shape[0]} and {self.points_3d.shape[0]}"
                     )
                 # second dimension must be 3
                 if self.points_rgb.shape[1] != 3:
-                    print_error(
+                    raise ValueError(
                         f"Points RGB must have shape (N, 3), got {self.points_rgb.shape}"
                     )
             elif self.points_rgb.ndim == 1:
                 # first dimension must be 3
                 if self.points_rgb.shape[0] != 3:
-                    print_error(
+                    raise ValueError(
                         f"Points RGB must have shape (3,), got {self.points_rgb.shape}"
                     )
             else:
-                print_error(
+                raise ValueError(
                     f"Points RGB must have shape (N, 3) or (3,), got {self.points_rgb.shape}"
                 )
 

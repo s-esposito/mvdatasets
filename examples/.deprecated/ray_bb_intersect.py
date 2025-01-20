@@ -177,7 +177,7 @@ if __name__ == "__main__":
     plt.imshow(near_depth, cmap="jet")
     plt.colorbar()
     plt.savefig(
-        os.path.join("plots", "ray_bb_hit_near_depth.png"),
+        os.path.join(output_path, "ray_bb_hit_near_depth.png"),
         transparent=False,
         bbox_inches="tight",
         pad_inches=0,
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     plt.imshow(far_depth, cmap="jet")
     plt.colorbar()
     plt.savefig(
-        os.path.join("plots", "ray_bb_hit_far_depth.png"),
+        os.path.join(output_path, "ray_bb_hit_far_depth.png"),
         transparent=False,
         bbox_inches="tight",
         pad_inches=0,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # plt.show()
 
     plt.savefig(
-        os.path.join("plots", f"bbs.png"),
+        os.path.join(output_path, f"bbs.png"),
         transparent=False,
         bbox_inches="tight",
         pad_inches=0,

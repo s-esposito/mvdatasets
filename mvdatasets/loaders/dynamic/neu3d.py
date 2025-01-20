@@ -27,7 +27,7 @@ def load(
     config: dict = {},
     verbose: bool = False,
 ):
-    """monst3r data format loader.
+    """neu3d data format loader.
 
     Args:
         dataset_path (Path): Path to the dataset folder.
@@ -41,19 +41,6 @@ def load(
         global_transform (np.ndarray): (4, 4)
     """
     scene_path = dataset_path / scene_name
-
-    # Default configuration
-    defaults = {
-        "scene_type": "unbounded",
-        "load_masks": True,
-        "rescale": True,  # TODO: testing
-        "rotate_scene_x_axis_deg": 0.0,
-        "subsample_factor": 1,
-        "target_max_camera_distance": 1.0,
-        "foreground_scale_mult": 1.0,
-        "frame_rate": 30.0,
-        "pose_only": False,
-    }
 
     # Update config with defaults
     for key, default_value in defaults.items():
@@ -77,7 +64,7 @@ def load(
     # poses_bounds.npy
     poses_bounds_path = scene_path / "poses_bounds.npy"
     if not poses_bounds_path.exists():
-        print_error(f"File {poses_bounds_path} does not exist.")
+        raise ValueError(f"File {poses_bounds_path} does not exist.")
 
     poses_bounds = np.load(poses_bounds_path)
     print(poses_bounds)

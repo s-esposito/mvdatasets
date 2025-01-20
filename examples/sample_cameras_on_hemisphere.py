@@ -46,7 +46,7 @@ def main(args: Args):
 
     # only available for object centric datasets
     if not mv_data.cameras_on_hemisphere:
-        print_error(f"{dataset_name} does not have cameras on hemisphere")
+        raise ValueError(f"{dataset_name} does not have cameras on hemisphere")
 
     intrinsics = mv_data.get_split("train")[0].get_intrinsics()
     width = mv_data.get_split("train")[0].width
@@ -83,7 +83,7 @@ def main(args: Args):
         # draw_contraction_spheres=draw_contraction_spheres,
         title="bounding box intersections",
         show=False,
-        save_path=os.path.join("plots", "virtual_camera_rays.png"),
+        save_path=os.path.join(output_path, "virtual_camera_rays.png"),
     )
 
     # Visualize cameras
@@ -98,26 +98,24 @@ def main(args: Args):
         figsize=(15, 15),
         title="sampled cameras",
         show=False,
-        save_path=os.path.join(
-            "plots", "virtual_cameras.png"
-        ),
+        save_path=os.path.join(output_path, "virtual_cameras.png"),
     )
 
     # Create tensor reel
     tensorreel = TensorReel(sampled_cameras, modalities=[], device=device)  # no data
     print(tensorreel)
-    
+
     batch_size = 512
     nr_iterations = 10
-    
+
     benchmark = False
-    
+
     if benchmark:
         # Set profiler
         profiler = Profiler()  # nb: might slow down the code
     else:
         profiler = None
-    
+
     # use a subset of cameras and frames
     # cameras_idx = np.random.permutation(len(mv_data.get_split("train")))[:5]
     # frames_idx = np.random.permutation(mv_data.get_nr_per_camera_frames())[:2]
@@ -126,9 +124,9 @@ def main(args: Args):
     frames_idx = None
     print("cameras_idx", cameras_idx)
     print("frames_idx", frames_idx)
-    
+
     # -------------------------------------------------------------------------
-    
+
     pbar = tqdm(range(nr_iterations), desc="ray casting", ncols=100)
     azimuth_deg = 20
     azimuth_deg_delta = 1
@@ -157,13 +155,13 @@ def main(args: Args):
             batch_cameras_idx = batch["cameras_idx"]
             batch_rays_o = batch["rays_o"]
             batch_rays_d = batch["rays_d"]
-            
+
             # print data shapes
             for k, v in batch:
                 # if v is a dict
                 if isinstance(v, dict):
                     for k1, v1 in v.items():
-                        print(f"{k}, "f"{k1}", v1.shape, v1.device, v1.dtype)
+                        print(f"{k}, " f"{k1}", v1.shape, v1.device, v1.dtype)
                 else:
                     print(f"{k}", v.shape, v.device, v.dtype)
 
@@ -183,7 +181,7 @@ def main(args: Args):
                 title=f"rays batch sampling {i}",
                 show=False,
                 save_path=os.path.join(
-                    "plots",
+                    output_path,
                     f"virtual_cameras_batch_{i}.png",
                 ),
             )

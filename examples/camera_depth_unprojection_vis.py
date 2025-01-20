@@ -43,12 +43,12 @@ def main(args: Args):
     print("split_modalities", split_modalities)
     # make sure mv_data has depth modality
     if "depths" not in split_modalities:
-        print_error("Dataset does not have depth modality")
+        raise ValueError("Dataset does not have depth modality")
 
     # check if camera trajectory is available
     print("nr_sequence_frames:", mv_data.get_nr_sequence_frames())
     if mv_data.get_nr_sequence_frames() <= 1:
-        print_error(
+        raise ValueError(
             f"{dataset_name} is a static dataset and does not have camera trajectory"
         )
         return
@@ -56,7 +56,7 @@ def main(args: Args):
     # check if monocular sequence
     print("nr_per_camera_frames:", mv_data.get_nr_per_camera_frames())
     if mv_data.get_nr_per_camera_frames() > 1:
-        print_error(f"{dataset_name} is not a monocular sequence")
+        raise ValueError(f"{dataset_name} is not a monocular sequence")
         return
 
     from mvdatasets.utils.raycasting import get_points_2d_screen_from_pixels
@@ -117,7 +117,7 @@ def main(args: Args):
         azimuth_deg=280.0,
         elevation_deg=5.0,
         save_path=Path(
-            os.path.join("plots", f"{dataset_name}_{scene_name}_depth_unproject.mp4")
+            os.path.join(output_path, f"{dataset_name}_{scene_name}_depth_unproject.mp4")
         ),
         fps=10,
     )
@@ -135,7 +135,7 @@ def main(args: Args):
     #     figsize=(15, 15),
     #     title="point cloud unprojection",
     #     show=True,
-    #     # save_path=os.path.join("plots", f"{dataset_name}_{scene_name}_point_cloud_from_depths.png"),
+    #     # save_path=os.path.join(output_path, f"{dataset_name}_{scene_name}_point_cloud_from_depths.png"),
     # )
 
 

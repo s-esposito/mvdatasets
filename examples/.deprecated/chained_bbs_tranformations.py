@@ -107,7 +107,7 @@ def test():
     # plt.show()
 
     plt.savefig(
-        os.path.join("plots", f"bbs.png"),
+        os.path.join(output_path, f"bbs.png"),
         transparent=False,
         bbox_inches="tight",
         pad_inches=0,

@@ -66,7 +66,7 @@ def main(args: Args):
         title="Bounding Box",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_bounding_box.png"
+            output_path, f"{dataset_name}_{scene_name}_bounding_box.png"
         ),
     )
 
@@ -93,7 +93,7 @@ def main(args: Args):
         title="Bounding Sphere",
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_bounding_sphere.png"
+            output_path, f"{dataset_name}_{scene_name}_bounding_sphere.png"
         ),
     )
 

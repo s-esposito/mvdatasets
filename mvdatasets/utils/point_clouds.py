@@ -36,9 +36,9 @@ def load_point_cloud(point_cloud_path, max_nr_points=None, verbose=False):
                 print("loaded {} points".format(points_3d.shape[0]))
             return points_3d
         else:
-            print_error("unsupported point cloud format")
+            raise ValueError("unsupported point cloud format")
     else:
-        print_error("point cloud path {} does not exist".format(point_cloud_path))
+        raise ValueError("point cloud path {} does not exist".format(point_cloud_path))
 
 
 def load_point_clouds(point_clouds_paths, max_nr_points=10000, verbose=False):

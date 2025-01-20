@@ -82,7 +82,7 @@ Install the module with `pip install mvdatasets`, or from source using `pip inst
 # download data in ./data
 bash scripts/download/nerf_synthetic.sh
 # visualize dataset splits
-python examples/dataset_splits_vis.py.py --dataset-name nerf_synthetic --datasets-path ./data
+python examples/dataset_splits_vis.py --scene-name lego data:nerf-synthetic
 ```
 
 <p float="left">

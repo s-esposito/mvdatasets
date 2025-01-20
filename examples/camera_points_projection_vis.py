@@ -47,7 +47,7 @@ def main(args: Args):
         point_cloud = mv_data.point_clouds[0]
     else:
         # dataset has not tests/assets point cloud
-        print_error("No point cloud found in the dataset")
+        raise ValueError("No point cloud found in the dataset")
 
     points_3d = point_cloud.points_3d
 
@@ -70,7 +70,7 @@ def main(args: Args):
         points_norms=camera_points_dists,
         show=False,
         save_path=os.path.join(
-            "plots", f"{dataset_name}_{scene_name}_point_cloud_projection.png"
+            output_path, f"{dataset_name}_{scene_name}_point_cloud_projection.png"
         ),
     )
 
@@ -121,7 +121,7 @@ def main(args: Args):
     #     title="point cloud unprojection",
     #     show=False,
     #     save_path=os.path.join(
-    #         "plots", f"{dataset_name}_{scene_name}_point_cloud_unprojection.png"
+    #         output_path, f"{dataset_name}_{scene_name}_point_cloud_unprojection.png"
     #     ),
     # )
 

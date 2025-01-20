@@ -38,21 +38,6 @@ def load(
 
     scene_path = dataset_path / scene_name
 
-    # Default configuration
-    defaults = {
-        "scene_type": "bounded",
-        "translate_scene_x": 0.0,
-        "translate_scene_y": 0.0,
-        "translate_scene_z": 0.0,
-        "rotate_scene_x_axis_deg": 0.0,
-        "test_camera_freq": 8,
-        "train_test_overlap": False,
-        "subsample_factor": 1,
-        "init_sphere_radius_mult": 0.1,
-        "foreground_scale_mult": 0.5,
-        "pose_only": False,
-    }
-
     # Update config with defaults and handle warnings
     for key, default_value in defaults.items():
         if key not in config:
@@ -72,7 +57,7 @@ def load(
     # Validate specific keys
     for key, valid in valid_values.items():
         if key in config and config[key] not in valid:
-            print_error(f"{key} {config[key]} must be a value in {valid}")
+            raise ValueError(f"{key} {config[key]} must be a value in {valid}")
 
     # Set `target_max_camera_distance` based on `scene_type`
     if config["scene_type"] == "bounded":
@@ -80,7 +65,7 @@ def load(
     elif config["scene_type"] == "unbounded":
         config["target_max_camera_distance"] = 0.5
     else:
-        print_error(f"Unknown scene type {config['scene_type']}")
+        raise ValueError(f"Unknown scene type {config['scene_type']}")
 
     # Debugging output
     if verbose:
@@ -100,7 +85,7 @@ def load(
         subsample_factor = 1
 
     if not os.path.exists(images_path):
-        print_error(f"Images directory {images_path} does not exist.")
+        raise ValueError(f"Images directory {images_path} does not exist.")
 
     # read colmap data
 
@@ -109,7 +94,7 @@ def load(
         colmap_dir = os.path.join(scene_path, "sparse")
 
     if not os.path.exists(colmap_dir):
-        print_error(f"COLMAP directory {colmap_dir} does not exist.")
+        raise ValueError(f"COLMAP directory {colmap_dir} does not exist.")
 
     manager = SceneManager(colmap_dir, image_path=images_path)
     manager.load_cameras()
@@ -187,7 +172,7 @@ def load(
     print(f"[COLMAP] {len(imdata)} images, taken by {len(set(camera_ids))} cameras.")
 
     if len(imdata) == 0:
-        print_error("No images found in COLMAP.")
+        raise ValueError("No images found in COLMAP.")
     if not (type_ == 0 or type_ == 1):
         print_warning("COLMAP Camera is not PINHOLE. Images have distortion.")
 
@@ -230,11 +215,11 @@ def load(
 
     # scene translation
     translation_matrix = np.eye(4)
-    translation_matrix[:3, 3] = [
-        config["translate_scene_x"],
-        config["translate_scene_y"],
-        config["translate_scene_z"],
-    ]
+    # translation_matrix[:3, 3] = [
+    #     config["translate_scene_x"],
+    #     config["translate_scene_y"],
+    #     config["translate_scene_z"],
+    # ]
 
     # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
@@ -294,7 +279,7 @@ def load(
 
         # undistort
         if len(params) > 0:
-            print_error("undistortion not implemented yet")
+            raise ValueError("undistortion not implemented yet")
 
         # extrainsics
         c2w_mat = camera_meta[0]
@@ -412,7 +397,7 @@ def _undistort(camtype, params_dict, Ks_dict, imsize_dict, mask_dict):
             K_undist[1, 2] -= y_min
             roi_undist = [x_min, y_min, x_max - x_min, y_max - y_min]
         else:
-            print_error(f"Unknown camera type {camtype}")
+            raise ValueError(f"Unknown camera type {camtype}")
 
         mapx_dict[camera_id] = mapx
         mapy_dict[camera_id] = mapy

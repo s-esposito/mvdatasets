@@ -42,21 +42,6 @@ def load(
 
     scene_path = dataset_path / scene_name
 
-    # Default configuration
-    defaults = {
-        "scene_type": "bounded",
-        "rotate_scene_x_axis_deg": 0.0,
-        "subsample_factor": 1,
-        "test_skip": 1,
-        "foreground_scale_mult": 0.5,
-        "target_max_camera_distance": 1.0,
-        "init_sphere_radius_mult": 0.3,
-        "pose_only": False,
-        "load_depth": False,
-        "load_semantics": False,
-        "load_semantic_instance": False,
-    }
-
     # Update config with defaults and handle warnings
     for key, default_value in defaults.items():
         if key not in config:

@@ -82,7 +82,7 @@ def main(args: Args):
         figsize=(15, 15),
         title="uniform sampling",
         show=False,
-        save_path=os.path.join("plots", "ray_sampling_uniform.png"),
+        save_path=os.path.join(output_path, "ray_sampling_uniform.png"),
     )
 
     # load error map
@@ -112,7 +112,7 @@ def main(args: Args):
         figsize=(15, 15),
         title="error map sampling",
         show=False,
-        save_path=os.path.join("plots", "ray_sampling_error_proportional.png"),
+        save_path=os.path.join(output_path, "ray_sampling_error_proportional.png"),
     )
 
     profiler.print_avg_times()

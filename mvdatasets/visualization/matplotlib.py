@@ -415,7 +415,7 @@ def _draw_bounding_boxes(
         return
 
     if not isinstance(bounding_boxes, list):
-        print_error("bounding_boxes must be a list of BoundingBoxes")
+        raise ValueError("bounding_boxes must be a list of BoundingBoxes")
 
     # draw bounding boxes
     for i, bb in enumerate(bounding_boxes):
@@ -474,7 +474,7 @@ def _draw_bounding_spheres(
         return
 
     if not isinstance(bounding_spheres, list):
-        print_error("bounding_spheres must be a list of BoundingSpheres")
+        raise ValueError("bounding_spheres must be a list of BoundingSpheres")
 
     # draw bounding spheres
     for i, bs in enumerate(bounding_spheres):
@@ -650,7 +650,7 @@ def _draw_point_clouds(
         return
 
     if not isinstance(point_clouds, list):
-        print_error("point_clouds must be a list of PointClouds")
+        raise ValueError("point_clouds must be a list of PointClouds")
 
     # if pc are given
     if len(point_clouds) > 0:
@@ -688,7 +688,7 @@ def _draw_cameras(
         return
 
     if not isinstance(cameras, list):
-        print_error("cameras must be a list of Cameras")
+        raise ValueError("cameras must be a list of Cameras")
 
     if len(cameras) > 0:
         nr_cameras = len(cameras) // draw_every_n_cameras
@@ -741,7 +741,7 @@ def _draw_camera_trajectory(
         return
 
     if not isinstance(cameras, list):
-        print_error("cameras must be a list of Cameras")
+        raise ValueError("cameras must be a list of Cameras")
 
     # collect cameras timestamps
     all_centers = []

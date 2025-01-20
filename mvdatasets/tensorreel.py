@@ -33,7 +33,7 @@ class TensorReel:
         """
 
         if len(cameras) == 0:
-            print_error("tensor reel has no cameras")
+            raise ValueError("tensor reel has no cameras")
 
         data = {}
         c2w_all = []  # list of (4, 4) matrices
@@ -54,7 +54,9 @@ class TensorReel:
                     if val is not None:
                         data[key].append(torch.from_numpy(val))
                     else:
-                        print_error(f"camera {camera.camera_label} has no {key} data")
+                        raise ValueError(
+                            f"camera {camera.camera_label} has no {key} data"
+                        )
 
             # camera matrices
             c2w_all.append(torch.from_numpy(camera.get_pose()).float())

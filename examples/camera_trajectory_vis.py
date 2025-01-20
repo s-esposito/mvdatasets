@@ -35,7 +35,7 @@ def main(args: Args):
     # check if camera trajectory is available
     print("nr_sequence_frames:", mv_data.get_nr_sequence_frames())
     if mv_data.get_nr_sequence_frames() <= 1:
-        print_error(
+        raise ValueError(
             f"{dataset_name} is a static dataset and does not have camera trajectory"
         )
         return
@@ -43,7 +43,7 @@ def main(args: Args):
     # check if monocular sequence
     print("nr_per_camera_frames:", mv_data.get_nr_per_camera_frames())
     if mv_data.get_nr_per_camera_frames() > 1:
-        print_error(f"{dataset_name} is not a monocular sequence")
+        raise ValueError(f"{dataset_name} is not a monocular sequence")
         return
 
     # make video
@@ -55,13 +55,13 @@ def main(args: Args):
         remove_tmp_files=True,
         scene_radius=mv_data.get_scene_radius(),
         save_path=Path(
-            os.path.join("plots", f"{dataset_name}_{scene_name}_trajectory.mp4")
+            os.path.join(output_path, f"{dataset_name}_{scene_name}_trajectory.mp4")
         ),
         fps=mv_data.get_frame_rate(),
     )
 
     # # create output folder
-    # output_path = os.path.join("plots", f"{dataset_name}_{scene_name}_trajectory")
+    # output_path = os.path.join(output_path, f"{dataset_name}_{scene_name}_trajectory")
     # os.makedirs(output_path, exist_ok=True)
 
     # # Visualize cameras

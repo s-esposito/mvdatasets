@@ -23,11 +23,13 @@ class Mesh:
     ):
         # only one of o3d_mesh and mesh_meta should be provided
         if o3d_mesh is not None and mesh_meta is not None:
-            print_error("only one of o3d_mesh and mesh_meta should be provided")
+            raise ValueError("only one of o3d_mesh and mesh_meta should be provided")
 
         # at least one of o3d_mesh and mesh_meta should be provided
         if o3d_mesh is None and mesh_meta is None:
-            print_error("at least one of o3d_mesh and mesh_meta should be provided")
+            raise ValueError(
+                "at least one of o3d_mesh and mesh_meta should be provided"
+            )
 
         if o3d_mesh is not None:
 

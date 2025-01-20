@@ -22,7 +22,7 @@ def eval_rendered_imgs(renders_path, scene_name):
 
     # check if path exists
     if not os.path.exists(renders_path):
-        print_error(f"renders path {renders_path} does not exist")
+        raise ValueError(f"renders path {renders_path} does not exist")
 
     # # list all folders in renders_path
     # render_modes = []
@@ -144,7 +144,7 @@ def visual_evaluation(
             if os.path.exists(os.path.join(run_path, split)):
                 print_info(f"found renders for {split}")
             else:
-                print_error(f"renders for {split} not found in {run_path}")
+                raise ValueError(f"renders for {split} not found in {run_path}")
 
             render_modes_eval_res = eval_rendered_imgs(
                 os.path.join(run_path, split), scene_name=mv_data.scene_name

@@ -65,7 +65,9 @@ class DataSplit:
                         # val_ is (T_s, H, W, C)
                         data[key].append(val_)
                     else:
-                        print_error(f"camera {camera.camera_label} has no {key} data")
+                        raise ValueError(
+                            f"camera {camera.camera_label} has no {key} data"
+                        )
 
             intrinsics_all.append(camera.get_intrinsics())
             intrinsics_inv_all.append(camera.get_intrinsics_inv())

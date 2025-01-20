@@ -70,11 +70,12 @@ def _extract_data(
 
     # split either "train" or "val"
     if split not in ["train", "val"]:
-        print_error(f"Invalid split: {split}")
+        raise ValueError(f"Invalid split: {split}")
 
     if split == "val":
+        # TODO: implement loading validation split
         # not implemented yet
-        print_error("Split 'val' not implemented/tested yet.")
+        raise ValueError("Split 'val' not implemented/tested yet.")
 
     # read json file
     annotation_json_path = os.path.join(annotations_path, split, f"{scene_name}.json")
@@ -199,24 +200,6 @@ def load(
         cameras_splits (dict): Dictionary of splits with lists of Camera objects.
         global_transform (np.ndarray): (4, 4)
     """
-
-    # Default configuration
-    defaults = {
-        "scene_type": "unbounded",
-        "load_masks": True,
-        "load_semantic_masks": True,
-        "translate_scene_x": 0.0,
-        "translate_scene_y": 0.0,
-        "translate_scene_z": 0.0,
-        "rotate_scene_x_axis_deg": 180.0,
-        # "test_camera_freq": 50,
-        # "train_test_overlap": False,
-        "subsample_factor": 1,
-        "target_max_camera_distance": 1.0,
-        "foreground_scale_mult": 1.0,
-        "frame_rate": 59.94,
-        "pose_only": False,
-    }
 
     # Update config with defaults
     for key, default_value in defaults.items():
@@ -346,11 +329,11 @@ def load(
 
     # translate
     translation_matrix = np.eye(4)
-    translation_matrix[:3, 3] = [
-        config["translate_scene_x"],
-        config["translate_scene_y"],
-        config["translate_scene_z"],
-    ]
+    # translation_matrix[:3, 3] = [
+    #     config["translate_scene_x"],
+    #     config["translate_scene_y"],
+    #     config["translate_scene_z"],
+    # ]
 
     # Incorporate translation into scene_transform
     scene_transform = translation_matrix @ scene_transform
