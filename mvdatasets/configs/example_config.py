@@ -20,9 +20,9 @@ class ExampleConfig(PrintableConfig):
     """Name of the scene (e.g., "dtu_scan83", "khady", ...)"""
 
     # paths
-    datasets_path: Path = Path("/home/stefano/Data")
+    datasets_path: Path = Path("data")
     """Relative or absolute path to the root datasets directory"""
-    output_path: Path = Path("plots")
+    output_path: Path = Path("outputs")
     """Relative or absolute path to the output directory to save splots, videos, etc..."""
 
     with_viewer: bool = False
