@@ -52,7 +52,11 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Main Modules</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Camera</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Camera</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#coordinate-system">Coordinate system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Camera</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="mvdataset.html">MVDataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasplit.html">DataSplit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tensorreel.html">TensorReel</a></li>
@@ -92,8 +96,20 @@
              
   <section id="camera">
 <h1>Camera<a class="headerlink" href="#camera" title="Link to this heading"></a></h1>
+<section id="coordinate-system">
+<h2>Coordinate system<a class="headerlink" href="#coordinate-system" title="Link to this heading"></a></h2>
 <p>Central class of the library; it provides a standardized format for camera parameters, its data and methods to manipulate them.
 All data in stored in CPU.</p>
+<p>We use the OpenCV camera coordinate system:</p>
+<ul class="simple">
+<li><p>X axis: Points to the right of the camera’s sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.</p></li>
+<li><p>Y axis: Points downward from the camera’s sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.</p></li>
+<li><p>Z axis: Represents depth and points away from the camera lens. It extends from the camera’s lens outward into the scene. Increasing values move away from the camera.</p></li>
+</ul>
+</section>
+<section id="id1">
+<h2>Camera<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+</section>
 </section>
 
 
