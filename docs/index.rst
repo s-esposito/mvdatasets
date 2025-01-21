@@ -62,3 +62,11 @@ If you use this library for your research, please consider citing:
       url          = {https://github.com/s-esposito/mvdatasets},
       note         = {GitHub repository}
    }
+
+------------
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Credits
+
+   source/bibliography

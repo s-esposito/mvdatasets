@@ -22,11 +22,11 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 
 Don't miss out on our [documentation](https://s-esposito.github.io/mvdatasets/index.html#). It's still a work in progress, but together with our [examples](examples), it is the best way to get started. 
 
-### Supported datasets
+### Datasets
 
-Checkout the current state of supported datasets [here](file:///home/stefano/Codebase/mvdatasets_dev/docs/_build/html/source/datasets.html).
+Checkout the state of currently supported datasets or work in progress [here](https://s-esposito.github.io/mvdatasets/source/datasets.html).
 
-## Camera
+### Camera
 
 Our standardized camera uses the OpenCV camera coordinate system and it is described [here](https://s-esposito.github.io/mvdatasets/source/datasets.html).
 

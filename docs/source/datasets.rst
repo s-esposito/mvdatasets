@@ -8,7 +8,7 @@ Currently supported datasets in the library:
    <div>
      <table>
        <tr>
-         <td style="padding-right: 20px;">
+         <td style="padding-right: 40px;">
 
            <strong>Static</strong>
            <ul>
@@ -21,7 +21,7 @@ Currently supported datasets in the library:
            </ul>
 
          </td>
-         <td style="padding-left: 20px;">
+         <td style="padding-left: 40px;">
 
            <strong>Dynamic</strong>
            <ul>
@@ -45,7 +45,7 @@ Soon to be added (or not tested):
    <div>
      <table>
        <tr>
-         <td style="padding-right: 20px;">
+         <td style="padding-right: 40px;">
 
            <strong>Static</strong>
            <ul>
@@ -54,14 +54,14 @@ Soon to be added (or not tested):
            </ul>
 
          </td>
-         <td style="padding-left: 20px;">
+         <td style="padding-left: 40px;">
 
            <strong>Dynamic</strong>
            <ul>
              <li><a href="https://github.com/facebookresearch/Neural_3D_Video">Neu3D</a>: multi-view, unbounded</li>
-             <li><a href="https://github.com/google/nerfies/releases/tag/0.1">Nerfies</a>: monocular, unbounded</li>
-             <li><a href="https://github.com/google/hypernerf/releases/tag/v0.1">Hypernerf</a>: monocular, unbounded</li>
-             <li><a href="https://gorokee.github.io/jsyoon/dynamic_synth/">DynamicScenes (NVIDIA)</a>: monocular, unbounded</li>
+             <li><a href="https://github.com/google/nerfies/releases/tag/0.1">Nerfies</a>: semi-monocular, unbounded</li>
+             <li><a href="https://github.com/google/hypernerf/releases/tag/v0.1">Hypernerf</a>: semi-monocular, unbounded</li>
+             <li><a href="https://gorokee.github.io/jsyoon/dynamic_synth/">Nvidia Dynamic Scene</a>: semi-monocular, unbounded</li>
              <li><a href="https://people.csail.mit.edu/drdaniel/mesh_animation/#data">AMA</a>: multi-view, bounded</li>
              <li><a href="https://github.com/NVlabs/watch-it-move?tab=readme-ov-file#the-wim-dataset">Robots (WIM)</a>: multi-view, bounded</li>
              <li>...</li>
@@ -71,6 +71,10 @@ Soon to be added (or not tested):
        </tr>
      </table>
    </div>
+
+A dataset labelled as "bounded" means that the dataset is limited to a specific volume, while "unbounded" means that the dataset is not limited to a specific volume, and can be extended indefinitely.
+A dataset labelled as "monocular" means that the dataset is captured with a single camera (e.g. casual captures), while "multi-view" means that the dataset is captured with multiple synchronized cameras simultaneosly.
+A dataset labelled as "semi-monocular" (e.g. D-NeRF) means that the dataset contain either teleporting cameras or quasi-static scenes :cite:t:`gao2022dynamic`.
 
 Download
 --------
