@@ -22,6 +22,10 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 
 Don't miss out on our [documentation](https://autonomousvision.github.io/mvdatasets/index.html). It's still a work in progress, but together with our [examples](examples), it is the best way to get started. 
 
+### Installation
+
+Install the module from source using `pip install -e`.
+
 ### Datasets
 
 Checkout the state of currently supported datasets or work in progress [here](https://autonomousvision.github.io/mvdatasets/source/datasets.html).
@@ -37,11 +41,7 @@ Our standardized camera uses the OpenCV camera coordinate system and it is descr
 
 Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/computer-vision/) at the University of Tübingen.
 
-## Installation
-
-Install the module from source using `pip install -e`.
-
-## Run the examples
+## Examples
 
 ```bash
 # download data in ./data
