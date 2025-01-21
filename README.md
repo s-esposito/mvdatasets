@@ -9,7 +9,7 @@
 <br>
 University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/)
 
-[![Unit tests](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml/badge.svg?branch=dev)](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml) [![deploy-documentation](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml/badge.svg?branch=dev)](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml)
+[![Unit tests](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml/badge.svg?branch=main)](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml) [![Docs](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml/badge.svg?branch=main)](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml)
 
 ```
 ⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
