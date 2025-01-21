@@ -13,8 +13,8 @@ We use the OpenCV camera coordinate system:
 - Y axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
 - Z axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
 
-Camera
-------
+The Camera Class
+----------------
 
 .. automodule:: mvdatasets.camera
    :members:

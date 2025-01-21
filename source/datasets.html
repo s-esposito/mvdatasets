@@ -69,6 +69,10 @@
 <li class="toctree-l1"><a class="reference internal" href="utils/index.html">Utility functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization/index.html">Visualizations</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Credits</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="bibliography.html">Bibliography</a></li>
+</ul>
 
         </div>
       </div>
@@ -100,7 +104,7 @@
 <div>
   <table>
     <tr>
-      <td style="padding-right: 20px;">
+      <td style="padding-right: 40px;">
 
         <strong>Static</strong>
         <ul>
@@ -113,7 +117,7 @@
         </ul>
 
       </td>
-      <td style="padding-left: 20px;">
+      <td style="padding-left: 40px;">
 
         <strong>Dynamic</strong>
         <ul>
@@ -131,7 +135,7 @@
 <div>
   <table>
     <tr>
-      <td style="padding-right: 20px;">
+      <td style="padding-right: 40px;">
 
         <strong>Static</strong>
         <ul>
@@ -140,14 +144,14 @@
         </ul>
 
       </td>
-      <td style="padding-left: 20px;">
+      <td style="padding-left: 40px;">
 
         <strong>Dynamic</strong>
         <ul>
           <li><a href="https://github.com/facebookresearch/Neural_3D_Video">Neu3D</a>: multi-view, unbounded</li>
-          <li><a href="https://github.com/google/nerfies/releases/tag/0.1">Nerfies</a>: monocular, unbounded</li>
-          <li><a href="https://github.com/google/hypernerf/releases/tag/v0.1">Hypernerf</a>: monocular, unbounded</li>
-          <li><a href="https://gorokee.github.io/jsyoon/dynamic_synth/">DynamicScenes (NVIDIA)</a>: monocular, unbounded</li>
+          <li><a href="https://github.com/google/nerfies/releases/tag/0.1">Nerfies</a>: semi-monocular, unbounded</li>
+          <li><a href="https://github.com/google/hypernerf/releases/tag/v0.1">Hypernerf</a>: semi-monocular, unbounded</li>
+          <li><a href="https://gorokee.github.io/jsyoon/dynamic_synth/">Nvidia Dynamic Scene</a>: semi-monocular, unbounded</li>
           <li><a href="https://people.csail.mit.edu/drdaniel/mesh_animation/#data">AMA</a>: multi-view, bounded</li>
           <li><a href="https://github.com/NVlabs/watch-it-move?tab=readme-ov-file#the-wim-dataset">Robots (WIM)</a>: multi-view, bounded</li>
           <li>...</li>
@@ -156,7 +160,10 @@
       </td>
     </tr>
   </table>
-</div><section id="download">
+</div><p>A dataset labelled as “bounded” means that the dataset is limited to a specific volume, while “unbounded” means that the dataset is not limited to a specific volume, and can be extended indefinitely.
+A dataset labelled as “monocular” means that the dataset is captured with a single camera (e.g. casual captures), while “multi-view” means that the dataset is captured with multiple synchronized cameras simultaneosly.
+A dataset labelled as “semi-monocular” (e.g. D-NeRF) means that the dataset contain either teleporting cameras or quasi-static scenes <span id="id1">Gao <em>et al.</em> [<a class="reference internal" href="bibliography.html#id5" title="Hang Gao, Ruilong Li, Shubham Tulsiani, Bryan Russell, and Angjoo Kanazawa. Monocular dynamic view synthesis: a reality check. In NeurIPS. 2022.">1</a>]</span>.</p>
+<section id="download">
 <h2>Download<a class="headerlink" href="#download" title="Link to this heading"></a></h2>
 <p>Download each dataset by running scripts in the <a class="reference external" href="https://github.com/s-esposito/mvdatasets/tree/main/scripts/download">download</a> directory (<code class="docutils literal notranslate"><span class="pre">scripts/download</span></code>). The scripts will download the data and save it to the <cite>data</cite> directory.</p>
 </section>
