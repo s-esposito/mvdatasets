@@ -9,7 +9,7 @@
 <br>
 University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/home/)
 
-[![Unit tests](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml/badge.svg?branch=main)](https://github.com/s-esposito/mvdatasets/actions/workflows/run-unit-tests.yml) [![Docs](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml/badge.svg?branch=main)](https://github.com/s-esposito/mvdatasets/actions/workflows/deploy-docs.yml)
+[![unit-tests-main](https://github.com/autonomousvision/mvdatasets/actions/workflows/unit-tests-main.yml/badge.svg)](https://github.com/autonomousvision/mvdatasets/actions/workflows/unit-tests-main.yml) [![unit-tests-dev](https://github.com/autonomousvision/mvdatasets/actions/workflows/unit-tests-dev.yml/badge.svg)](https://github.com/autonomousvision/mvdatasets/actions/workflows/unit-tests-dev.yml) [![deploy-docs](https://github.com/autonomousvision/mvdatasets/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/autonomousvision/mvdatasets/actions/workflows/deploy-docs.yml)
 
 ```
 ⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
@@ -20,15 +20,15 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 
 ## Documentation
 
-Don't miss out on our [documentation](https://s-esposito.github.io/mvdatasets/index.html#). It's still a work in progress, but together with our [examples](examples), it is the best way to get started. 
+Don't miss out on our [documentation](https://autonomousvision.github.io/mvdatasets/index.html). It's still a work in progress, but together with our [examples](examples), it is the best way to get started. 
 
 ### Datasets
 
-Checkout the state of currently supported datasets or work in progress [here](https://s-esposito.github.io/mvdatasets/source/datasets.html).
+Checkout the state of currently supported datasets or work in progress [here](https://autonomousvision.github.io/mvdatasets/source/datasets.html).
 
 ### Camera
 
-Our standardized camera uses the OpenCV camera coordinate system and it is described [here](https://s-esposito.github.io/mvdatasets/source/datasets.html).
+Our standardized camera uses the OpenCV camera coordinate system and it is described [here](https://autonomousvision.github.io/mvdatasets/source/datasets.html).
 
 <p float="left">
   <img src="imgs/pose_and_intrinsics.png" width="500"/>
@@ -39,7 +39,7 @@ Images taken from Andreas Geiger's Computer Vision [lectures](https://uni-tuebin
 
 ## Installation
 
-Install the module with `pip install mvdatasets`, or from source using `pip install -e`.
+Install the module from source using `pip install -e`.
 
 ## Run the examples
 
@@ -74,7 +74,7 @@ If you use this library for your research, please consider citing:
   author       = {Stefano Esposito and Andreas Geiger},
   title        = {MVDatasets: Standardized DataLoaders for 3D Computer Vision},
   year         = {2025},
-  url          = {https://github.com/s-esposito/mvdatasets},
+  url          = {https://github.com/autonomousvision/mvdatasets},
   note         = {GitHub repository}
 }
 ```

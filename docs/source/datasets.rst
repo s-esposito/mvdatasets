@@ -79,7 +79,7 @@ A dataset labelled as "semi-monocular" (e.g. D-NeRF) means that the dataset cont
 Download
 --------
 
-Download each dataset by running scripts in the `download <https://github.com/s-esposito/mvdatasets/tree/main/scripts/download>`_ directory (``scripts/download``). The scripts will download the data and save it to the `data` directory.
+Download each dataset by running scripts in the `download <https://github.com/autonomousvision/mvdatasets/tree/main/scripts/download>`_ directory (``scripts/download``). The scripts will download the data and save it to the `data` directory.
 
 Configuration
 -------------

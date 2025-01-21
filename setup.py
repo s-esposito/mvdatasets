@@ -6,7 +6,7 @@ setup(
     description="Standardized DataLoaders for 3D Computer Vision",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/s-esposito/mvdatasets",
+    url="https://github.com/autonomousvision/mvdatasets",
     author="Stefano Esposito",
     author_email="stefano.esposito@uni-tuebingen.de",
     packages=find_packages(),
