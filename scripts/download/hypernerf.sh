@@ -21,6 +21,9 @@ unzip data/oven-mitts.zip -d data/hypernerf
 unzip data/split-cookie.zip -d data/hypernerf
 unzip data/tamping.zip -d data/hypernerf
 
+# rename split-cookie1 to split-cookie
+mv data/hypernerf/cross-hands1 data/hypernerf/cross-hands
+
 # remove zip file
 rm data/americano.zip
 rm data/cross-hands.zip
