@@ -25,7 +25,9 @@ DATASET_LOADER_MAPPING = {
     "neu3d": "neu3d",
     "panoptic-sports": "panoptic-sports",
     "nerfies": "nerfies",
-    "iphone": "nerfies",
+    "hypernerf": "nerfies",
+    "iphone": "iphone",
+    # preprocessing
     "monst3r": "monst3r",
     "iphone_som": "flow3d",
 }
@@ -41,7 +43,6 @@ class MVDataset:
         dataset_name: str,
         scene_name: str,
         datasets_path: Path,
-        splits: List[str],
         config: dict,
         point_clouds_paths: list = [],
         verbose: bool = False,
@@ -58,7 +59,7 @@ class MVDataset:
 
         print(f"dataset: [bold magenta]{dataset_name}[/bold magenta]")
         print(f"scene: [magenta]{scene_name}[/magenta]")
-        print(f"loading {splits} splits")
+        print(f"loading {config['splits']} splits")
 
         self.cameras_on_hemisphere = False
         self.foreground_radius = 0.0
@@ -80,16 +81,16 @@ class MVDataset:
         if loader == "dtu":
             from mvdatasets.loaders.static.dtu import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # blender loader
         elif loader == "blender":
             from mvdatasets.loaders.static.blender import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
             self.cameras_on_hemisphere = True
 
-        # ingp loader
+        # ingp loader (deprecated)
         # elif loader == "ingp":
         #     res = load_ingp(dataset_path, scene_name, splits, config, verbose=verbose)
 
@@ -97,13 +98,13 @@ class MVDataset:
         elif loader == "dmsr":
             from mvdatasets.loaders.static.dmsr import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # colmap loader
         elif loader == "colmap":
             from mvdatasets.loaders.static.colmap import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # DYNAMIC SCENE DATASETS ----------------------------------------------
 
@@ -111,43 +112,49 @@ class MVDataset:
         elif loader == "d-nerf":
             from mvdatasets.loaders.dynamic.d_nerf import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # visor loader
         elif loader == "visor":
             from mvdatasets.loaders.dynamic.visor import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # neu3d loader
         elif loader == "neu3d":
             from mvdatasets.loaders.dynamic.neu3d import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # panoptic-sports loader
         elif loader == "panoptic-sports":
             from mvdatasets.loaders.dynamic.panoptic_sports import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # nerfies loader
         elif loader == "nerfies":
             from mvdatasets.loaders.dynamic.nerfies import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
+
+        # iphone loader
+        elif loader == "iphone":
+            from mvdatasets.loaders.dynamic.iphone import load
+
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # monst3r loader
         elif loader == "monst3r":
             from mvdatasets.loaders.dynamic.monst3r import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # flow3d loader
         elif loader == "flow3d":
             from mvdatasets.loaders.dynamic.flow3d import load
 
-            res = load(dataset_path, scene_name, splits, config, verbose=verbose)
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         else:
 

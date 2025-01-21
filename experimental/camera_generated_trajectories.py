@@ -65,7 +65,6 @@ def main(args: Args):
         scene_name,
         datasets_path,
         point_clouds_paths=pc_paths,
-        splits=splits,
         verbose=True,
     )
 

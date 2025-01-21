@@ -38,6 +38,3 @@ class ExampleConfig(PrintableConfig):
             raise ValueError(f"Dataset path {self.datasets_path} does not exist.")
         # create output directory if it does not exist
         self.output_path.mkdir(parents=True, exist_ok=True)
-        # if scene_name is None, print warning 
-        if self.scene_name is None:
-            print_warning("scene_name is None, using preset test scene for dataset")

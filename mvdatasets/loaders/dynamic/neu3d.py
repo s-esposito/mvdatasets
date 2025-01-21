@@ -18,7 +18,6 @@ from mvdatasets.geometry.quaternions import quats_to_rots
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str],
     config: dict,
     verbose: bool = False,
 ):
@@ -44,8 +43,9 @@ def load(
         int: Number of sequence frames
         float: Frames per second
     """
-    
+
     scene_path = dataset_path / scene_name
+    splits = config["splits"]
 
     # Valid values for specific keys
     valid_values = {}
@@ -116,5 +116,5 @@ def load(
             print_success(f"Frames extracted to {frames_folder}")
 
     # TODO: complete implementation
-    
-    exit(0)
+
+    raise NotImplementedError("nerfies loader is not implemented yet")

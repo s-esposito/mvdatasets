@@ -41,7 +41,6 @@ def _tum_to_c2w(tum_pose):
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str],
     config: dict,
     verbose: bool = False,
 ):
@@ -69,6 +68,7 @@ def load(
     """
 
     scene_path = dataset_path / scene_name
+    splits = config["splits"]
 
     # Valid values for specific keys
     valid_values = {
@@ -122,7 +122,7 @@ def load(
     scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
         poses_list, to_distance=config["max_cameras_distance"]
     )
-    
+
     scene_radius = max_camera_distance
 
     # global transform
@@ -194,17 +194,17 @@ def load(
         cameras_splits[split] = []
 
         for i in range(len(rgbs_list)):
-            
+
             if len(depths_list) == 0:
                 depths = None
             else:
                 depths = depths_list[i][None, ...]
-            
+
             if len(masks_list) == 0:
                 masks = None
             else:
                 masks = masks_list[i][None, ...]
-            
+
             # create camera object
             camera = Camera(
                 intrinsics=intrinsics_list[i],

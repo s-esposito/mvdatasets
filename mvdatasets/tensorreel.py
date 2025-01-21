@@ -240,7 +240,7 @@ class TensorReel:
             sampled_idx = np.random.randint(0, len(cameras_idx), size=real_batch_size)
             cameras_idx = cameras_idx[sampled_idx]
         cameras_idx = cameras_idx.astype(np.int32)
-        
+
         # move cameras_idx to device
         cameras_idx = torch.tensor(cameras_idx, device=self.device)
 
@@ -253,7 +253,7 @@ class TensorReel:
             sampled_idx = np.random.randint(0, len(frames_idx), size=real_batch_size)
             frames_idx = frames_idx[sampled_idx]
         frames_idx = frames_idx.astype(np.int32)
-        
+
         # move frames_idx to device
         frames_idx = torch.tensor(frames_idx, device=self.device)
 

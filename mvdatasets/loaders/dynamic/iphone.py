@@ -1,7 +1,6 @@
 from rich import print
 import numpy as np
 from pathlib import Path
-import os.path as osp
 import os
 import json
 from PIL import Image
@@ -13,7 +12,6 @@ from mvdatasets.geometry.primitives.bounding_box import BoundingBox
 from mvdatasets.utils.printing import print_error, print_warning, print_success
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
-from dataclasses import dataclass, asdict
 
 
 def load(
@@ -22,7 +20,7 @@ def load(
     config: dict,
     verbose: bool = False,
 ):
-    """flow3d data format loader.
+    """iphone data format loader.
 
     Args:
         dataset_path (Path): Path to the dataset folder.
@@ -44,6 +42,7 @@ def load(
         int: Number of sequence frames
         float: Frames per second
     """
+
     scene_path = dataset_path / scene_name
     splits = config["splits"]
 
@@ -64,8 +63,6 @@ def load(
             print(f"\t{k}: {v}")
 
     # -------------------------------------------------------------------------
-
-    # TODO: load data from flow3d_preprocessed
 
     # load points.npy
     points_3d = np.load(os.path.join(scene_path, "points.npy"))
@@ -186,7 +183,7 @@ def load(
     width, height = image_size
     width, height = width // subsample_factor, height // subsample_factor
 
-    #
+    # read all poses
     poses_all = []
     for split_name, split_poses in poses_dict.items():
         for pose in split_poses:
@@ -266,62 +263,6 @@ def load(
                     depths_dict[split_name].append(depth_np)
 
         # TODO: load covisible for validation split
-
-    # Load 2D tracks
-    frame_names = []
-
-    # Load the query pixels from 2D tracks.
-    query_tracks_2d = [
-        np.load(
-            osp.join(
-                scene_path,
-                "flow3d_preprocessed/2d_tracks/",
-                f"{subsample_factor}x/{frame_name}_{frame_name}.npy",
-            )
-        ).astype(np.float32)
-        for frame_name in frame_names
-    ]
-
-    num_samples = 1000
-    num_frames = 10  # TODO: full sequence length
-    step = 1
-
-    raw_tracks_2d = []
-    candidate_frames = list(range(0, num_frames, step))
-    num_sampled_frames = len(candidate_frames)
-    for i in tqdm(candidate_frames, desc="Loading 2D tracks", leave=False):
-        curr_num_samples = query_tracks_2d[i].shape[0]
-        num_samples_per_frame = (
-            int(np.floor(num_samples / num_sampled_frames))
-            if i != candidate_frames[-1]
-            else num_samples
-            - (num_sampled_frames - 1) * int(np.floor(num_samples / num_sampled_frames))
-        )
-        if num_samples_per_frame < curr_num_samples:
-            track_sels = np.random.choice(
-                curr_num_samples, (num_samples_per_frame,), replace=False
-            )
-        else:
-            track_sels = np.arange(0, curr_num_samples)
-
-        curr_tracks_2d = []
-        for j in range(0, num_frames, step):
-            if i == j:
-                target_tracks_2d = query_tracks_2d[i]
-            else:
-                target_tracks_2d = np.load(
-                    osp.join(
-                        scene_path,
-                        "flow3d_preprocessed/2d_tracks/",
-                        f"{subsample_factor}x/"
-                        f"{frame_names[i]}_"
-                        f"{frame_names[j]}.npy",
-                    )
-                ).astype(np.float32)
-
-            curr_tracks_2d.append(target_tracks_2d[track_sels])
-        # stack with numpy
-        raw_tracks_2d.append(np.stack(curr_tracks_2d, axis=1))
 
     # cameras objects
     cameras_splits = {}

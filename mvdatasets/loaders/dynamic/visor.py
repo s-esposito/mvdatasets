@@ -184,7 +184,6 @@ def _extract_data(
 def load(
     dataset_path: Path,
     scene_name: str,
-    splits: list[str],
     config: dict,
     verbose: bool = False,
 ):
@@ -212,6 +211,7 @@ def load(
     """
 
     scene_path = dataset_path / scene_name
+    splits = config["splits"]
 
     # Valid values for specific keys
     valid_values = {}

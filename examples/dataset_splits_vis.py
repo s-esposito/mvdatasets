@@ -12,11 +12,7 @@ from mvdatasets.configs.example_config import ExampleConfig
 from examples import get_dataset_test_preset, custom_exception_handler
 
 
-def main(
-    cfg: ExampleConfig,
-    pc_paths: list[Path],
-    splits: list[str]
-):
+def main(cfg: ExampleConfig, pc_paths: list[Path]):
 
     device = cfg.machine.device
     datasets_path = cfg.datasets_path
@@ -29,7 +25,6 @@ def main(
         dataset_name,
         scene_name,
         datasets_path,
-        splits=splits,
         config=cfg.data,
         point_clouds_paths=pc_paths,
         verbose=True,
@@ -107,23 +102,23 @@ def main(
 
 
 if __name__ == "__main__":
-    
+
     # custom exception handler
     sys.excepthook = custom_exception_handler
-    
+
     # parse arguments
     args = tyro.cli(ExampleConfig)
-    
+
     # get test preset
     test_preset = get_dataset_test_preset(args.data.dataset_name)
     # scene name
     if args.scene_name is None:
         args.scene_name = test_preset["scene_name"]
-        print_warning(f"scene_name is None, using preset test scene {args.scene_name} for dataset")
+        print_warning(
+            f"scene_name is None, using preset test scene {args.scene_name} for dataset"
+        )
     # additional point clouds paths (if any)
     pc_paths = test_preset["pc_paths"]
-    # testing splits
-    splits = test_preset["splits"]
 
     # start the example program
-    main(args, pc_paths, splits)
+    main(args, pc_paths)

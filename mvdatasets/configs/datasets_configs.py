@@ -224,7 +224,7 @@ class Neu3DConfig(DatasetConfig):
         if type(self.frame_rate) is not float or self.frame_rate <= 0:
             raise ValueError("frame_rate must be a float > 0")
         # check if splits are valid
-        valid_splits = ["train", "val"]
+        valid_splits = ["train", "test"]
         for split in self.splits:
             if split not in valid_splits:
                 raise ValueError(
@@ -292,6 +292,38 @@ class NerfiesConfig(DatasetConfig):
 
 
 @dataclass
+class iPhoneConfig(DatasetConfig):
+    # Default dataset configuration
+
+    # load_masks: bool = True
+    # """Load mask images"""
+    load_depths: bool = True
+    """Load depth images"""
+    frame_rate: float = 30.0
+    """Frame rate of the sequence"""
+
+    def __post__init__(self):
+        # Check configuration values
+        super().__post__init__()
+        # load_masks
+        # if type(self.load_masks) is not bool:
+        #     raise ValueError("load_masks must be a boolean")
+        # load_depths
+        if type(self.load_depths) is not bool:
+            raise ValueError("load_depths must be a boolean")
+        # frame_rate
+        if type(self.frame_rate) is not float or self.frame_rate <= 0:
+            raise ValueError("frame_rate must be a float > 0")
+        # check if splits are valid
+        valid_splits = ["train", "val"]
+        for split in self.splits:
+            if split not in valid_splits:
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
+
+@dataclass
 class MonST3RConfig(DatasetConfig):
     # Default dataset configuration
 
@@ -315,7 +347,7 @@ class MonST3RConfig(DatasetConfig):
         if type(self.frame_rate) is not float or self.frame_rate <= 0:
             raise ValueError("frame_rate must be a float > 0")
         # check if splits are valid
-        valid_splits = ["train", "val"]
+        valid_splits = ["train"]
         for split in self.splits:
             if split not in valid_splits:
                 raise ValueError(
@@ -373,27 +405,32 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # Blender format
     "nerf_synthetic": BlenderConfig(
         dataset_name="nerf_synthetic",
+        splits=["train", "test"],
         scene_type="bounded",
         test_skip=20,
     ),
     "nerf_furry": BlenderConfig(
         dataset_name="nerf_furry",
+        splits=["train", "test"],
         scene_type="bounded",
         test_skip=10,
     ),
     "shelly": BlenderConfig(
         dataset_name="shelly",
+        splits=["train", "test"],
         scene_type="bounded",
         test_skip=4,
     ),
     "refnerf": BlenderConfig(
         dataset_name="refnerf",
+        splits=["train", "test"],
         scene_type="bounded",
         test_skip=10,
     ),
     # DTU format
     "dtu": DTUConfig(
         dataset_name="dtu",
+        splits=["train", "test"],
         scene_type="unbounded",
         load_masks=True,
         rotate_deg=[205.0, 0.0, 0.0],
@@ -402,6 +439,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     ),
     "blended-mvs": DTUConfig(
         dataset_name="blended-mvs",
+        splits=["train", "test"],
         scene_type="unbounded",
         load_masks=True,
         rotate_deg=[0.0, 0.0, 0.0],
@@ -411,6 +449,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # DMRS format
     "dmsr": DMRSConfig(
         dataset_name="dmsr",
+        splits=["train", "test"],
         scene_type="ubounded",
         test_skip=5,
         foreground_scale_mult=0.5,
@@ -423,15 +462,18 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # INGP format
     # "ingp": INGPConfig(
     #     dataset_name="ingp",
+    #     splits=["train", "test"],
     #     scene_type="bounded",
     # ),
     # COLMAP format
     "llff": ColmapConfig(
         dataset_name="llff",
+        splits=["train", "test"],
         scene_type="unbounded",
     ),
     "mipnerf360": ColmapConfig(
         dataset_name="mipnerf360",
+        splits=["train", "test"],
         scene_type="unbounded",
         subsample_factor=8,
         foreground_scale_mult=0.5,
@@ -439,6 +481,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # D-Nerf format
     "d-nerf": DNeRFConfig(
         dataset_name="d-nerf",
+        splits=["train", "test"],
         scene_type="bounded",
         load_masks=True,
         use_binary_mask=True,
@@ -451,6 +494,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # VISOR format
     "visor": VISORConfig(
         dataset_name="visor",
+        splits=["train"],
         scene_type="unbounded",
         rotate_deg=[180.0, 0.0, 0.0],
         load_masks=True,
@@ -462,22 +506,26 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # Neu3D format
     "neu3d": Neu3DConfig(
         dataset_name="neu3d",
+        splits=["train", "test"],
         scene_type="unbounded",
     ),
     # Panoptic-Sports format
     "panoptic-sports": PanopticSportsConfig(
         dataset_name="panoptic-sports",
+        splits=["train", "test"],
         scene_type="unbounded",
     ),
     # Nerfies format
     "nerfies": NerfiesConfig(
         dataset_name="nerfies",
+        splits=["train", "val"],
         scene_type="unbounded",
         subsample_factor=2,
         load_depths=False,
     ),
-    "iphone": NerfiesConfig(
+    "iphone": iPhoneConfig(
         dataset_name="iphone",
+        splits=["train", "val"],
         scene_type="unbounded",
         subsample_factor=2,
         load_depths=True,
@@ -487,6 +535,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # MonST3R format
     "monst3r": MonST3RConfig(
         dataset_name="monst3r",
+        splits=["train"],
         scene_type="unbounded",
         subsample_factor=1,
         load_masks=True,
@@ -497,6 +546,7 @@ datasets_configs: Dict[str, DatasetConfig] = {
     # Flow3D format
     "iphone_som": Flow3DConfig(
         dataset_name="iphone_som",
+        splits=["train", "val"],
         scene_type="unbounded",
         subsample_factor=2,
         load_masks=True,

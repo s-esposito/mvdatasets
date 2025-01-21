@@ -2,13 +2,10 @@ import yaml
 from pathlib import Path
 
 
-def save_yaml(
-    data_dict: dict,
-    file_path: Path
-):
+def save_yaml(data_dict: dict, file_path: Path):
     """
     Save function. Convert Paths to strings.
-    
+
     Args:
         data: Data to save.
         file_path: Path to save the data.
