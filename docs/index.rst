@@ -34,10 +34,11 @@ Examples are the best way to get started!
    :maxdepth: 1
    :caption: Utility Modules
 
-   source/mvdatasets.geometry
-   source/mvdatasets.loaders
-   source/mvdatasets.utils
-   source/mvdatasets.visualization
+   source/io/index
+   source/geometry/index
+   source/loaders/index
+   source/utils/index
+   source/visualization/index
 
 ---------------
 

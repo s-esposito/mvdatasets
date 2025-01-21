@@ -1,5 +1,7 @@
-mvdatasets.visualization
-========================
+Visualizations
+==============
+
+Toolset of visualization utilities.
 
 mvdatasets.visualization.colormaps module
 -----------------------------------------

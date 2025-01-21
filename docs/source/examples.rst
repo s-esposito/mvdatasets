@@ -93,5 +93,14 @@ Visualizations and speed benchmark.
    :members:
    :undoc-members:
 
+Dataset configuration to YAML
+-----------------------------
+
+Load and save dataset configuration to YAML.
+
+.. automodule:: examples.dataset_config_to_yaml
+   :members:
+   :undoc-members:
+
 
 

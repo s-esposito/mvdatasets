@@ -1,8 +1,7 @@
-mvdatasets.utils
-================
+Utility functions
+=================
 
-Submodules
-----------
+Toolset of utility functions.
 
 mvdatasets.utils.camera\_utils module
 -------------------------------------
