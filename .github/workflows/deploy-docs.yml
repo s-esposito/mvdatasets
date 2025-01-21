@@ -1,10 +1,9 @@
-name: deploy-documentation
+name: deploy-docs
 
 on:
   push:
     branches:
-      # TODO: Update to main
-      - dev
+      - main
 
 permissions:
   contents: write
