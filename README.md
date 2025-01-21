@@ -15,55 +15,20 @@ University of Tübingen, [Autonomous Vision Group](https://uni-tuebingen.de/faku
 ⚠️ This is a work in progress research codebase designed with a focus on modularity; future updates *will try* not to disrupt existing functionalities.
 ```
 
----
 
 Our goal is to provide a plug and play library to quickly develop and test new research ideas. We offer various data loaders for commonly used multi-view datasets in 3D reconstruction and view-synthesis, that work out of the box without further data processing.
 
+## Documentation
 
-<div style="display: flex; justify-content: center;">
-<table style="text-align: left; border-collapse: collapse; width: 80%; margin: auto;">
-<tr>
-<td style="vertical-align: top; padding: 10px; border: 1px solid #ddd;">
+Don't miss out on our [documentation](https://s-esposito.github.io/mvdatasets/index.html#). It's still a work in progress, but together with our [examples](examples), it is the best way to get started. 
 
-**Static:**
-- [x] [NeRF-Synthetic](https://www.matthewtancik.com/nerf): bounded
-- [x] [Ref-NeRF](https://dorverbin.github.io/refnerf/): bounded
-- [x] [Shelly](https://research.nvidia.com/labs/toronto-ai/adaptive-shells/): bounded
-- [x] [DTU](https://github.com/lioryariv/idr?tab=readme-ov-file): unbounded
-- [x] [BlendedMVS](https://github.com/Totoro97/NeuS?tab=readme-ov-file): unbounded
-- [x] [Mip-NeRF360](https://jonbarron.info/mipnerf360/): unbounded
-- [ ] [NeRF-LLFF](https://www.matthewtancik.com/nerf): unbounded
-- [ ] ...
+### Supported datasets
 
-</td>
-<td style="vertical-align: top; padding: 10px; border: 1px solid #ddd;">
+Checkout the current state of supported datasets [here](file:///home/stefano/Codebase/mvdatasets_dev/docs/_build/html/source/datasets.html).
 
+## Camera
 
-**Dynamic:**
-- [x] [D-NeRF](https://www.albertpumarola.com/research/D-NeRF/index.html): semi-monocular, bounded
-- [x] [PanopticSports](https://dynamic3dgaussians.github.io/): multi-view, bounded
-- [ ] [Neu3D](https://github.com/facebookresearch/Neural_3D_Video): multi-view, unbounded
-- [x] [VISOR](https://epic-kitchens.github.io/VISOR/): monocular, unbounded
-- [ ] [Nerfies](https://github.com/google/nerfies/releases/tag/0.1): monocular, unbounded
-- [ ] [Hypernerf](https://github.com/google/hypernerf/releases/tag/v0.1): monocular, unbounded
-- [x] [iPhone](https://kair-bair.github.io/dycheck/): monocular, unbounded
-- [x] [MonST3R](https://github.com/Junyi42/monst3r): monocular, unbounded
-- [ ] [DynamicScenes aka. NVIDIA]([#](https://gorokee.github.io/jsyoon/dynamic_synth/)): monocular, unbounded
-- [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded
-- [ ] [Robots (aka. WIM)](https://github.com/NVlabs/watch-it-move?tab=readme-ov-file#the-wim-dataset): multi-view, bounded
-- [ ] ...
-
-</td>
-</tr>
-</table>
-</div>
-
-## Cameras
-
-We use the OpenCV camera coordinate system:
-- X axis: Points to the right of the camera's sensor. It extends horizontally from the left side to the right side of the image. Increasing values move towards the right side of the image.
-- Y axis: Points downward from the camera's sensor. It extends vertically from the top to the bottom of the image. Increasing values move towards the bottom of the image.
-- Z axis: Represents depth and points away from the camera lens. It extends from the camera's lens outward into the scene. Increasing values move away from the camera.
+Our standardized camera uses the OpenCV camera coordinate system and it is described [here](https://s-esposito.github.io/mvdatasets/source/datasets.html).
 
 <p float="left">
   <img src="imgs/pose_and_intrinsics.png" width="500"/>
