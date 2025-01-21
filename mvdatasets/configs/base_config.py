@@ -5,7 +5,7 @@ import numpy as np
 from dataclasses import dataclass, field, asdict
 
 
-# Pretty printing class
+@dataclass
 class PrintableConfig:
     """Printable Config defining str function"""
 

@@ -6,9 +6,6 @@ from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
-from mvdatasets.configs.dataset_config import DatasetConfig
-
-# from mvdatasets.loaders.configs import get_scene_preset
 
 
 DATASET_LOADER_MAPPING = {
@@ -45,7 +42,7 @@ class MVDataset:
         scene_name: str,
         datasets_path: Path,
         splits: List[str],
-        config: DatasetConfig,
+        config: dict,
         point_clouds_paths: list = [],
         verbose: bool = False,
     ):

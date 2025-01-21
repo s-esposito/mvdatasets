@@ -11,14 +11,13 @@ from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
 from PIL import Image
-from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def load(
     dataset_path: Path,
     scene_name: str,
     splits: list[str],
-    config: DatasetConfig,
+    config: dict,
     verbose: bool = False,
 ):
     """Panoptic-Sports data format loader.
@@ -45,8 +44,6 @@ def load(
     """
 
     scene_path = dataset_path / scene_name
-
-    config = config.asdict()  # Convert Config to dictionary
 
     # Valid values for specific keys
     valid_values = {}

@@ -1,13 +1,11 @@
 import tyro
 import sys
-import numpy as np
 from pathlib import Path
-from examples import get_dataset_test_preset
 from mvdatasets.mvdataset import MVDataset
-from mvdatasets.visualization.matplotlib import plot_cameras_2d
+from mvdatasets.utils.printing import print_error, print_warning, print_success
 from mvdatasets.configs.example_config import ExampleConfig
+from mvdatasets.io import load_yaml, save_yaml
 from examples import get_dataset_test_preset, custom_exception_handler
-from mvdatasets.utils.printing import print_warning
 
 
 def main(
@@ -28,18 +26,21 @@ def main(
         scene_name,
         datasets_path,
         splits=splits,
-        config=cfg.data,
+        config=cfg.data.asdict(),
         point_clouds_paths=pc_paths,
         verbose=True,
     )
+    
+    # Save to a YAML file
+    save_yaml(cfg.data.asdict(), output_path / "data_config.yaml")
+    print_success("Config saved to file")
 
-    # # random camera index
-    # rand_idx = np.random.randint(0, len(mv_data.get_split("test")))
-    # camera = deepcopy(mv_data.get_split("test")[rand_idx])
-
-    plot_cameras_2d(
-        cameras=mv_data.get_split("train"),
-    )
+    # Load from the YAML file
+    cfg_dict = load_yaml(output_path / "data_config.yaml")
+    print_success("Config loaded from file")
+    print(cfg_dict)
+    
+    print("done")
 
 
 if __name__ == "__main__":

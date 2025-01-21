@@ -17,7 +17,6 @@ from mvdatasets.utils.printing import (
 )
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
-from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def _generate_mask_from_polygons(
@@ -186,7 +185,7 @@ def load(
     dataset_path: Path,
     scene_name: str,
     splits: list[str],
-    config: DatasetConfig,
+    config: dict,
     verbose: bool = False,
 ):
     """VISOR data format loader.
@@ -213,8 +212,6 @@ def load(
     """
 
     scene_path = dataset_path / scene_name
-
-    config = config.asdict()  # Convert Config to dictionary
 
     # Valid values for specific keys
     valid_values = {}

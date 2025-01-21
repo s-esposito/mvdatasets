@@ -14,14 +14,13 @@ from mvdatasets.utils.printing import print_error, print_warning, print_success
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
 from dataclasses import dataclass, asdict
-from mvdatasets.configs.dataset_config import DatasetConfig
 
 
 def load(
     dataset_path: Path,
     scene_name: str,
     splits: list[str],
-    config: DatasetConfig,
+    config: dict,
     verbose: bool = False,
 ):
     """flow3d data format loader.
@@ -47,8 +46,6 @@ def load(
         float: Frames per second
     """
     scene_path = dataset_path / scene_name
-
-    config = asdict(config)  # Convert Config to dictionary
 
     # Valid values for specific keys
     valid_values = {

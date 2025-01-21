@@ -1,7 +1,7 @@
 # MVDatasets
 
 
-<img align="right" width="130" height="130" src="imgs/art.webp">
+<img align="right" width="254" height="131" src="imgs/MVD.png">
 
 ### Standardized DataLoaders for 3D Computer Vision
 
@@ -50,7 +50,7 @@ Our goal is to provide a plug and play library to quickly develop and test new r
 - [x] [MonST3R](https://github.com/Junyi42/monst3r): monocular, unbounded
 - [ ] [DynamicScenes aka. NVIDIA]([#](https://gorokee.github.io/jsyoon/dynamic_synth/)): monocular, unbounded
 - [ ] [AMA](https://people.csail.mit.edu/drdaniel/mesh_animation/#data): multi-view, bounded
-- [ ] [watch-it-move](https://github.com/NVlabs/watch-it-move): multi-view, bounded
+- [ ] [Robots (aka. WIM)](https://github.com/NVlabs/watch-it-move?tab=readme-ov-file#the-wim-dataset): multi-view, bounded
 - [ ] ...
 
 </td>

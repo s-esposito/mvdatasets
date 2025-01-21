@@ -21,6 +21,8 @@ setup(
         "pre-commit>=4.0.1",
         "pytest>=8.3.4",
         # main
+        "ffmpeg>=1.4.0",
+        "pyyaml>=6.0",
         "numpy>=1.24.4",
         "tqdm>=4.66.1",
         "torch>=2.3.1",
