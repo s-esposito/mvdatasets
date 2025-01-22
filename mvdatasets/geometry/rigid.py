@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-import torch.nn.functional as F
 from typing import Union
 from mvdatasets.geometry.common import euclidean_to_homogeneous
 

@@ -1,6 +1,6 @@
 import tyro
 import sys
-import numpy as np
+from typing import List
 from pathlib import Path
 from examples import get_dataset_test_preset
 from mvdatasets.mvdataset import MVDataset
@@ -10,7 +10,7 @@ from examples import get_dataset_test_preset, custom_exception_handler
 from mvdatasets.utils.printing import print_warning
 
 
-def main(cfg: ExampleConfig, pc_paths: list[Path]):
+def main(cfg: ExampleConfig, pc_paths: List[Path]):
 
     device = cfg.machine.device
     datasets_path = cfg.datasets_path
@@ -23,7 +23,7 @@ def main(cfg: ExampleConfig, pc_paths: list[Path]):
         dataset_name,
         scene_name,
         datasets_path,
-        config=cfg.data,
+        config=cfg.data.asdict(),
         point_clouds_paths=pc_paths,
         verbose=True,
     )

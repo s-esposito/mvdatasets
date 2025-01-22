@@ -1,5 +1,6 @@
 import tyro
 import sys
+from typing import List
 from pathlib import Path
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.utils.printing import print_error, print_warning, print_success
@@ -8,7 +9,7 @@ from mvdatasets.io import load_yaml, save_yaml
 from examples import get_dataset_test_preset, custom_exception_handler
 
 
-def main(cfg: ExampleConfig, pc_paths: list[Path]):
+def main(cfg: ExampleConfig, pc_paths: List[Path]):
 
     device = cfg.machine.device
     datasets_path = cfg.datasets_path

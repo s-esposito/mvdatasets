@@ -2,6 +2,7 @@ from typing import List, Union, Tuple, Optional, Type
 from mvdatasets.utils.printing import print_error
 import traceback
 from rich import print
+from pathlib import Path
 
 
 def custom_exception_handler(exc_type, exc_value, exc_traceback):
@@ -35,7 +36,7 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test dtu
     if dataset_name == "dtu":
         scene_name = "dtu_scan83"
-        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [Path(f"examples/assets/meshes/{dataset_name}/{scene_name}.ply")]
 
     # test blended-mvs
     elif dataset_name == "blended-mvs":
@@ -45,22 +46,24 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test nerf_synthetic
     elif dataset_name == "nerf_synthetic":
         scene_name = "lego"
-        pc_paths = [f"examples/assets/point_clouds/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [
+            Path(f"examples/assets/point_clouds/{dataset_name}/{scene_name}.ply")
+        ]
 
     # test shelly
     elif dataset_name == "shelly":
         scene_name = "khady"
-        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [Path(f"examples/assets/meshes/{dataset_name}/{scene_name}.ply")]
 
     # test nerf_furry
     elif dataset_name == "nerf_furry":
         scene_name = "plushy"
-        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [Path(f"examples/assets/meshes/{dataset_name}/{scene_name}.ply")]
 
     # test dmsr
     elif dataset_name == "dmsr":
         scene_name = "dinning"
-        pc_paths = [f"examples/assets/meshes/{dataset_name}/{scene_name}.ply"]
+        pc_paths = [Path(f"examples/assets/meshes/{dataset_name}/{scene_name}.ply")]
 
     # test refnerf
     elif dataset_name == "refnerf":

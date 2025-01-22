@@ -1,16 +1,17 @@
 import os
 import subprocess
+from typing import Optional
 from pathlib import Path
 
 
 def extract_frames(
     video_path: Path,
-    output_path: Path = None,
+    output_path: Optional[Path] = None,
     subsample_factor: int = 1,
     ext: str = "png",
     skip_time: int = 1,
     start_time: str = "00:00:00",
-    end_time: str | None = None,
+    end_time: Optional[str] = None,
 ):
     # get video name
     video_name = os.path.basename(video_path)

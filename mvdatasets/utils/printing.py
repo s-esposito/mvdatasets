@@ -1,6 +1,5 @@
 from rich import print
 import logging
-import sys
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
@@ -16,30 +15,6 @@ from rich.text import Text
 import traceback
 
 logging.basicConfig(level=logging.INFO)
-
-
-# def raise ValueError(message, exc_type=None, exc_value=None, exc_traceback=None):
-#     """
-#     Print a detailed error message with a stack trace.
-
-#     :param message: The error message to display.
-#     :param exc_type: The type of the exception (optional).
-#     :param exc_value: The value of the exception (optional).
-#     :param exc_traceback: The traceback object (optional).
-#     """
-
-#     if exc_type is None:
-#         # If no exception type is provided, assume a generic error
-#         raise Exception(message)
-
-#     print(f"[bold red]ERROR:[/bold red] {message}")
-#     if exc_type and exc_traceback:
-#         print("\n[bold blue]Stack Trace:[/bold blue]")
-#         # Format the traceback into a readable format
-#         detailed_traceback = "".join(
-#             traceback.format_exception(exc_type, exc_value, exc_traceback)
-#         )
-#         print(f"[dim]{detailed_traceback}[/dim]")
 
 
 def print_error(

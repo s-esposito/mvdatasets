@@ -51,6 +51,9 @@ def get_tracks_3d(
         assert coords.shape[-1] == 2
         return coords / torch.tensor([w - 1.0, h - 1.0], device=coords.device) * 2 - 1.0
 
+    # TODO: get raw_tracks_2d from the dataset
+    raw_tracks_2d = None
+    
     # Process 3D tracks.
     inv_Ks = torch.linalg.inv(self.Ks)[::step]
     c2ws = torch.linalg.inv(self.w2cs)[::step]

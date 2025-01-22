@@ -5,7 +5,7 @@ import torch
 from pathlib import Path
 import numpy as np
 from copy import deepcopy
-import matplotlib.pyplot as plt
+from typing import List
 from mvdatasets.visualization.matplotlib import plot_3d, plot_rays_samples
 from mvdatasets.mvdataset import MVDataset
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere
@@ -14,7 +14,7 @@ from mvdatasets.configs.example_config import ExampleConfig
 from examples import get_dataset_test_preset, custom_exception_handler
 
 
-def main(cfg: ExampleConfig, pc_paths: list[Path]):
+def main(cfg: ExampleConfig, pc_paths: List[Path]):
 
     device = cfg.machine.device
     datasets_path = cfg.datasets_path
@@ -27,7 +27,7 @@ def main(cfg: ExampleConfig, pc_paths: list[Path]):
         dataset_name,
         scene_name,
         datasets_path,
-        config=cfg.data,
+        config=cfg.data.asdict(),
         point_clouds_paths=pc_paths,
         verbose=True,
     )

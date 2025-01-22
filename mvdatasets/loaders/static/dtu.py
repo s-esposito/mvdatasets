@@ -6,12 +6,10 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import cv2 as cv
-
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets import Camera
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
-from mvdatasets.utils.printing import print_error, print_warning, print_success
 
 
 # from https://github.com/Totoro97/NeuS/blob/main/models/dataset.py

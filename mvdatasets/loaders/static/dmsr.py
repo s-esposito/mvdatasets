@@ -2,7 +2,6 @@ from rich import print
 from pathlib import Path
 import os
 import json
-from glob import glob
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -62,7 +61,7 @@ def load(
     poses_all = []
     for split in ["train", "test"]:
         # load current split transforms
-        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
+        with open(os.path.join(scene_path, split, "transforms.json"), "r") as fp:
             metas = json.load(fp)
 
         for frame in metas["frames"]:
@@ -95,7 +94,7 @@ def load(
         cameras_splits[split] = []
 
         # load current split transforms
-        with open(os.path.join(scene_path, split, f"transforms.json"), "r") as fp:
+        with open(os.path.join(scene_path, split, "transforms.json"), "r") as fp:
             metas = json.load(fp)
 
         camera_angle_x = metas["camera_angle_x"]

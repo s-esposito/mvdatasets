@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import numpy as np
 
 
@@ -27,7 +27,7 @@ def get_min_max_cameras_distances(poses: list) -> tuple:
 
 
 def rescale(
-    all_poses: List[np.ndarray], to_distance: float = None
+    all_poses: List[np.ndarray], to_distance: Optional[float] = None
 ) -> Tuple[float, float, float]:
     """returns a scaling factor for the scene such that the furthest camera is at target distance
 

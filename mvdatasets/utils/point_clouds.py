@@ -2,7 +2,6 @@ from rich import print
 import open3d as o3d
 import os
 import numpy as np
-from mvdatasets.utils.printing import print_error, print_warning
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 
 

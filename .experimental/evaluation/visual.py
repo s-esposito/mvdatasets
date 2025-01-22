@@ -113,7 +113,7 @@ def eval_rendered_imgs(renders_path, scene_name):
 def visual_evaluation(
     mv_data: MVDataset,
     run_path: Path,
-    save_path: Path = None,  # if set, saves the results to the given path
+    save_path: Optional[Path] = None,  # if set, saves the results to the given path
 ) -> None:
     """
     todo

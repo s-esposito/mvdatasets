@@ -2,8 +2,8 @@ import os
 import numpy as np
 import open3d as o3d
 from rich import print
-from mvdatasets.utils.texture import RGBATexture, SHTexture
-from mvdatasets.utils.printing import print_error, print_warning, print_log
+from mvdatasets.utils.texture import SHTexture
+from mvdatasets.utils.printing import print_log
 
 
 def triangle_to_vertices_uvs_conversion(triangle_uvs, faces, vertices):
