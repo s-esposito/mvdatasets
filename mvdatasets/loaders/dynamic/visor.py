@@ -6,21 +6,17 @@ import json
 from tqdm import tqdm
 from PIL import Image
 import cv2
+from typing import List
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
-from mvdatasets.utils.printing import (
-    print_error,
-    print_warning,
-    print_log,
-    print_success,
-)
+from mvdatasets.utils.printing import print_warning, print_log
 from mvdatasets.geometry.quaternions import quats_to_rots
 from mvdatasets import Camera
 
 
 def _generate_mask_from_polygons(
-    annotations: list[dict],
+    annotations: List[dict],
     width: int,
     height: int,
 ):
@@ -40,7 +36,7 @@ def _generate_mask_from_polygons(
 
 
 def _generate_semantic_mask_from_polygons(
-    annotations: list[dict],
+    annotations: List[dict],
     width: int,
     height: int,
 ):

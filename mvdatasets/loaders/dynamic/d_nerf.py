@@ -2,7 +2,6 @@ from rich import print
 from pathlib import Path
 import os
 import json
-from glob import glob
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
@@ -11,7 +10,6 @@ from mvdatasets.utils.images import image_to_numpy
 from mvdatasets.utils.loader_utils import rescale
 from mvdatasets.geometry.common import rot_euler_3d_deg
 from mvdatasets.utils.images import image_uint8_to_float32, image_float32_to_uint8
-from mvdatasets.utils.printing import print_error, print_warning, print_success
 
 
 def load(
@@ -115,7 +113,7 @@ def load(
             if not img_path.endswith(".png"):
                 img_path += ".png"
             time = frame["time"]
-            rotation = frame["rotation"]
+            # rotation = frame["rotation"]
             camera_pose = frame["transform_matrix"]
             frames_list.append((img_path, camera_pose, time))
         # frames_list.sort(key=lambda x: int(x[0].split(".")[0].split("_")[-1]))

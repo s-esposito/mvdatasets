@@ -1,7 +1,6 @@
-from rich import print
 import numpy as np
+from typing import Optional
 from mvdatasets.geometry.rigid import apply_transformation_3d
-from mvdatasets.utils.printing import print_error
 
 
 class PointCloud:
@@ -9,11 +8,11 @@ class PointCloud:
     def __init__(
         self,
         points_3d: np.ndarray,
-        points_rgb: np.ndarray = None,  # (N, 3) or (3,)
-        color: str = None,
-        label: str = None,
-        size: float = None,
-        marker: str = None,
+        points_rgb: Optional[np.ndarray] = None,  # (N, 3) or (3,)
+        color: Optional[str] = None,
+        label: Optional[str] = None,
+        size: Optional[float] = None,
+        marker: Optional[str] = None,
     ):
         self.points_3d = points_3d
         self.points_rgb = points_rgb

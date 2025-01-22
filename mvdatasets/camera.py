@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import cv2 as cv
-from typing import Union, Tuple, Literal
+from typing import Union, Tuple, Literal, Optional
 from mvdatasets.geometry.rigid import apply_transformation_3d
 from mvdatasets.geometry.projections import (
     global_inv_perspective_projection,
@@ -31,23 +31,22 @@ class Camera:
         self,
         intrinsics: np.ndarray,
         pose: np.ndarray,
-        rgbs: np.ndarray = None,
-        masks: np.ndarray = None,
-        normals: np.ndarray = None,
-        depths: np.ndarray = None,
-        instance_masks: np.ndarray = None,
-        semantic_masks: np.ndarray = None,
-        global_transform: np.ndarray = None,
-        local_transform: np.ndarray = None,
+        rgbs: Optional[np.ndarray] = None,
+        masks: Optional[np.ndarray] = None,
+        normals: Optional[np.ndarray] = None,
+        depths: Optional[np.ndarray] = None,
+        instance_masks: Optional[np.ndarray] = None,
+        semantic_masks: Optional[np.ndarray] = None,
+        global_transform: Optional[np.ndarray] = None,
+        local_transform: Optional[np.ndarray] = None,
         timestamps: np.ndarray = np.array([0.0]),
         camera_label: str = "0",
-        width: int = None,
-        height: int = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
         near: float = 0.1,
         far: float = 10000.0,
         temporal_dim: int = 1,
         subsample_factor: int = 1,
-        # camera_type: Literal["opencv", "opengl"] = "opencv",  # One between "opencv" or "opengl"
         verbose: bool = False,
     ):
         """
@@ -564,7 +563,7 @@ class Camera:
 
             assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
             assert nr_rays_per_pixel == 1 or (
-                nr_rays_per_pixel > 1 and jitter_pixels == True
+                nr_rays_per_pixel > 1 and jitter_pixels is True
             ), "jitter_pixels must be True if nr_rays_per_pixel > 1"
 
             pixels = get_pixels(self.height, self.width, device=device)  # (W, H, 2)

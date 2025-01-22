@@ -1,13 +1,13 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Union, Optional, Literal, Tuple
+from typing import Optional, Literal, Tuple, List
 from pathlib import Path
 from itertools import product, combinations
 from mvdatasets.camera import Camera
 from mvdatasets.geometry.common import get_mask_points_in_image_range
 from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere, PointCloud
-from mvdatasets.utils.printing import print_error, print_log
+from mvdatasets.utils.printing import print_log
 from mvdatasets.visualization.colormaps import davis_palette
 
 
@@ -94,11 +94,11 @@ def _draw_rays(
     ax: plt.Axes,
     rays_o: np.ndarray,
     rays_d: np.ndarray,
-    t_near: np.ndarray = None,
-    t_far: np.ndarray = None,
-    rgbs: np.ndarray = None,
-    masks: np.ndarray = None,
-    max_nr_rays: int = None,
+    t_near: Optional[np.ndarray] = None,
+    t_far: Optional[np.ndarray] = None,
+    rgbs: Optional[np.ndarray] = None,
+    masks: Optional[np.ndarray] = None,
+    max_nr_rays: Optional[int] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
@@ -174,8 +174,8 @@ def _draw_rays(
 def _draw_point_cloud(
     ax: plt.Axes,
     point_cloud: PointCloud,
-    alpha: float = None,
-    max_nr_points: int = None,
+    alpha: Optional[float] = None,
+    max_nr_points: Optional[int] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
@@ -321,7 +321,7 @@ def _draw_cartesian_axis(
 
 def _draw_bounding_box(
     ax: plt.Axes,
-    bb: BoundingBox = None,
+    bb: Optional[BoundingBox] = None,
     idx: int = 0,
     up: str = "z",
     scene_radius: float = 1.0,
@@ -412,7 +412,7 @@ def _draw_bounding_box(
 
 def _draw_bounding_boxes(
     ax: plt.Axes,
-    bounding_boxes: list[BoundingBox] = None,
+    bounding_boxes: List[BoundingBox] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_frame: bool = False,
@@ -471,7 +471,7 @@ def _draw_bounding_sphere(
 
 def _draw_bounding_spheres(
     ax: plt.Axes,
-    bounding_spheres: list[BoundingSphere] = None,
+    bounding_spheres: List[BoundingSphere] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
     draw_frame: bool = False,
@@ -647,8 +647,8 @@ def _draw_camera_frame(
 
 def _draw_point_clouds(
     ax: plt.Axes,
-    point_clouds: list[PointCloud] = None,
-    max_nr_points: int = None,
+    point_clouds: List[PointCloud] = None,
+    max_nr_points: Optional[int] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
@@ -682,7 +682,7 @@ def _draw_point_clouds(
 
 def _draw_cameras(
     ax: plt.Axes,
-    cameras: list[Camera] = None,
+    cameras: List[Camera] = None,
     nr_rays: int = 0,
     draw_every_n_cameras: int = 1,
     up: Literal["z", "y"] = "z",
@@ -738,8 +738,8 @@ def _draw_cameras(
 
 def _draw_camera_trajectory(
     ax: plt.Axes,
-    cameras: list[Camera] = None,
-    last_frame_idx: int = None,
+    cameras: List[Camera] = None,
+    last_frame_idx: Optional[int] = None,
     up: Literal["z", "y"] = "z",
     scene_radius: float = 1.0,
 ):
@@ -808,15 +808,10 @@ def _draw_camera_trajectory(
 
 
 def plot_3d(
-    cameras: list[Camera] = None,
-    point_clouds: list[PointCloud] = None,
-    # points_3d: list[np.ndarray] = None,
-    # points_3d_colors: list[np.ndarray] = None,
-    # points_3d_labels: list[str] = None,
-    # points_3d_markers: list[str] = None,
-    # points_3d_sizes: list[float] = None,
-    bounding_boxes: list[BoundingBox] = None,
-    bounding_spheres: list[BoundingSphere] = None,
+    cameras: List[Camera] = None,
+    point_clouds: List[PointCloud] = None,
+    bounding_boxes: List[BoundingBox] = None,
+    bounding_spheres: List[BoundingSphere] = None,
     nr_rays: int = 0,
     draw_every_n_cameras: int = 1,
     max_nr_points: int = 1000,
@@ -830,9 +825,9 @@ def plot_3d(
     draw_cameras_frustums: bool = False,
     draw_contraction_spheres: bool = False,
     figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
+    title: Optional[str] = None,
     show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
+    save_path: Optional[Path] = None,  # if set, saves the figure to the given path
 ) -> None:
     """
     Returns:
@@ -922,8 +917,8 @@ def plot_3d(
 
 
 def plot_camera_trajectory(
-    cameras: list[Camera] = None,
-    point_clouds: list[PointCloud] = None,
+    cameras: List[Camera] = None,
+    point_clouds: List[PointCloud] = None,
     max_nr_points: int = 1000,
     draw_every_n_cameras: int = 1,
     last_frame_idx: int = -1,
@@ -938,9 +933,9 @@ def plot_camera_trajectory(
     draw_rgb_frame: bool = True,
     draw_camera_path: bool = True,
     figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
+    title: Optional[str] = None,
     show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
+    save_path: Optional[Path] = None,  # if set, saves the figure to the given path
 ) -> None:
     """
     Returns:
@@ -1169,13 +1164,13 @@ def _draw_near_far_points(
 
 
 def plot_current_batch(
-    cameras: list[Camera],
+    cameras: List[Camera],
     cameras_idx: np.ndarray,
     rays_o: np.ndarray,
     rays_d: np.ndarray,
-    rgbs: np.ndarray = None,
-    masks: np.ndarray = None,
-    bounding_boxes: list[BoundingBox] = None,
+    rgbs: Optional[np.ndarray] = None,
+    masks: Optional[np.ndarray] = None,
+    bounding_boxes: List[BoundingBox] = None,
     azimuth_deg: float = 60.0,
     elevation_deg: float = 30.0,
     scene_radius: float = 1.0,
@@ -1184,9 +1179,9 @@ def plot_current_batch(
     draw_bounding_cube: bool = True,
     draw_image_planes: bool = True,
     figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
+    title: Optional[str] = None,
     show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
+    save_path: Optional[Path] = None,  # if set, saves the figure to the given path
 ) -> None:
     """
     Returns:
@@ -1351,7 +1346,7 @@ def _draw_camera_points_2d(
     ax: plt.Axes,
     camera: Camera,
     points_2d_screen: np.ndarray,
-    points_norms: np.ndarray = None,
+    points_norms: Optional[np.ndarray] = None,
 ):
     if points_2d_screen is not None and points_2d_screen.shape[0] > 0:
         # filter out points outside image range
@@ -1392,14 +1387,14 @@ def _draw_camera_points_2d(
 
 def plot_camera_2d(
     camera: Camera,
-    points_2d_screen: np.ndarray = None,
-    points_norms: np.ndarray = None,
+    points_2d_screen: Optional[np.ndarray] = None,
+    points_norms: Optional[np.ndarray] = None,
     frame_idx: int = 0,
     show_ticks: bool = False,
     figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
+    title: Optional[str] = None,
     show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
+    save_path: Optional[Path] = None,  # if set, saves the figure to the given path
 ) -> None:
     """
     Returns:
@@ -1463,7 +1458,9 @@ def plot_camera_2d(
 
 
 def plot_cameras_2d(
-    cameras: list[Camera], title: str = None, figsize: Tuple[int, int] = (15, 15)
+    cameras: List[Camera],
+    title: Optional[str] = None,
+    figsize: Tuple[int, int] = (15, 15),
 ):
     camera_idx = 0
     frame_idx = 0
@@ -1510,17 +1507,13 @@ def plot_cameras_2d(
 def plot_rays_samples(
     rays_o: np.ndarray,
     rays_d: np.ndarray,
-    t_near: np.ndarray = None,
-    t_far: np.ndarray = None,
+    t_near: Optional[np.ndarray] = None,
+    t_far: Optional[np.ndarray] = None,
     nr_rays: int = 32,
-    point_clouds: list[PointCloud] = None,
-    # points_samples: list[np.ndarray] = None,
-    # points_samples_colors: list[np.ndarray] = None,
-    # points_samples_sizes: list[float] = None,
-    # points_samples_labels: list[str] = None,
+    point_clouds: List[PointCloud] = None,
     camera: Camera = None,
-    bounding_boxes: list[BoundingBox] = None,
-    bounding_spheres: list[BoundingSphere] = None,
+    bounding_boxes: List[BoundingBox] = None,
+    bounding_spheres: List[BoundingSphere] = None,
     azimuth_deg: float = 60.0,
     elevation_deg: float = 30.0,
     scene_radius: float = 1.0,
@@ -1529,9 +1522,9 @@ def plot_rays_samples(
     draw_bounding_cube: bool = True,
     draw_contraction_spheres: bool = True,
     figsize: Tuple[int, int] = (15, 15),
-    title: str = None,
+    title: Optional[str] = None,
     show: bool = True,
-    save_path: Path = None,  # if set, saves the figure to the given path
+    save_path: Optional[Path] = None,  # if set, saves the figure to the given path
 ) -> None:
     """
     Returns:
@@ -1641,14 +1634,14 @@ def plot_rays_samples(
 
 def plot_image(
     image: np.ndarray,  # (W, H)
-    title: str = None,
-    xlabel: str = None,
-    ylabel: str = None,
+    title: Optional[str] = None,
+    xlabel: Optional[str] = None,
+    ylabel: Optional[str] = None,
     draw_colorbar: bool = False,
     cmap: str = "viridis",
     figsize: Tuple[int, int] = (15, 15),
     show: bool = True,
-    save_path: str = None,
+    save_path: Optional[str] = None,
 ):
     """Plots an image.
 

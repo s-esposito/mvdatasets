@@ -2,19 +2,19 @@ import os
 import numpy as np
 from tqdm import tqdm
 from copy import deepcopy
-from typing import Union, Literal
+from typing import Literal, List, Optional
 from pathlib import Path
 from mvdatasets.camera import Camera
 from mvdatasets.visualization.matplotlib import plot_camera_trajectory, plot_3d
-from mvdatasets.utils.printing import print_warning, print_log, print_error
-from mvdatasets.geometry.primitives import BoundingBox, BoundingSphere, PointCloud
+from mvdatasets.utils.printing import print_log
+from mvdatasets.geometry.primitives import PointCloud
 
 
 def make_video_camera_trajectory(
-    cameras: list[Camera],
+    cameras: List[Camera],
     save_path: Path,  # e.g. Path("./trajectory.mp4"),
-    dataset_name: str = None,
-    point_clouds: list[PointCloud] = None,
+    dataset_name: Optional[str] = None,
+    point_clouds: List[PointCloud] = None,
     nr_frames: int = -1,  # -1 means all frames
     max_nr_points: int = 10000,
     fps: int = 10,
@@ -107,10 +107,10 @@ def make_video_camera_trajectory(
 
 
 def make_video_depth_unproject(
-    cameras: list[Camera],
-    point_clouds: list[PointCloud],
+    cameras: List[Camera],
+    point_clouds: List[PointCloud],
     save_path: Path,  # e.g. Path("./trajectory.mp4"),
-    dataset_name: str = None,
+    dataset_name: Optional[str] = None,
     max_nr_points: int = 10000,
     fps: int = 10,
     remove_tmp_files: bool = True,

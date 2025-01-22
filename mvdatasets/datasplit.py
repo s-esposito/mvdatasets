@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from typing import List
-from mvdatasets.utils.printing import print_error, print_warning, print_success
+from mvdatasets.utils.printing import print_warning, print_success
 from mvdatasets.utils.memory import bytes_to_gb
 from mvdatasets import Camera
 from mvdatasets.utils.raycasting import get_pixels
@@ -13,7 +13,7 @@ class DataSplit:
         self,
         cameras: List[Camera],
         nr_sequence_frames: int = -1,
-        modalities: list[str] = ["rgbs", "masks"],
+        modalities: List[str] = ["rgbs", "masks"],
         index_pixels: bool = False,
         contiguous: bool = False,
     ):
@@ -22,7 +22,7 @@ class DataSplit:
         Args:
             cameras (List[Camera]): list of Camera objects.
             nr_sequence_frames (int, optional): Defaults to -1, means all temporal frames are used.
-            modalities (list[str], optional): Defaults to ["rgbs", "masks"].
+            modalities (List[str], optional): Defaults to ["rgbs", "masks"].
             index_pixels (bool, optional): If True, indexes images pixels directly. If False, indexes whole images. Defaults to False.
         """
         self.nr_cameras = len(cameras)

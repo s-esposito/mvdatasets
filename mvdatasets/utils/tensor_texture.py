@@ -9,7 +9,6 @@ from mvdatasets.utils.images import (
     non_normalize_uv_coord,
     non_normalized_uv_coords_to_interp_corners,
 )
-from mvdatasets.utils.printing import print_error, print_warning
 
 
 class TensorTexture:

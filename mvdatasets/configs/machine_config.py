@@ -1,6 +1,5 @@
-from pathlib import Path
-from typing import Tuple, Any, Type, Literal, List, Optional  # Machine related configs
-from dataclasses import dataclass, field
+from typing import Literal
+from dataclasses import dataclass
 from mvdatasets.configs.base_config import PrintableConfig
 
 

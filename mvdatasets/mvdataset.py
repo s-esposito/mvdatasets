@@ -1,6 +1,5 @@
 from rich import print
-import os
-from typing import List, Dict, Any
+from typing import List
 import numpy as np
 from pathlib import Path
 from mvdatasets.utils.point_clouds import load_point_clouds

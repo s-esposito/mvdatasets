@@ -1,27 +1,24 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-
-from mvdatasets.utils.images import image_uint8_to_float32
+from typing import List, Optional
 from mvdatasets.utils.raycasting import (
-    get_pixels,
     get_random_pixels,
     get_rays_per_points_2d_screen,
     get_data_per_points_2d_screen,
     get_points_2d_screen_from_pixels,
-    get_random_pixels_from_error_map,
 )
 from mvdatasets import Camera
-from mvdatasets.utils.printing import print_error, print_info
+from mvdatasets.utils.printing import print_info
 
 
 class TensorReel:
     def __init__(
         self,
-        cameras: list[Camera],
+        cameras: List[Camera],
         device: str = "cuda",
         verbose: bool = False,
-        modalities: list[str] = ["rgbs", "masks"],
+        modalities: List[str] = ["rgbs", "masks"],
     ):
         """Create a tensorreel object, containing all data stored contiguosly in tensors.
 
@@ -200,8 +197,8 @@ class TensorReel:
     def get_next_rays_batch(
         self,
         batch_size: int = 512,
-        cameras_idx: np.ndarray = None,
-        frames_idx: np.ndarray = None,
+        cameras_idx: Optional[np.ndarray] = None,
+        frames_idx: Optional[np.ndarray] = None,
         jitter_pixels: bool = False,
         nr_rays_per_pixel: int = 1,
     ):
@@ -225,7 +222,7 @@ class TensorReel:
 
         assert nr_rays_per_pixel > 0, "nr_rays_per_pixel must be > 0"
         assert nr_rays_per_pixel == 1 or (
-            nr_rays_per_pixel > 1 and jitter_pixels == True
+            nr_rays_per_pixel > 1 and jitter_pixels is True
         ), "jitter_pixels must be True if nr_rays_per_pixel > 1"
 
         real_batch_size = batch_size // nr_rays_per_pixel

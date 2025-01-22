@@ -3,7 +3,6 @@ import numpy as np
 from PIL import Image
 from mvdatasets.geometry.common import qvec2rotmat
 from mvdatasets.utils.images import image_to_numpy
-from mvdatasets.utils.printing import print_error
 
 
 def read_points3D(reconstruction):
@@ -34,7 +33,6 @@ def read_cameras_params(reconstruction):
         #     # camera.params[3]  # k1
         else:
             raise ValueError(f"camera model {camera.model_id} not implemented.")
-            exit(1)
         cameras_params[str(camera_id)] = params
     return cameras_params
 
