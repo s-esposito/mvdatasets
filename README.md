@@ -24,7 +24,7 @@ Don't miss out on our [documentation](https://autonomousvision.github.io/mvdatas
 
 ### Installation
 
-Install the module from source using `pip install -e`.
+Install the module from source using `pip install .`. More details [here](https://autonomousvision.github.io/mvdatasets/source/installation.html).
 
 ### Datasets
 
