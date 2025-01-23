@@ -5,4 +5,5 @@ mvdatasets.egg-info
 *.pyc
 data
 outputs
+experimental
 docs/_build
