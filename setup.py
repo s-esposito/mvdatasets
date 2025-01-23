@@ -12,6 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         # main
+        "gdown>=5.2.0",
         "flake8>=7.1.1",
         "black>=24.8.0",
         "ffmpeg>=1.4.0",
