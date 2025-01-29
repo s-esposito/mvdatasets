@@ -252,6 +252,7 @@ def load(
                 else:
                     # load npy
                     depth_np = np.load(depth_path)  # (H, W)
+                    depth_np = depth_np.astype(np.float32)
                     depth_np = depth_np[..., None]  # (H, W, 1)
                     # print("depth", depth_np.shape)
                     depths_dict[img_name] = depth_np
