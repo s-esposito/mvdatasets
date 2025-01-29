@@ -253,6 +253,8 @@ def load(
                     # load npy
                     depth_np = np.load(depth_path)  # (H, W)
                     depth_np = depth_np.astype(np.float32)
+                    # this is really a disparity map, convert to depth
+                    depth_np = 1.0 / (depth_np + 1e-6)
                     depth_np = depth_np[..., None]  # (H, W, 1)
                     # print("depth", depth_np.shape)
                     depths_dict[img_name] = depth_np
