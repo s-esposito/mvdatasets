@@ -264,6 +264,10 @@ def load(
 
         # TODO: load covisible for validation split
 
+    # rescale near and far
+    near = near * scene_radius_mult
+    far = far * scene_radius_mult
+    
     # cameras objects
     cameras_splits = {}
     for split in splits:
@@ -315,6 +319,8 @@ def load(
                 camera_label=str(idx),
                 width=width,
                 height=height,
+                near=near,
+                far=far,
                 subsample_factor=1,  # int(config["subsample_factor"]),
                 # verbose=verbose,
             )

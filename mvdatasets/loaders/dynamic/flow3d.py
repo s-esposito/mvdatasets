@@ -4,8 +4,10 @@ from pathlib import Path
 import os.path as osp
 import os
 import json
+from copy import deepcopy
 from PIL import Image
 from tqdm import tqdm
+from pycolmap import SceneManager
 from mvdatasets.utils.images import image_to_numpy
 from mvdatasets import Camera
 from mvdatasets.geometry.primitives.point_cloud import PointCloud
@@ -49,7 +51,7 @@ def load(
 
     # Valid values for specific keys
     valid_values = {
-        "subsample_factor": [1, 2],
+        "subsample_factor": [1],
     }
 
     # Validate specific keys
@@ -65,140 +67,122 @@ def load(
 
     # -------------------------------------------------------------------------
 
-    # TODO: load data from flow3d_preprocessed
-
-    # load points.npy
-    points_3d = np.load(os.path.join(scene_path, "points.npy"))
-    point_cloud = PointCloud(points_3d, points_rgb=None)
-
-    # load scene.json
-    with open(os.path.join(scene_path, "scene.json"), "r") as fp:
-        scene_meta = json.load(fp)
-        near = scene_meta["near"]
-        far = scene_meta["far"]
-        scale = scene_meta["scale"]
-        xyz = scene_meta["center"]
-        center = np.array(xyz)
-    print("near", near)
-    print("far", far)
-    print("scale", scale)
-    print("center", center)
-
-    # load extra.json
-    with open(os.path.join(scene_path, "extra.json"), "r") as fp:
-        extra_meta = json.load(fp)
-        # vmin = np.array(extra_meta["bbox"][0])
-        # vmax = np.array(extra_meta["bbox"][1])
-        # center = vmin + (vmax - vmin) / 2
-        # pose = np.eye(4)
-        # pose[:3, 3] = center
-        # local_scale = (vmax - vmin) / 2
-        # bbox = BoundingBox(pose=pose, local_scale=local_scale)
-        factor = extra_meta["factor"]
-        fps = extra_meta["fps"]
-        # lookat
-        # up
-    # print("bbox", bbox)
-    print("factor", factor)
-    print("fps", fps)
-
-    # read splits data
-    data = {}
-    for split in splits:
-
-        #
-        data[split] = {}
-
-        # if split file not present, warning and skip
-        if not os.path.exists(os.path.join(scene_path, "splits", f"{split}.json")):
-            print_warning(
-                f"Split file not found: {os.path.join(scene_path, 'splits', f'{split}.json')}"
-            )
-            continue
-
-        # load current split data
-        with open(os.path.join(scene_path, "splits", f"{split}.json"), "r") as fp:
-            metas = json.load(fp)
-            data[split]["camera_ids"] = np.array(metas["camera_ids"])
-            data[split]["frame_names"] = metas["frame_names"]
-            data[split]["timestamps"] = (
-                np.array(metas["time_ids"], dtype=np.float32) / fps
-            )
-
-    poses_dict = {}
-    intrinsics_dict = {}
-    for split_name, split_data in data.items():
-
-        poses_dict[split_name] = []
-        intrinsics_dict[split_name] = []
-
-        for frame_name in split_data["frame_names"]:
-
-            # load current split transforms
-            with open(
-                os.path.join(scene_path, "camera", f"{frame_name}.json"), "r"
-            ) as fp:
-                frame_meta = json.load(fp)
-                focal_length = frame_meta["focal_length"]
-                image_size = frame_meta["image_size"]  # (W, H)
-                orientation = np.array(frame_meta["orientation"])
-                pixel_aspect_ratio = frame_meta["pixel_aspect_ratio"]
-                position = np.array(frame_meta["position"])
-                ## shift to scene center
-                # position -= center
-                ## unscale
-                # position *= 1 / scale
-                principal_point = np.array(frame_meta["principal_point"])
-                radial_distortion = np.array(frame_meta["radial_distortion"])
-                skew = frame_meta["skew"]
-                tangential_distortion = np.array(frame_meta["tangential_distortion"])
-
-                # assert all radial distortion values are extremely close to 0
-                assert np.allclose(radial_distortion, 0.0, atol=1e-6)
-                # assert tangential distortion values are extremely close to 0
-                assert np.allclose(tangential_distortion, 0.0, atol=1e-6)
-                # assert skew is 0
-                assert np.allclose(skew, 0.0, atol=1e-6)
-                # assert pixel aspect ratio is 1
-                assert np.allclose(pixel_aspect_ratio, 1.0, atol=1e-6)
-
-                # camera pose
-                pose = np.eye(4)
-                pose[:3, :3] = orientation
-                pose[:3, 3] = position
-                poses_dict[split_name].append(pose)
-                # camera intrinsic matrix
-                K = np.array(
-                    [
-                        [focal_length, skew, principal_point[0]],
-                        [0, focal_length / pixel_aspect_ratio, principal_point[1]],
-                        [0, 0, 1],
-                    ]
-                )
-                intrinsics_dict[split_name].append(K)
-
     #
     if config["subsample_factor"] > 1:
         subsample_factor = int(config["subsample_factor"])
     else:
         subsample_factor = 1
 
-    width, height = image_size
-    width, height = width // subsample_factor, height // subsample_factor
+    # foad data from flow3d_preprocessed
+    
+    flow3d_dir = scene_path / "flow3d_preprocessed"
+    
+    if not os.path.exists(flow3d_dir):
+        raise ValueError(f"flow3d_preprocessed directory {flow3d_dir} does not exist.")
+    
+    # rgb images
+    images_path = scene_path / "rgb" / f"{subsample_factor}x"
+    if not os.path.exists(images_path):
+        raise ValueError(f"Images directory {images_path} does not exist.")
+    
+    # depth images
+    depths_dir = flow3d_dir / "aligned_depth_anything_colmap" / f"{subsample_factor}x"
+    if not os.path.exists(depths_dir):
+        raise ValueError(f"Depth directory {depths_dir} does not exist.")
+    
+    # mask images
+    masks_dir = flow3d_dir / "track_anything" / f"{subsample_factor}x"
+    if not os.path.exists(masks_dir):
+        raise ValueError(f"Mask directory {masks_dir} does not exist.")
+    
+    # covisible images
+    covisible_dir = flow3d_dir / "covisible" / f"{subsample_factor}x" / "val"
+    if not os.path.exists(covisible_dir):
+        raise ValueError(f"Covisible directory {covisible_dir} does not exist.")
+    
+    # read colmap data
 
-    #
-    poses_all = []
-    for split_name, split_poses in poses_dict.items():
-        for pose in split_poses:
-            poses_all.append(pose)
+    colmap_dir = flow3d_dir / "colmap" / "sparse"
+    if not os.path.exists(colmap_dir):
+        colmap_dir = os.path.join(scene_path, "sparse")
 
+    if not os.path.exists(colmap_dir):
+        raise ValueError(f"COLMAP directory {colmap_dir} does not exist.")
+
+    manager = SceneManager(str(colmap_dir), image_path=str(images_path))
+    manager.load_cameras()
+    manager.load_images()
+    manager.load_points3D()
+    
+    # get points
+    points_3d = manager.points3D.astype(np.float32)
+    points_rgb = manager.point3D_colors
+    # get points colors
+    if points_rgb is not None:
+        points_rgb = points_rgb.astype(np.uint8)
+    point_cloud = PointCloud(points_3d, points_rgb)
+    
+    # Extract extrinsic matrices in world-to-camera format.
+    imdata = manager.images
+    w2c_dict = {}
+    camera_ids = []
+    timestamps_dict = {}
+    ids_dict = {}
+    Ks_dict = {}
+    imsize_dict = dict()  # width, height
+    bottom = np.array([0, 0, 0, 1]).reshape(1, 4)
+    
+    pbar = tqdm(imdata, desc="metadata", ncols=100)
+    for i, k in enumerate(pbar):
+        #
+        im = imdata[k]
+        im_name = im.name
+        rot = im.R()
+        trans = im.tvec.reshape(3, 1)
+        w2c = np.concatenate(
+            [np.concatenate([rot, trans], 1), bottom], axis=0, dtype=np.float32
+        )
+        w2c_dict[im_name] = w2c
+        
+        # extract timestamp from image name
+        timestamp = int(im_name.split("_")[1].split(".")[0])
+        timestamps_dict[im_name] = timestamp
+
+        # support different camera intrinsics
+        camera_id = im.camera_id
+        ids_dict[im_name] = camera_id
+        camera_ids.append(camera_id)
+
+        # camera intrinsics
+        cam = manager.cameras[camera_id]
+        fx, fy, cx, cy = cam.fx, cam.fy, cam.cx, cam.cy
+        K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+
+        Ks_dict[im_name] = K
+        imsize_dict[im_name] = (
+            cam.width,  # subsample_factor,
+            cam.height,  # subsample_factor
+        )
+
+    print(f"[COLMAP] {len(imdata)} images, taken by {len(set(camera_ids))} cameras.")
+
+    if len(imdata) == 0:
+        raise ValueError("No images found in COLMAP.")
+
+    # Convert extrinsics to camera-to-world.
+    c2w_dict = {}
+    for k in w2c_dict:
+        c2w_dict[k] = np.linalg.inv(w2c_dict[k])
+        
+    # dict to list of poses
+    poses_all = [c2w_dict[k] for k in c2w_dict]
+    
     # rescale (optional)
     scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
         poses_all, to_distance=config["max_cameras_distance"]
     )
-
     scene_radius = max_camera_distance
-
+    
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
@@ -209,176 +193,210 @@ def load(
 
     # local transform
     local_transform = np.eye(4)
+    
+    # Image names from COLMAP
+    imgs_names = [imdata[k].name for k in imdata]
+    # sort by name
+    imgs_names = sorted(imgs_names)
+    
+    # need to load 1 image to get the size
+    img_path = os.path.join(images_path, imgs_names[0])
+    img_pil = Image.open(img_path)
+    actual_width, actual_height = img_pil.size
+    print("actual_width", actual_width, "actual_height", actual_height)
+
+    # load extra.json
+    with open(os.path.join(scene_path, "extra.json"), "r") as fp:
+        extra_meta = json.load(fp)
+        fps = extra_meta["fps"]
+    print("fps", fps)
 
     # load images if needed
     rgbs_dict = {}
     masks_dict = {}
     depths_dict = {}
+    covisible_dict = {}
     if not config["pose_only"]:
 
-        pbar = tqdm(data.items(), desc="loading images", ncols=100)
-        for split_name, split_data in pbar:
-            rgbs_dict[split_name] = []
-
-            frames_pbar = tqdm(split_data["frame_names"], desc=split_name, ncols=100)
-            for frame_name in frames_pbar:
-                rgb_path = os.path.join(
-                    scene_path, "rgb", f"{subsample_factor}x", f"{frame_name}.png"
-                )
+        pbar = tqdm(imgs_names, desc="loading images", ncols=100)
+        for img_name in pbar:
+                
+            # rgb
+            img_path = os.path.join(images_path, img_name)
+            # load PIL image
+            img_pil = Image.open(img_path)
+            img_np = image_to_numpy(img_pil, use_uint8=True)
+            rgb_np = img_np[..., :3]
+            # print("rgb", rgb_np.shape)
+            rgbs_dict[img_name] = rgb_np
+            
+            # mask
+            if config["load_masks"]:
+                mask_path = os.path.join(masks_dir, img_name)
                 # load PIL image
-                img_pil = Image.open(rgb_path)
-                img_np = image_to_numpy(img_pil, use_uint8=True)
-                # mask = img_np[..., -1]
-                # # negate mask
-                # mask = 255 - mask
-                # rgb_np = img_np[..., :-1]
-                # # set masked pixels to black
-                # rgb_np[mask == 0] = 0
-                # print("img_np", img_np.shape, img_np.dtype)
-                # exit(0)
-                rgb_np = img_np[..., :3]
-                rgbs_dict[split_name].append(rgb_np)
-
-        # if config["load_masks"]:
-        #     for split_name, split_data in data.items():
-        #         masks_dict[split_name] = []
-
-        if config["load_depths"]:
-            for split_name, split_data in data.items():
-                depths_dict[split_name] = []
-
-                frames_pbar = tqdm(
-                    split_data["frame_names"], desc=split_name, ncols=100
-                )
-                for frame_name in frames_pbar:
-                    depth_path = os.path.join(
-                        scene_path, "depth", f"{subsample_factor}x", f"{frame_name}.npy"
-                    )
-                    # check if file exists
-                    if not os.path.exists(depth_path):
-                        print_warning(f"Depth file not found: {depth_path}")
-                        continue
+                img_pil = Image.open(mask_path)
+                mask_np = image_to_numpy(img_pil, use_uint8=True)  # (H, W)
+                mask_np = mask_np[..., None]  # (H, W, 1)
+                # print("mask", mask_np.shape)
+                masks_dict[img_name] = mask_np
+                
+            # depth
+            if config["load_depths"]:
+                # change extension to .npy
+                depth_name = img_name.replace(".png", ".npy")
+                depth_path = os.path.join(depths_dir, depth_name)
+                # check if file exists
+                if not os.path.exists(depth_path):
+                    # it is a test camera, no depth is given, just skip
+                    pass
+                else:
                     # load npy
-                    depth_np = np.load(depth_path)
-                    # multiply depth times scene scale mult
-                    depth_np *= scene_radius_mult
-                    #
-                    depths_dict[split_name].append(depth_np)
+                    depth_np = np.load(depth_path)  # (H, W)
+                    depth_np = depth_np[..., None]  # (H, W, 1)
+                    # print("depth", depth_np.shape)
+                    depths_dict[img_name] = depth_np
 
-        # TODO: load covisible for validation split
+            # covisible
+            if config["load_covisible"]:
+                covisible_path = os.path.join(covisible_dir, img_name)
+                # check if file exists
+                if not os.path.exists(covisible_path):
+                    # it is a train camera, no covisible is given, just skip
+                    pass
+                else:
+                    # load PIL image
+                    img_pil = Image.open(covisible_path)
+                    covisible_np = image_to_numpy(img_pil, use_uint8=True)  # (H, W)
+                    covisible_np = covisible_np[..., None]  # (H, W, 1)
+                    # print("covisible", covisible_np.shape)
+                    covisible_dict[img_name] = covisible_np
 
-    # Load 2D tracks
-    frame_names = []
+    # TODO: load 2D tracks
+    if False:
+    
+        # Load 2D tracks
+        frame_names = []
 
-    # Load the query pixels from 2D tracks.
-    query_tracks_2d = [
-        np.load(
-            osp.join(
-                scene_path,
-                "flow3d_preprocessed/2d_tracks/",
-                f"{subsample_factor}x/{frame_name}_{frame_name}.npy",
+        # Load the query pixels from 2D tracks.
+        query_tracks_2d = [
+            np.load(
+                osp.join(
+                    flow3d_dir,
+                    "/2d_tracks/",
+                    f"{subsample_factor}x/{frame_name}_{frame_name}.npy",
+                )
+            ).astype(np.float32)
+            for frame_name in frame_names
+        ]
+
+        num_samples = 1000
+        num_frames = 10  # TODO: full sequence length
+        step = 1
+
+        raw_tracks_2d = []
+        candidate_frames = list(range(0, num_frames, step))
+        num_sampled_frames = len(candidate_frames)
+        for i in tqdm(candidate_frames, desc="Loading 2D tracks", leave=False):
+            curr_num_samples = query_tracks_2d[i].shape[0]
+            num_samples_per_frame = (
+                int(np.floor(num_samples / num_sampled_frames))
+                if i != candidate_frames[-1]
+                else num_samples
+                - (num_sampled_frames - 1) * int(np.floor(num_samples / num_sampled_frames))
             )
-        ).astype(np.float32)
-        for frame_name in frame_names
-    ]
-
-    num_samples = 1000
-    num_frames = 10  # TODO: full sequence length
-    step = 1
-
-    raw_tracks_2d = []
-    candidate_frames = list(range(0, num_frames, step))
-    num_sampled_frames = len(candidate_frames)
-    for i in tqdm(candidate_frames, desc="Loading 2D tracks", leave=False):
-        curr_num_samples = query_tracks_2d[i].shape[0]
-        num_samples_per_frame = (
-            int(np.floor(num_samples / num_sampled_frames))
-            if i != candidate_frames[-1]
-            else num_samples
-            - (num_sampled_frames - 1) * int(np.floor(num_samples / num_sampled_frames))
-        )
-        if num_samples_per_frame < curr_num_samples:
-            track_sels = np.random.choice(
-                curr_num_samples, (num_samples_per_frame,), replace=False
-            )
-        else:
-            track_sels = np.arange(0, curr_num_samples)
-
-        curr_tracks_2d = []
-        for j in range(0, num_frames, step):
-            if i == j:
-                target_tracks_2d = query_tracks_2d[i]
+            if num_samples_per_frame < curr_num_samples:
+                track_sels = np.random.choice(
+                    curr_num_samples, (num_samples_per_frame,), replace=False
+                )
             else:
-                target_tracks_2d = np.load(
-                    osp.join(
-                        scene_path,
-                        "flow3d_preprocessed/2d_tracks/",
-                        f"{subsample_factor}x/"
-                        f"{frame_names[i]}_"
-                        f"{frame_names[j]}.npy",
-                    )
-                ).astype(np.float32)
+                track_sels = np.arange(0, curr_num_samples)
 
-            curr_tracks_2d.append(target_tracks_2d[track_sels])
-        # stack with numpy
-        raw_tracks_2d.append(np.stack(curr_tracks_2d, axis=1))
+            curr_tracks_2d = []
+            for j in range(0, num_frames, step):
+                if i == j:
+                    target_tracks_2d = query_tracks_2d[i]
+                else:
+                    target_tracks_2d = np.load(
+                        osp.join(
+                            scene_path,
+                            "flow3d_preprocessed/2d_tracks/",
+                            f"{subsample_factor}x/"
+                            f"{frame_names[i]}_"
+                            f"{frame_names[j]}.npy",
+                        )
+                    ).astype(np.float32)
 
+                curr_tracks_2d.append(target_tracks_2d[track_sels])
+            # stack with numpy
+            raw_tracks_2d.append(np.stack(curr_tracks_2d, axis=1))
+            
+            # TODO: convert to 3D tracks
+            # ...
+    
     # cameras objects
     cameras_splits = {}
-    for split in splits:
-        cameras_splits[split] = []
-
-        for i, frame_name in enumerate(data[split]["frame_names"]):
-
-            # print(i, frame_name)
-            rgbs_split = rgbs_dict.get(split)
-            if rgbs_split is not None and len(rgbs_split) > 0:
-                cam_imgs = rgbs_split[i][None, ...]  # (1, H, W, 3)
-            else:
-                cam_imgs = None
-
-            masks_split = masks_dict.get(split)
-            if masks_split is not None and len(masks_split) > 0:
-                cam_masks = masks_split[i][None, ...]  # (1, H, W, 1)
-            else:
-                cam_masks = None
-
-            depths_split = depths_dict.get(split)
-            if depths_split is not None and len(depths_split) > 0:
-                cam_depths = depths_split[i][None, ...]  # (1, H, W, 1)
-            else:
-                cam_depths = None
-
-            # get camera id (int)
-            idx = data[split]["camera_ids"][i]
-            # get frame id (int)
-            timestamp = data[split]["timestamps"][i]
-            # get camera pose
-            pose = poses_dict[split][i]
-            # get camera intrinsics
-            intrinsics = intrinsics_dict[split][i]
-
-            # update intrinsics based on subsample factor
-            intrinsics[0, :] *= 1 / float(subsample_factor)
-            intrinsics[1, :] *= 1 / float(subsample_factor)
-
-            camera = Camera(
-                intrinsics=intrinsics,
-                pose=pose,
-                global_transform=global_transform,
-                local_transform=local_transform,
-                rgbs=cam_imgs,
-                masks=cam_masks,
-                depths=cam_depths,
-                timestamps=timestamp,
-                camera_label=str(idx),
-                width=width,
-                height=height,
-                subsample_factor=1,  # int(config["subsample_factor"]),
-                # verbose=verbose,
-            )
-
-            cameras_splits[split].append(camera)
+    
+    if "train" in splits:
+        cameras_splits["train"] = []
+    
+    if "val" in splits:
+        cameras_splits["val"] = []
+    
+    pbar = tqdm(imgs_names, desc="loading images", ncols=100)
+    for img_name in pbar:
+        
+        # check if img_name starts with "0"
+        if not img_name.startswith("0"):
+            # it is not a train camera, just skip
+            split = "val"
+        else:
+            split = "train"
+        
+        # collect data
+        c2w = c2w_dict.get(img_name)
+        intrinsics = deepcopy(Ks_dict.get(img_name))
+        timestamp = timestamps_dict.get(img_name)
+        idx = ids_dict.get(img_name)
+        colmap_width, colmap_height = imsize_dict.get(img_name)
+        
+        # check image scaling
+        s_height = actual_height / colmap_height
+        s_width = actual_width / colmap_width
+        # intrinsics
+        intrinsics[0, :] *= s_width
+        intrinsics[1, :] *= s_height
+        
+        rgb_np = rgbs_dict.get(img_name)
+        if rgb_np is not None:
+            rgb_np = rgb_np[None, ...]  # (1, H, W, 3)
+        mask_np = masks_dict.get(img_name)
+        if mask_np is not None:
+            mask_np = mask_np[None, ...]  # (1, H, W, 1)
+        depth_np = depths_dict.get(img_name)
+        if depth_np is not None:
+            depth_np = depth_np[None, ...]  # (1, H, W, 1)
+        covisible_np = covisible_dict.get(img_name)
+        if covisible_np is not None:
+            covisible_np = covisible_np[None, ...]  # (1, H, W, 1)
+            
+        # create camera object
+        camera = Camera(
+            intrinsics=intrinsics,
+            pose=c2w,
+            global_transform=global_transform,
+            local_transform=local_transform,
+            rgbs=rgb_np,
+            masks=mask_np,
+            depths=depth_np,
+            timestamps=timestamp,
+            camera_label=str(idx),
+            width=actual_width,
+            height=actual_height,
+            subsample_factor=1,  # int(config["subsample_factor"]),
+            # verbose=verbose,
+        )
+        # add to list
+        cameras_splits[split].append(camera)
 
     return {
         "scene_type": config["scene_type"],

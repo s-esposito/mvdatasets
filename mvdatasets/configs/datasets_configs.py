@@ -363,6 +363,8 @@ class Flow3DConfig(DatasetConfig):
     """Load mask images"""
     load_depths: bool = True
     """Load depth images"""
+    load_covisible: bool = True
+    """Load covisible images"""
     load_2d_tracks: bool = True
     """Load 2D tracks"""
     load_3d_tracks: bool = True
@@ -548,11 +550,12 @@ datasets_configs: Dict[str, DatasetConfig] = {
         dataset_name="iphone_som",
         splits=["train", "val"],
         scene_type="unbounded",
-        subsample_factor=2,
+        subsample_factor=1,
         load_masks=True,
         load_depths=True,
-        load_2d_tracks=True,
-        load_3d_tracks=True,
+        load_covisible=True,
+        load_2d_tracks=False,
+        load_3d_tracks=False,
         rotate_deg=[90.0, 0.0, 0.0],
         max_cameras_distance=None,  # no scaling
     ),
