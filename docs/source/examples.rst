@@ -102,5 +102,14 @@ Load and save dataset configuration to YAML.
    :members:
    :undoc-members:
 
+Camera poses interpolation
+--------------------------
+
+Interpolate between camera poses.
+
+.. automodule:: examples.camera_interpolation_vis
+   :members:
+   :undoc-members:
+
 
 

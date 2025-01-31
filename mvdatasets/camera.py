@@ -478,6 +478,20 @@ class Camera:
         pose = self.get_pose()
         center = pose[:3, 3]
         return center
+    
+    def get_near(self) -> float:
+        """returns camera near plane
+        Returns:
+            float: camera near plane
+        """
+        return self.near
+    
+    def get_far(self) -> float:
+        """returns camera far plane
+        Returns:
+            float: camera far plane
+        """
+        return self.far
 
     def resize(self, subsample_factor: float, verbose: bool = False) -> None:
         """make frames smaller by scaling them by scale factor (inplace operation)

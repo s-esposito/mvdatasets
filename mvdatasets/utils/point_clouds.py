@@ -18,6 +18,7 @@ def load_point_cloud(point_cloud_path, max_nr_points=None, verbose=False):
     """
 
     # if exists, load it
+    point_cloud_path = str(point_cloud_path)
     if os.path.exists(point_cloud_path):
         # if format is .ply or .obj
         if point_cloud_path.endswith(".ply") or point_cloud_path.endswith(".obj"):
