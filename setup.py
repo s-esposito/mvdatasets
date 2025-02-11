@@ -12,6 +12,8 @@ setup(
     packages=find_packages(),
     install_requires=[
         # main
+        "PyOpenGL>=3.1.9",
+        "glfw>=2.8.0",
         "gdown>=5.2.0",
         "flake8>=7.1.1",
         "black>=24.8.0",

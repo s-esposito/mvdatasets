@@ -190,7 +190,7 @@ class Camera:
         """return camera image resolution (width, height)"""
         return self.width, self.height
 
-    def get_camera_label(self) -> int:
+    def get_label(self) -> int:
         """return camera index"""
         return self.camera_label
 
@@ -478,14 +478,14 @@ class Camera:
         pose = self.get_pose()
         center = pose[:3, 3]
         return center
-    
+
     def get_near(self) -> float:
         """returns camera near plane
         Returns:
             float: camera near plane
         """
         return self.near
-    
+
     def get_far(self) -> float:
         """returns camera far plane
         Returns:

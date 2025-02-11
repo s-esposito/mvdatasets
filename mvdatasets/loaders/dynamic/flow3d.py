@@ -74,32 +74,32 @@ def load(
         subsample_factor = 1
 
     # foad data from flow3d_preprocessed
-    
+
     flow3d_dir = scene_path / "flow3d_preprocessed"
-    
+
     if not os.path.exists(flow3d_dir):
         raise ValueError(f"flow3d_preprocessed directory {flow3d_dir} does not exist.")
-    
+
     # rgb images
     images_path = scene_path / "rgb" / f"{subsample_factor}x"
     if not os.path.exists(images_path):
         raise ValueError(f"Images directory {images_path} does not exist.")
-    
+
     # depth images
     depths_dir = flow3d_dir / "aligned_depth_anything_colmap" / f"{subsample_factor}x"
     if not os.path.exists(depths_dir):
         raise ValueError(f"Depth directory {depths_dir} does not exist.")
-    
+
     # mask images
     masks_dir = flow3d_dir / "track_anything" / f"{subsample_factor}x"
     if not os.path.exists(masks_dir):
         raise ValueError(f"Mask directory {masks_dir} does not exist.")
-    
+
     # covisible images
     covisible_dir = flow3d_dir / "covisible" / f"{subsample_factor}x" / "val"
     if not os.path.exists(covisible_dir):
         raise ValueError(f"Covisible directory {covisible_dir} does not exist.")
-    
+
     # read colmap data
 
     colmap_dir = flow3d_dir / "colmap" / "sparse"
@@ -113,7 +113,7 @@ def load(
     manager.load_cameras()
     manager.load_images()
     manager.load_points3D()
-    
+
     # get points
     points_3d = manager.points3D.astype(np.float32)
     points_rgb = manager.point3D_colors
@@ -121,7 +121,7 @@ def load(
     if points_rgb is not None:
         points_rgb = points_rgb.astype(np.uint8)
     point_cloud = PointCloud(points_3d, points_rgb)
-    
+
     # Extract extrinsic matrices in world-to-camera format.
     imdata = manager.images
     w2c_dict = {}
@@ -131,7 +131,7 @@ def load(
     Ks_dict = {}
     imsize_dict = dict()  # width, height
     bottom = np.array([0, 0, 0, 1]).reshape(1, 4)
-    
+
     pbar = tqdm(imdata, desc="metadata", ncols=100)
     for i, k in enumerate(pbar):
         #
@@ -143,7 +143,7 @@ def load(
             [np.concatenate([rot, trans], 1), bottom], axis=0, dtype=np.float32
         )
         w2c_dict[im_name] = w2c
-        
+
         # extract timestamp from image name
         timestamp = int(im_name.split("_")[1].split(".")[0])
         timestamps_dict[im_name] = timestamp
@@ -173,16 +173,16 @@ def load(
     c2w_dict = {}
     for k in w2c_dict:
         c2w_dict[k] = np.linalg.inv(w2c_dict[k])
-        
+
     # dict to list of poses
     poses_all = [c2w_dict[k] for k in c2w_dict]
-    
+
     # rescale (optional)
     scene_radius_mult, min_camera_distance, max_camera_distance = rescale(
         poses_all, to_distance=config["max_cameras_distance"]
     )
     scene_radius = max_camera_distance
-    
+
     # global transform
     global_transform = np.eye(4)
     # rotate and scale
@@ -193,12 +193,12 @@ def load(
 
     # local transform
     local_transform = np.eye(4)
-    
+
     # Image names from COLMAP
     imgs_names = [imdata[k].name for k in imdata]
     # sort by name
     imgs_names = sorted(imgs_names)
-    
+
     # need to load 1 image to get the size
     img_path = os.path.join(images_path, imgs_names[0])
     img_pil = Image.open(img_path)
@@ -220,7 +220,7 @@ def load(
 
         pbar = tqdm(imgs_names, desc="loading images", ncols=100)
         for img_name in pbar:
-                
+
             # rgb
             img_path = os.path.join(images_path, img_name)
             # load PIL image
@@ -229,7 +229,7 @@ def load(
             rgb_np = img_np[..., :3]
             # print("rgb", rgb_np.shape)
             rgbs_dict[img_name] = rgb_np
-            
+
             # mask
             if config["load_masks"]:
                 mask_path = os.path.join(masks_dir, img_name)
@@ -239,7 +239,7 @@ def load(
                 mask_np = mask_np[..., None]  # (H, W, 1)
                 # print("mask", mask_np.shape)
                 masks_dict[img_name] = mask_np
-                
+
             # depth
             if config["load_depths"]:
                 # change extension to .npy
@@ -276,7 +276,7 @@ def load(
 
     # TODO: load 2D tracks
     if False:
-    
+
         # Load 2D tracks
         frame_names = []
 
@@ -305,7 +305,8 @@ def load(
                 int(np.floor(num_samples / num_sampled_frames))
                 if i != candidate_frames[-1]
                 else num_samples
-                - (num_sampled_frames - 1) * int(np.floor(num_samples / num_sampled_frames))
+                - (num_sampled_frames - 1)
+                * int(np.floor(num_samples / num_sampled_frames))
             )
             if num_samples_per_frame < curr_num_samples:
                 track_sels = np.random.choice(
@@ -332,43 +333,43 @@ def load(
                 curr_tracks_2d.append(target_tracks_2d[track_sels])
             # stack with numpy
             raw_tracks_2d.append(np.stack(curr_tracks_2d, axis=1))
-            
+
             # TODO: convert to 3D tracks
             # ...
-    
+
     # cameras objects
     cameras_splits = {}
-    
+
     if "train" in splits:
         cameras_splits["train"] = []
-    
+
     if "val" in splits:
         cameras_splits["val"] = []
-    
+
     pbar = tqdm(imgs_names, desc="loading images", ncols=100)
     for img_name in pbar:
-        
+
         # check if img_name starts with "0"
         if not img_name.startswith("0"):
             # it is not a train camera, just skip
             split = "val"
         else:
             split = "train"
-        
+
         # collect data
         c2w = c2w_dict.get(img_name)
         intrinsics = deepcopy(Ks_dict.get(img_name))
         timestamp = timestamps_dict.get(img_name)
         idx = ids_dict.get(img_name)
         colmap_width, colmap_height = imsize_dict.get(img_name)
-        
+
         # check image scaling
         s_height = actual_height / colmap_height
         s_width = actual_width / colmap_width
         # intrinsics
         intrinsics[0, :] *= s_width
         intrinsics[1, :] *= s_height
-        
+
         rgb_np = rgbs_dict.get(img_name)
         if rgb_np is not None:
             rgb_np = rgb_np[None, ...]  # (1, H, W, 3)
@@ -381,7 +382,7 @@ def load(
         covisible_np = covisible_dict.get(img_name)
         if covisible_np is not None:
             covisible_np = covisible_np[None, ...]  # (1, H, W, 1)
-            
+
         # create camera object
         camera = Camera(
             intrinsics=intrinsics,

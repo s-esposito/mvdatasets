@@ -267,7 +267,7 @@ def load(
     # rescale near and far
     near = near * scene_radius_mult
     far = far * scene_radius_mult
-    
+
     # cameras objects
     cameras_splits = {}
     for split in splits:

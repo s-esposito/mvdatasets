@@ -2,6 +2,7 @@ from rich import print
 from typing import List
 import numpy as np
 from pathlib import Path
+from mvdatasets.geometry.primitives import PointCloud
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
@@ -264,9 +265,10 @@ class MVDataset:
     def get_split(self, split: str) -> List[Camera]:
         """Returns the list of cameras for a split"""
         if split not in self.get_splits():
-            raise ValueError(
-                f"split {split} does not exist, available splits: {list(self.data.keys())}"
-            )
+            return []
+            # raise ValueError(
+            #     f"split {split} does not exist, available splits: {list(self.data.keys())}"
+            # )
         return self.data[split]
 
     def get_splits(self) -> List[str]:
@@ -292,6 +294,9 @@ class MVDataset:
 
     def get_foreground_radius(self) -> float:
         return self.foreground_radius
+
+    def get_point_clouds(self) -> List[PointCloud]:
+        return self.point_clouds
 
     def has_masks(self) -> bool:
         for split, cameras in self.data.items():

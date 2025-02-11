@@ -45,7 +45,7 @@ def main(cfg: ExampleConfig, pc_paths: List[Path]):
     c2w_all = np.stack(c2w_all, axis=0)
     # interpolate camera poses
     c2w_all = generate_interpolated_path(cameras=cameras, n_interp=100)
-    
+
     # use camera 0 as a template to create all new cameras
     camera = cameras[0]
     new_cameras = []
@@ -62,7 +62,7 @@ def main(cfg: ExampleConfig, pc_paths: List[Path]):
             subsample_factor=1,
         )
         new_cameras.append(new_camera)
-        
+
     # make video
     make_video_camera_trajectory(
         cameras=new_cameras,
@@ -101,14 +101,13 @@ if __name__ == "__main__":
     main(args, pc_paths)
 
 
+# elif traj_path == "ellipse":
+#     height = c2w_all[:, 2, 3].mean()
+#     c2w_all = generate_ellipse_path_z(c2w_all, height=height)
 
- # elif traj_path == "ellipse":
-    #     height = c2w_all[:, 2, 3].mean()
-    #     c2w_all = generate_ellipse_path_z(c2w_all, height=height)
-
-    # # elif traj_path == "spiral":
-    # #     c2w_all = generate_spiral_path(
-    # #         c2w_all,
-    # #         bounds=bounds * scene_radius,
-    # #         spiral_scale_r=spiral_radius_scale,
-    # #     )
+# # elif traj_path == "spiral":
+# #     c2w_all = generate_spiral_path(
+# #         c2w_all,
+# #         bounds=bounds * scene_radius,
+# #         spiral_scale_r=spiral_radius_scale,
+# #     )

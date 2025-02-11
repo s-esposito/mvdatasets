@@ -53,7 +53,7 @@ def get_tracks_3d(
 
     # TODO: get raw_tracks_2d from the dataset
     raw_tracks_2d = None
-    
+
     # Process 3D tracks.
     inv_Ks = torch.linalg.inv(self.Ks)[::step]
     c2ws = torch.linalg.inv(self.w2cs)[::step]

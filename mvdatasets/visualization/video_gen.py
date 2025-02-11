@@ -177,7 +177,7 @@ def make_video_depth_unproject(
             draw_origin=draw_origin,
             draw_cameras_frustums=True,
             figsize=(15, 15),
-            title=f"{dataset_name} camera {camera.get_camera_label()} depth unprojection",
+            title=f"{dataset_name} camera {camera.get_label()} depth unprojection",
             show=False,
             save_path=os.path.join(output_path, f"{format(i, '09d')}.png"),
         )
