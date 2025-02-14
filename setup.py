@@ -12,6 +12,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         # main
+        "pyquat>=0.5.1",
         "PyOpenGL>=3.1.9",
         "glfw>=2.8.0",
         "gdown>=5.2.0",

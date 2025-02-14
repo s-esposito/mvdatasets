@@ -6,31 +6,7 @@ from mvdatasets.geometry.primitives import PointCloud
 from mvdatasets.utils.point_clouds import load_point_clouds
 from mvdatasets.utils.printing import print_error, print_warning, print_info
 from mvdatasets import Camera
-
-
-DATASET_LOADER_MAPPING = {
-    "nerf_synthetic": "blender",
-    "nerf_furry": "blender",
-    "refnerf": "blender",
-    "shelly": "blender",
-    "llff": "colmap",
-    "mipnerf360": "colmap",
-    "colmap": "colmap",
-    "dtu": "dtu",
-    "blended-mvs": "dtu",
-    "dmsr": "dmsr",
-    # "ingp": "ingp",
-    "d-nerf": "d-nerf",
-    "visor": "visor",
-    "neu3d": "neu3d",
-    "panoptic-sports": "panoptic-sports",
-    "nerfies": "nerfies",
-    "hypernerf": "nerfies",
-    "iphone": "iphone",
-    # preprocessing
-    "monst3r": "monst3r",
-    "iphone_som": "flow3d",
-}
+from mvdatasets.configs.datasets_configs import datasets_loaders_mapping
 
 
 class MVDataset:
@@ -75,7 +51,7 @@ class MVDataset:
 
         # STATIC SCENE DATASETS -----------------------------------------------
 
-        loader = DATASET_LOADER_MAPPING.get(dataset_name, None)
+        loader = datasets_loaders_mapping.get(dataset_name, None)
 
         # dtu loader
         if loader == "dtu":
@@ -104,6 +80,12 @@ class MVDataset:
         elif loader == "colmap":
             from mvdatasets.loaders.static.colmap import load
 
+            res = load(dataset_path, scene_name, config, verbose=verbose)
+            
+        # tum loader
+        elif loader == "tum":
+            from mvdatasets.loaders.static.tum import load
+            
             res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # DYNAMIC SCENE DATASETS ----------------------------------------------
@@ -155,7 +137,12 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.flow3d import load
 
             res = load(dataset_path, scene_name, config, verbose=verbose)
-
+            
+        # kubric loader
+        elif loader == "kubric":
+            from mvdatasets.loaders.dynamic.kubric import load
+            
+            res = load(dataset_path, scene_name, config, verbose=verbose)
         else:
 
             raise ValueError(f"Dataset {dataset_name} is not supported")

@@ -84,6 +84,11 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     elif dataset_name == "mipnerf360":
         scene_name = "garden"
         pc_paths = []
+        
+    # test tum
+    elif dataset_name == "tum":
+        scene_name = "rgbd_dataset_freiburg3_long_office_household"
+        pc_paths = []
 
     # test d-nerf
     elif dataset_name == "d-nerf":
@@ -118,6 +123,11 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
     # test monst3r
     elif dataset_name == "monst3r":
         scene_name = "car-turn"
+        pc_paths = []
+        
+    # test kubric
+    elif dataset_name == "kubric":
+        scene_name = "static"
         pc_paths = []
 
     else:

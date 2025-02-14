@@ -60,7 +60,7 @@ def main(cfg: ExampleConfig, pc_paths: List[Path]):
 
     # random camera index
     rand_idx = 0  # torch.randint(0, len(mv_data.get_split("test")), (1,)).item()
-    camera = deepcopy(mv_data.get_split("test")[rand_idx])
+    camera = deepcopy(mv_data.get_split("train")[rand_idx])
 
     # resize camera
     camera.resize(subsample_factor=10)

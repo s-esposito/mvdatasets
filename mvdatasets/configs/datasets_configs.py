@@ -399,6 +399,73 @@ class Flow3DConfig(DatasetConfig):
                 )
 
 
+@dataclass
+class KubricConfig(DatasetConfig):
+    # Default dataset configuration
+
+    load_masks: bool = True
+    """Load mask images"""
+    load_depths: bool = True
+    """Load depth images"""
+    # load_normals: bool = True
+    # """Load normal images"""
+    load_semantic_masks: bool = True
+    """Load semantic mask images"""
+    test_camera_freq: int = 8
+    """Sample a camera every test_camera_freq cameras from all cameras for test split"""
+    train_test_overlap: bool = True
+    """Use all cameras for training if True, else use a subset of cameras"""
+
+    def __post__init__(self):
+        # Check configuration values
+        super().__post__init__()
+        # load_masks
+        if type(self.load_masks) is not bool:
+            raise ValueError("load_masks must be a boolean")
+        # load_depths
+        if type(self.load_depths) is not bool:
+            raise ValueError("load_depths must be a boolean")
+        # # load normals
+        # if type(self.load_normals) is not bool:
+        #     raise ValueError("load_normals must be a boolean")
+        # load_semantic_masks
+        if type(self.load_semantic_masks) is not bool:
+            raise ValueError("load_semantic_masks must be a boolean")
+        # test_camera_freq
+        if type(self.test_camera_freq) is not int or self.test_camera_freq < 1:
+            raise ValueError("test_camera_freq must be an integer >= 1")
+        # train_test_overlap
+        if type(self.train_test_overlap) is not bool:
+            raise ValueError("train_test_overlap must be a boolean")
+        # check if splits are valid
+        valid_splits = ["train"]
+        for split in self.splits:
+            if split not in valid_splits:
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+                
+@dataclass
+class TUMConfig(DatasetConfig):
+    # Default dataset configuration
+
+    load_depths: bool = True
+    """Load depth images"""
+    
+    def __post__init__(self):
+        # Check configuration values
+        super().__post__init__()
+        # load_depths
+        if type(self.load_depths) is not bool:
+            raise ValueError("load_depths must be a boolean")
+        # check if splits are valid
+        valid_splits = ["train"]
+        for split in self.splits:
+            if split not in valid_splits:
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+    
 # -------------------------------------------------------------------------------
 
 
@@ -559,6 +626,28 @@ datasets_configs: Dict[str, DatasetConfig] = {
         rotate_deg=[90.0, 0.0, 0.0],
         max_cameras_distance=None,  # no scaling
     ),
+    # Kubric format
+    "kubric": KubricConfig(
+        dataset_name="kubric",
+        splits=["train"],
+        scene_type="unbounded",
+        subsample_factor=1,
+        load_masks=True,
+        load_depths=True,
+        # load_normals=True,
+        load_semantic_masks=True,
+        rotate_deg=[0.0, 0.0, 0.0],
+        max_cameras_distance=1.0,  # scale to 1.0
+    ),
+    # TUM format
+    "tum": TUMConfig(
+        dataset_name="tum",
+        splits=["train"],
+        scene_type="unbounded",
+        load_depths=True,
+        rotate_deg=[0.0, 0.0, 0.0],
+        max_cameras_distance=None,  # no scaling
+    ),
 }
 
 datasets_descriptions: Dict[str, str] = {
@@ -577,6 +666,36 @@ datasets_descriptions: Dict[str, str] = {
     "iphone": "iPhone dataset",
     "monst3r": "MonST3R dataset",
     "iphone_som": "iPhone-SOM dataset",
+    "kubric": "Kubric dataset",
+    "tum": "TUM dataset",
+}
+
+datasets_loaders_mapping: Dict[str, str] = {
+    # static datasets
+    "nerf_synthetic": "blender",
+    "nerf_furry": "blender",
+    "refnerf": "blender",
+    "shelly": "blender",
+    "llff": "colmap",
+    "mipnerf360": "colmap",
+    "colmap": "colmap",
+    "dtu": "dtu",
+    "blended-mvs": "dtu",
+    "dmsr": "dmsr",
+    "tum": "tum",
+    # "ingp": "ingp",
+    # dynamic datasets
+    "d-nerf": "d-nerf",
+    "visor": "visor",
+    "neu3d": "neu3d",
+    "panoptic-sports": "panoptic-sports",
+    "nerfies": "nerfies",
+    "hypernerf": "nerfies",
+    "iphone": "iphone",
+    "kubric": "kubric",
+    # preprocessing
+    "monst3r": "monst3r",
+    "iphone_som": "flow3d",
 }
 
 
