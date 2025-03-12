@@ -125,6 +125,12 @@ class MVDataset:
             from mvdatasets.loaders.dynamic.iphone import load
 
             res = load(dataset_path, scene_name, config, verbose=verbose)
+        
+        # droid-slam loader
+        elif loader == "droid-slam":
+            from mvdatasets.loaders.dynamic.droid_slam import load
+            
+            res = load(dataset_path, scene_name, config, verbose=verbose)
 
         # monst3r loader
         elif loader == "monst3r":

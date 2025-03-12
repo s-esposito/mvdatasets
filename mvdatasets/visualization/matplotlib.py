@@ -1304,6 +1304,7 @@ def _draw_camera_2d(
     depth = None
     if camera.has_depths():
         depth = data["depths"].cpu().numpy()
+        # add colormap to depth
     # depths is (H*W, 1) or None
 
     if semantic_mask is not None:
@@ -1336,10 +1337,21 @@ def _draw_camera_2d(
         depth = depth[..., :3]
         # concatenate rgb and depth
         # print(rgb.shape, depth.shape)
-        rgb = np.concatenate([rgb, depth], axis=1)
+        combined = np.concatenate([rgb, depth], axis=1)
+        ax.imshow(combined)
+        
+        # # ---
+        # # **Create a dummy mappable** to attach the colorbar:
+        # sm = mpl.cm.ScalarMappable(cmap=plt.cm.jet, norm=norm)
+        # sm.set_array([])  # no actual data needed, just for the colorbar
 
-    # display image
-    ax.imshow(rgb)
+        # # Add colorbar to the same axes:
+        # cbar = plt.colorbar(sm, ax=ax)
+        # cbar.set_label("Depth")
+
+    else:
+        # If no depth, just show RGB
+        ax.imshow(rgb)
 
 
 def _draw_camera_points_2d(

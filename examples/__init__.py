@@ -120,6 +120,11 @@ def get_dataset_test_preset(dataset_name: str = "dtu") -> Tuple[str, List[str], 
         scene_name = "paper-windmill"
         pc_paths = []
 
+    # test droid-slam
+    elif dataset_name == "droid-slam":
+        scene_name = "hike"
+        pc_paths = []
+    
     # test monst3r
     elif dataset_name == "monst3r":
         scene_name = "car-turn"

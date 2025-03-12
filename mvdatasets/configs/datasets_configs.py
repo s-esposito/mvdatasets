@@ -324,6 +324,28 @@ class iPhoneConfig(DatasetConfig):
 
 
 @dataclass
+class DroidSlamConfig(DatasetConfig):
+    # Default dataset configuration
+
+    frame_rate: float = 30.0
+    """Frame rate of the sequence"""
+
+    def __post__init__(self):
+        # Check configuration values
+        super().__post__init__()
+        # frame_rate
+        if type(self.frame_rate) is not float or self.frame_rate <= 0:
+            raise ValueError("frame_rate must be a float > 0")
+        # check if splits are valid
+        valid_splits = ["train"]
+        for split in self.splits:
+            if split not in valid_splits:
+                raise ValueError(
+                    f"split {split} not supported, must be one of {valid_splits}"
+                )
+
+
+@dataclass
 class MonST3RConfig(DatasetConfig):
     # Default dataset configuration
 
@@ -601,6 +623,14 @@ datasets_configs: Dict[str, DatasetConfig] = {
         rotate_deg=[90.0, 0.0, 0.0],
         max_cameras_distance=1.0,  # scale to 1.0
     ),
+    # droid-slam format
+    "droid-slam": DroidSlamConfig(
+        dataset_name="droid-slam",
+        splits=["train"],
+        scene_type="unbounded",
+        frame_rate=30.0,
+        max_cameras_distance=None,  # no scaling
+    ),
     # MonST3R format
     "monst3r": MonST3RConfig(
         dataset_name="monst3r",
@@ -664,6 +694,7 @@ datasets_descriptions: Dict[str, str] = {
     "panoptic-sports": "Panoptic-Sports dataset",
     "nerfies": "Nerfies dataset",
     "iphone": "iPhone dataset",
+    "droid-slam": "Droid-SLAM dataset",
     "monst3r": "MonST3R dataset",
     "iphone_som": "iPhone-SOM dataset",
     "kubric": "Kubric dataset",
@@ -694,6 +725,7 @@ datasets_loaders_mapping: Dict[str, str] = {
     "iphone": "iphone",
     "kubric": "kubric",
     # preprocessing
+    "droid-slam": "droid-slam",
     "monst3r": "monst3r",
     "iphone_som": "flow3d",
 }
