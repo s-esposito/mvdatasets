@@ -55,8 +55,8 @@ If you use this library for your research, please consider citing:
 
 .. code-block:: bibtex
 
-   @misc{Esposito2024MVDatasets,
-      author       = {Stefano Esposito and Andreas Geiger},
+   @misc{Esposito2025MVD,
+      author       = {Esposito, Stefano and Geiger, Andreas},
       title        = {MVDatasets: Standardized DataLoaders for 3D Computer Vision},
       year         = {2025},
       url          = {https://github.com/autonomousvision/mvdatasets},
